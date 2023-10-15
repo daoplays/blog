@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, HStack, VStack, Center, Image } from '@chakra-ui/react';
+import { Box, HStack, VStack, Center, Image, Link } from '@chakra-ui/react';
 import { isMobile } from "react-device-detect";
 import  { MathJax, MathJaxContext } from 'better-react-mathjax';
 import { Highlight, themes } from "prism-react-renderer"
@@ -14,10 +14,10 @@ function ImageBlock() {
 
         <>
             <Box>
-                <Image   src={entropy.src}/>
+                <Image   src={entropy.src} alt="Entropy"/>
             </Box>
             <Box>
-                <Image  src={entropy_diffs.src}/>
+                <Image  src={entropy_diffs.src} alt="Entropy Diffs"/>
             </Box>
         </>
 
@@ -122,7 +122,7 @@ const seed_struct =
             <br />
             <p>
 
-                In our <a style={{textDecoration: "underline"}} href="/blog/random_numbers">previous</a> post we compared a few different methods of generating random numbers on the Solana blockchain. The use case in that instance was strictly for programs that weren't using those random values for anything where real world value was at stake (i.e. not in a gambling app). As everything about the RNG sequence was transparent, it meant that it was easy for anyone to predict the next values, and therefore manipulate the system that used them.
+                In our <Link style={{textDecoration: "underline"}} href="/blog/random_numbers">previous</Link> post we compared a few different methods of generating random numbers on the Solana blockchain. The use case in that instance was strictly for programs that weren't using those random values for anything where real world value was at stake (i.e. not in a gambling app). As everything about the RNG sequence was transparent, it meant that it was easy for anyone to predict the next values, and therefore manipulate the system that used them.
                 <br/><br/>
 
                 In this post we are going to extend the previous functionality by generating the  seed for out random number generator (RNG) using information from off-chain via the oracle <a style={{textDecoration: "underline"}} href="https://pyth.network/">Pyth</a>.  At time of writing Pyth provides free access to  price data for around 80 different crypto and non-crypto assets, and adds very little computational cost to use within a program on-chain.

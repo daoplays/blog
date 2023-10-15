@@ -3,7 +3,8 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@chakra-ui/next-js": "^2.1.5",
@@ -46,6 +47,8 @@
     "@types/node": "20.8.4",
     "@types/plotly.js": "^2.12.27",
     "@types/react": "18.2.28",
+    "eslint": "8.51.0",
+    "eslint-config-next": "13.5.4",
     "typescript": "5.2.2"
   }
 }

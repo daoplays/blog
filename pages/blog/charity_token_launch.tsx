@@ -630,20 +630,20 @@ function PostContent() {
                     {!isMobile &&
                         <HStack>
                             <Box>
-                                <Image  src={token_img.src}/>
+                                <Image  src={token_img.src} alt="token image"/>
                             </Box>
                             <Box>
-                                <Image src={supporter_token_img.src}/>
+                                <Image src={supporter_token_img.src} alt="supporter image"/>
                             </Box>      
                         </HStack>
                     }
                     {isMobile &&
                          <VStack>
                             <Box>
-                                <Image src={token_img.src}/>
+                                <Image src={token_img.src} alt="token image"/>
                             </Box>
                             <Box>
-                                <Image src={supporter_token_img.src}/>
+                                <Image src={supporter_token_img.src} alt="supporter image"/>
                             </Box>      
                         </VStack>
                     }
@@ -668,21 +668,21 @@ function PostContent() {
                     <Box>
                         <Tooltip hasArrow label="Humanitarian Relief Organizations and International Nonprofits participating in this emergency response fund will receive an equal distribution of the fund. These organizations' missions include providing urgent medical care and humanitarian aid to children, individuals, families, and animals.">
                         <Link href="https://thegivingblock.com/campaigns/ukraine-emergency-response-fund/">
-                            <Image src={UkraineERF_img.src}/>
+                            <Image src={UkraineERF_img.src} alt="Ukraine ERF"/>
                         </Link>
                         </Tooltip>
                     </Box>
                     <Box>
                     <Tooltip hasArrow label="Water.org is an international nonprofit organization that has positively transformed millions of lives around the world with access to safe water and sanitation through affordable financing. Founded by Gary White and Matt Damon, Water.org pioneers market-driven financial solutions to the global water crisis. For 30 years, we've been providing women hope, children health, and families a future.">
                         <Link href="https://thegivingblock.com/donate/water-org/">
-                            <Image  src={WaterOrg_img.src}/>
+                            <Image  src={WaterOrg_img.src} alt="Water.Org"/>
                         </Link>
                         </Tooltip>
                     </Box>      
                     <Box>
                     <Tooltip hasArrow label="One Tree Planted is a 501(c)(3) nonprofit on a mission to make it simple for anyone to help the environment by planting trees. Their projects span the globe and are done in partnership with local communities and knowledgeable experts to create an impact for nature, people, and wildlife. Reforestation helps to rebuild forests after fires and floods, provide jobs for social impact, and restore biodiversity. Many projects have overlapping objectives, creating a combination of benefits that contribute to the UN's Sustainable Development Goals.">
                         <Link href="https://thegivingblock.com/donate/one-tree-planted/">
-                            <Image  src={OneTreePlanted_img.src}/>
+                            <Image  src={OneTreePlanted_img.src} alt="One Tree Planted"/>
                         </Link>
                         </Tooltip>
                     </Box>    
@@ -690,21 +690,21 @@ function PostContent() {
                     <Box>
                     <Tooltip hasArrow label="Evidence Action is a global nonprofit organization with an approach distinctive in international development - we exclusively scale interventions that are backed by strong evidence and can be delivered with exceptional cost-effectiveness. Our programs have grown since our founding in 2013 to reach over 280 million people annually. We take a data-driven approach to identifying, scaling, and continuously improving programs which deliver immense impact, ensuring these solutions measurably improve the lives of millions.">
                         <Link href="https://thegivingblock.com/donate/evidence-action/">
-                            <Image  src={EvidenceAction_img.src}/>
+                            <Image  src={EvidenceAction_img.src}  alt="Evidence Action"/>
                         </Link>
                         </Tooltip>
                     </Box>
                     <Box>
                     <Tooltip hasArrow label=" Girls Who Code is on a mission to close the gender gap in technology and to change the image of what a programmer looks like and does. Girls Who Code equips girls with the skills they need to pursue careers in technology, and the confidence they need to break barriers and thrive in a male-dominated industry.">
                         <Link href="https://thegivingblock.com/donate/girls-who-code/">
-                            <Image  src={GWC_img.src}/>
+                            <Image  src={GWC_img.src} alt="Girls Who Code"/>
                         </Link>
                         </Tooltip>
                     </Box>      
                     <Box>
                     <Tooltip hasArrow label="OutRight Action International fights for human rights and equality for lesbian, gay, bisexual, transgender, intersex and queer (LGBTIQ) people everywhere and to eliminate the systemic violence, persecution and discrimination LGBTIQ people face around the world. OutRight conducts vital and original research, advocates with governments at the United Nations and beyond, and supports grassroots LGBTIQ activists and organizations in dozens of countries each year.">
                         <Link href="https://thegivingblock.com/donate/outright-action-international/">
-                            <Image  src={Outright_img.src}/>
+                            <Image  src={Outright_img.src} alt="Outreach International"/>
                         </Link>
                         </Tooltip>
                     </Box>    
@@ -713,7 +713,7 @@ function PostContent() {
 
                     We provide free tools and resources that make it easy to learn about and support these wonderful organizations so that you can give where it matters most and ensure that you get the most “bang for your buck.”">
                         <Link href="https://thegivingblock.com/donate/the-life-you-can-save/">
-                            <Image  src={LifeYouCanSave_img.src}/>
+                            <Image  src={LifeYouCanSave_img.src} alt="The Life you can Save"/>
                         </Link>
                         </Tooltip>
                     </Box>   

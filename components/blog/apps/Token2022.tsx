@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useEffect, useState, useMemo } from "react";
 import { SetStateAction } from "react";
 
-import { ChakraProvider, Box, HStack, theme, Text, Center, VStack, NumberInput, NumberInputField, Divider } from "@chakra-ui/react";
+import { Box, HStack, Text, Center, VStack, NumberInput, NumberInputField, Divider, Image } from "@chakra-ui/react";
 import { isMobile } from "react-device-detect";
 
 import { PublicKey, Keypair, clusterApiUrl, Transaction, TransactionInstruction, SystemProgram, LAMPORTS_PER_SOL, sendAndConfirmTransaction } from "@solana/web3.js";
@@ -15,7 +15,6 @@ import {
     getAssociatedTokenAddress,
     ASSOCIATED_TOKEN_PROGRAM_ID,
     createAssociatedTokenAccountInstruction,
-    createTransferCheckedInstruction,
     getTransferFeeAmount,
     unpackAccount,
     createWithdrawWithheldTokensFromAccountsInstruction,
@@ -998,7 +997,7 @@ function Tokens2022App() {
                         </>
                     )}
 
-                    {processing_transaction && <img src={loading.src} width="50px" alt={""} />}
+                    {processing_transaction && <Image src={loading.src} width="50px" alt={""} />}
                 </VStack>
             </Center>
         );
@@ -1022,14 +1021,12 @@ export function Tokens2022() {
     const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], []);
 
     return (
-        <ChakraProvider theme={theme}>
-            <ConnectionProvider endpoint={endpoint}>
-                <WalletProvider wallets={wallets} autoConnect>
-                    <WalletModalProvider>
-                        <Tokens2022App />
-                    </WalletModalProvider>
-                </WalletProvider>
-            </ConnectionProvider>
-        </ChakraProvider>
+        <ConnectionProvider endpoint={endpoint}>
+            <WalletProvider wallets={wallets} autoConnect>
+                <WalletModalProvider>
+                    <Tokens2022App />
+                </WalletModalProvider>
+            </WalletProvider>
+        </ConnectionProvider>
     );
 }

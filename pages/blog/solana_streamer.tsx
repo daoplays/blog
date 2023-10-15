@@ -1020,7 +1020,7 @@ function PostContent() {
             <Box maxWidth="100%">
                 <Center>
                     <Box>
-                        <Image src={quicknode_img.src}/>
+                        <Image src={quicknode_img.src} alt="quicknode performance"/>
                     </Box>
                 </Center>
             </Box>

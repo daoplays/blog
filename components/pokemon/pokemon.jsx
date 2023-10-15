@@ -103,28 +103,28 @@ function Badges() {
         <Box ml="15%" mr="1rem" mb="1rem">
             <HStack>
                 <Box width="10%" height="10%">
-                    <Image style = {{opacity: 0.2}}  src={badge_1.src}/>
+                    <Image style = {{opacity: 0.2}}  src={badge_1.src} alt="badge"/>
                 </Box>
                 <Box width="10%" height="10%">
-                    <Image style = {{opacity: 0.2}}  src={badge_2.src}/>
+                    <Image style = {{opacity: 0.2}}  src={badge_2.src} alt="badge"/>
                 </Box>
                 <Box width="10%" height="10%">
-                    <Image style = {{opacity: 0.2}}  src={badge_3.src}/>
+                    <Image style = {{opacity: 0.2}}  src={badge_3.src} alt="badge"/>
                 </Box>
                 <Box width="10%" height="10%">
-                    <Image style = {{opacity: 0.2}} src={badge_4.src}/>
+                    <Image style = {{opacity: 0.2}} src={badge_4.src} alt="badge"/>
                 </Box>
                 <Box width="10%" height="10%">
-                    <Image style = {{opacity: 0.2}}  src={badge_5.src}/>
+                    <Image style = {{opacity: 0.2}}  src={badge_5.src} alt="badge"/>
                 </Box>
                 <Box width="10%" height="10%">
-                    <Image style = {{opacity: 0.2}}  src={badge_6.src}/>
+                    <Image style = {{opacity: 0.2}}  src={badge_6.src} alt="badge"/>
                 </Box>
                 <Box width="10%" height="10%">
-                    <Image style = {{opacity: 0.2}}  src={badge_7.src}/>
+                    <Image style = {{opacity: 0.2}}  src={badge_7.src} alt="badge"/>
                 </Box>
                 <Box width="10%" height="10%">
-                    <Image style = {{opacity: 0.2}} src={badge_8.src}/>
+                    <Image style = {{opacity: 0.2}} src={badge_8.src} alt="badge"/>
                 </Box>
             </HStack>
         </Box>
@@ -315,7 +315,7 @@ function GetCharityStats()
                 check_interval.current = null;
             }
         };
-    }, [init]);
+    }, [init, check_interval]);
 
     return { total_donated, donation_array, n_donations };
 }
@@ -484,7 +484,7 @@ function GetBidderStats()
                 check_interval.current = null;
             }
         };
-    }, [init]);
+    }, [init, check_interval]);
 
     return {current_bid, n_bidders, bid_index, total_bid, is_winner, tokens_remaining, time_selected};
 }
