@@ -1,2 +1,1 @@
-# blog
-Blogging about crypto and machine learning
+Blodding about crypto and machine learning
