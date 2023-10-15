@@ -5,3 +5,5 @@ build/
 .env
 # Local Netlify folder
 .netlify
+#nextjs stuff
+.next
