@@ -182,7 +182,7 @@ const seed_struct =
                 <p><br />
 
                 <MathJaxContext>
-                and if you are actually interested in the price then it is just given by <MathJax inline>{'P = (\\mathrm{price} \\pm \\mathrm{conf}) \\times 10^{\\mathrm{expo}}'} </MathJax> , but in our case we just take the price and conf fields, and convert the price to a u64.  This is safe for cryptocurrency prices, but be aware that for derivatives you may need to be more careful as  prices can go <a  style={{textDecoration: "underline"}} href="https://www.bbc.co.uk/news/business-52350082">negative</a>.
+                and if you are actually interested in the price then it is just given by <MathJax inline={true}>{'\\(P = (\\mathrm{price} \\pm \\mathrm{conf}) \\times 10^{\\mathrm{expo}}\\)'} </MathJax> , but in our case we just take the price and conf fields, and convert the price to a u64.  This is safe for cryptocurrency prices, but be aware that for derivatives you may need to be more careful as  prices can go <a  style={{textDecoration: "underline"}} href="https://www.bbc.co.uk/news/business-52350082">negative</a>.
                 </MathJaxContext>
 
 
@@ -200,7 +200,7 @@ const seed_struct =
                 <p><br />  
 
                 <MathJaxContext>
-                This is because for each of our streams we are going to create three u64 values using a combination of the BTC price <MathJax inline>{'\\pm'}</MathJax> the confidence interval.  We also make use of the Xorshift* RNG from the previous post, which takes a u64 as input and generates a random u64 from it.  While it is probably only necessary to apply this once per input we do so twice simply to make sure we have moved further from the starting point in state space.  By applying the Xorshift* generator at this point we guarantee that any delta in the price or confidence interval will yield significantly different inputs to the hashing function that will actually produce the seed.
+                This is because for each of our streams we are going to create three u64 values using a combination of the BTC price <MathJax inline>{'\\(\\pm\\)'}</MathJax> the confidence interval.  We also make use of the Xorshift* RNG from the previous post, which takes a u64 as input and generates a random u64 from it.  While it is probably only necessary to apply this once per input we do so twice simply to make sure we have moved further from the starting point in state space.  By applying the Xorshift* generator at this point we guarantee that any delta in the price or confidence interval will yield significantly different inputs to the hashing function that will actually produce the seed.
 
                 </MathJaxContext>
                 <br /><br /></p>   
