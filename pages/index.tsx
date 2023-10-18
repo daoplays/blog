@@ -89,7 +89,7 @@ const token_2022_intro = {
 
 const transfer_hook = {
   title:"The Solana SPL Token 2022 program (part 2) - Transfer Hook",
-  sub_title:"August 20 2023",
+  sub_title:"October 16 2023",
   post_text:"The next in a series of posts that introduces the Token-2022 program.  We perform a deep dive into one of the most interesting new features - the transfer hook.",
   image:solana,
   display_image: !isMobile
