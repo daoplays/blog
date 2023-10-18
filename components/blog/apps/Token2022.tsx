@@ -23,6 +23,7 @@ import {
     createMintToCheckedInstruction,
 } from "@solana/spl-token";
 import bs58 from "bs58";
+import BN from "bn.js";
 
 import loading from "./loading-gif.gif";
 
@@ -157,6 +158,20 @@ class Transfer_Token_Instruction {
     );
 }
 
+class MintCounter {
+    constructor(
+        readonly counter: bignum,
+    ) {}
+
+    static readonly struct = new BeetStruct<MintCounter>(
+        [
+            ["counter", u64]
+        ],
+        (args) => new MintCounter(args.counter!),
+        "MintCounter",
+    );
+}
+
 function dec2bin(dec: number) {
     return (dec >>> 0).toString(2);
 }
@@ -235,6 +250,10 @@ function Tokens2022App() {
     const [transfer_fee_max, setTransferFeeMax] = useState<number>(5000);
     const [interest_rate, setInterestRate] = useState<number>(10000);
 
+    const [hook_transfers, setHookTransfers] = useState<number>(0);
+    const check_hook_transfers = useRef<boolean>(false);
+
+
     const transfer_fee_bp_ref = useRef<HTMLInputElement>(null);
     const transfer_fee_max_ref = useRef<HTMLInputElement>(null);
     const interest_rate_ref = useRef<HTMLInputElement>(null);
@@ -308,17 +327,38 @@ function Tokens2022App() {
     }
 
     const CheckTempKeypair = useCallback(async () => {
-        if (temp_keypair === null || check_keypair.current === false) return;
+        if (temp_keypair === null) return;
 
-        let balance = await connection.getBalance(temp_keypair.publicKey, "confirmed");
+        if (check_keypair.current === true) {
 
-        if (balance === 0) return;
+            let balance = await connection.getBalance(temp_keypair.publicKey, "confirmed");
 
-        console.log("account has been created");
-        //await connection.requestAirdrop(temp_keypair.publicKey, LAMPORTS_PER_SOL);
+            if (balance === 0) return;
 
-        check_keypair.current = false;
-    }, [temp_keypair, connection]);
+            console.log("account has been created");
+            check_keypair.current = false;
+        }
+
+        if (check_hook_transfers.current === true) {
+            let mint_data_account = await PublicKey.findProgramAddressSync([Buffer.from("mint_data"), current_mint.toBytes()], HOOK_PROGRAM);
+            try {
+                let program_data_account = await connection.getAccountInfo(mint_data_account[0]);
+                const [counter] = MintCounter.struct.deserialize(program_data_account.data);
+    
+                let counter_val = new BN(counter.counter).toNumber();
+                if (hook_transfers !== counter_val) {
+                    setHookTransfers(counter_val);
+                    console.log("account data:", counter_val);
+                    check_hook_transfers.current = false;
+                }
+
+            } catch (error) {
+                console.log(error);
+            }
+
+        }
+
+    }, [temp_keypair, current_mint, connection, hook_transfers]);
 
     // interval for checking signatures
     useEffect(() => {
@@ -551,8 +591,12 @@ function Tokens2022App() {
             console.log(error);
         }
 
+        if (include_hook) {
+            check_hook_transfers.current = true;
+        }
+
         setProcessingTransaction(true);
-    }, [wallet, connection, current_mint, include_default]);
+    }, [wallet, connection, current_mint, include_default, include_hook]);
 
     const GetFees = useCallback(async () => {
         if (wallet.publicKey === null || current_mint === null || transfer_accounts.length === 0) return;
@@ -995,6 +1039,14 @@ function Tokens2022App() {
                             <Text>Actual Token Balance: {token_balance}</Text>
                             <Text>UI Token Balance (with interest): {tokenUIbalance}</Text>
                         </>
+                    )}
+
+                    {current_mint !== null && !account_frozen && mint_created && include_hook && (
+                         <>
+                         <Divider color={"black"} borderBottomWidth="2px" opacity={1} />
+
+                         <Text>Transfer Hook Counter: {hook_transfers}</Text>
+                     </>
                     )}
 
                     {processing_transaction && <Image src={loading.src} width="50px" alt={""} />}
