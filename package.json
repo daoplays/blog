@@ -46,6 +46,7 @@
     "node": ">=18"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^4.40.1",
     "@types/node": "20.8.4",
     "@types/plotly.js": "^2.12.27",
     "@types/react": "18.2.28",
