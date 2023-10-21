@@ -160,7 +160,7 @@ function PostContent() {
         <div className="container">
 
             <h1 className="h1 text-center mb-0 pt-3 font-weight-bold text-body">Intro to Reinforcement Learning From Human Feedback (part 1)</h1>
-            <h1 className="h5 text-center mb-1 pt-0 font-weight-bold text-secondary">October 18 2023</h1>
+            <h1 className="h5 text-center mb-1 pt-0 font-weight-bold text-secondary">October 21 2023</h1>
             <br />
 
             <h2 id="intro-header" className="mt-5" style={{fontSize: "22px"}}>Introduction</h2><br />

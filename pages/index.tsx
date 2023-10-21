@@ -99,7 +99,7 @@ const transfer_hook = {
 
 const rlhf_1 = {
   title:"Intro to Reinforcement Learning From Human Feedback (part 1)",
-  sub_title:"October 18 2023",
+  sub_title:"October 21 2023",
   post_text:"RLHF is a very interesting technique for training an AI from human feedback.  This post introduces the basic concepts with a simple example that doesn't need a lot of the technical details from the full implementation.  We'll be able to build on it though over the next few posts to end up with an Agent that can play Atari games using a human to provide feedback on its performance", 
   image:ML,
   display_image: !isMobile
