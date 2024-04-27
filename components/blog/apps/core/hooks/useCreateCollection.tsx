@@ -9,17 +9,18 @@ import {
     AccountMeta,
 } from "@solana/web3.js";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useCallback, useRef, useState } from "react";
-import bs58 from "bs58";
+import { useCallback, useRef, useState, Dispatch, SetStateAction } from "react";
 import { toast } from "react-toastify";
 import { PROGRAM, CORE, SYSTEM_KEY, DEV_RPC_NODE, DEV_WSS_NODE, serialise_CreateAsset_instruction } from "../state";
-const useCreateCollection = () => {
+const useCreateCollection = (name: string, uri: string, setCollection : Dispatch<SetStateAction<PublicKey>>) => {
     const wallet = useWallet();
 
     const [isLoading, setIsLoading] = useState(false);
+    const collectionRef = useRef<PublicKey | null>(null);
 
     const signature_ws_id = useRef<number | null>(null);
 
+    
     const check_signature_update = useCallback(async (result: any) => {
         //console.log(result);
         // if we have a subscription field check against ws_id
@@ -42,7 +43,9 @@ const useCreateCollection = () => {
             autoClose: 3000,
         });
 
-    }, []);
+        setCollection(collectionRef.current);
+
+    }, [setCollection]);
 
     const transaction_failed = useCallback(async () => {
         if (signature_ws_id.current == null) return;
@@ -60,6 +63,7 @@ const useCreateCollection = () => {
     const CreateCollection = async () => {
         //console.log("in mint nft");
 
+        console.log(name, uri);
         if (wallet.signTransaction === undefined) {
             //console.log(wallet, "invalid wallet");
             return;
@@ -78,9 +82,9 @@ const useCreateCollection = () => {
         //console.log("no lookup data found");
         let nft_keypair = new Keypair();
         let nft_pubkey = nft_keypair.publicKey;
+        collectionRef.current = nft_pubkey
 
-
-        const instruction_data = serialise_CreateAsset_instruction(0, "test name", "test uri");
+        const instruction_data = serialise_CreateAsset_instruction(0, name, uri);
 
         var account_vector = [
             { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
@@ -109,7 +113,6 @@ const useCreateCollection = () => {
 
         try {
             let signed_transaction = await wallet.signTransaction(transaction);
-            const encoded_transaction = bs58.encode(signed_transaction.serialize());
 
             var transaction_response = await connection.sendRawTransaction(signed_transaction.serialize(), {skipPreflight : true});
 

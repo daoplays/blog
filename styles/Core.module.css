@@ -255,10 +255,10 @@ label.label input[type="file"] {
     }
     .textLabel {
         font-size: 12px;
-        color: white;
+        color: black;
         width: max-content;
         text-transform: capitalize !important;
-        color: white !important;
+        color: black !important;
     }
     .textLabelInput {
         position: relative;
