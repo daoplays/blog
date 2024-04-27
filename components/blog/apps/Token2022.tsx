@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useEffect, useState, useMemo } from "react";
 import { SetStateAction } from "react";
 
-import { Box, HStack, Text, Center, VStack, NumberInput, NumberInputField, Divider, Image } from "@chakra-ui/react";
+import { Box, HStack, Text, Center, VStack, NumberInput, NumberInputField, Divider, Image, Input } from "@chakra-ui/react";
 import { isMobile } from "react-device-detect";
 
 import { PublicKey, Keypair, clusterApiUrl, Transaction, TransactionInstruction, SystemProgram, LAMPORTS_PER_SOL, sendAndConfirmTransaction } from "@solana/web3.js";
@@ -9,7 +9,7 @@ import { ConnectionProvider, WalletProvider, useConnection, useWallet } from "@s
 import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adapter-wallets";
 import { WalletModalProvider, useWalletModal } from "@solana/wallet-adapter-react-ui";
 
-import { BeetStruct, u8, u16, u64, i16, bignum } from "@metaplex-foundation/beet";
+import { BeetStruct, u8, u16, u64, i16, bignum, utf8String, FixableBeetStruct } from "@metaplex-foundation/beet";
 import {
     TOKEN_2022_PROGRAM_ID,
     getAssociatedTokenAddress,
@@ -73,7 +73,7 @@ interface TransactionResponseData {
 async function send_transaction(bearer: string, encoded_transaction: string): Promise<TransactionResponseData> {
     var body = { id: 1, jsonrpc: "2.0", method: "sendTransaction", params: [encoded_transaction, { skipPreflight: true }] };
 
-    const DEV_RPC_NODE = "https://black-damp-river.solana-devnet.quiknode.pro/c5447e06dd58dec2f4568518d8fb2fd8625b1d95";
+    const DEV_RPC_NODE = "https://black-damp-river.solana-devnet.quiknode.pro/c5447e06dd58dec2f4568518d8fb2fd8625b1d95/";
 
     
     var response_json = await postData(DEV_RPC_NODE, bearer, body);
@@ -90,7 +90,7 @@ async function send_transaction(bearer: string, encoded_transaction: string): Pr
 
 const button_width = "150px";
 
-const PROGRAM = new PublicKey("8ZMLymiBfEWkZwaRebKhFXgUGbEdpnjij36i5PULFHSX");
+const PROGRAM = new PublicKey("DUTVNGBNfAmx5QEFVyCJvEpEusUBHndCAVTWEThDV4oG");
 const HOOK_PROGRAM = new PublicKey("vyyNeAorB3Ce4nyfBK4dL7CMu9Jx2M9vK8zBGvFrpYd");
 
 
@@ -106,7 +106,9 @@ const Extensions = {
     InterestBearing: 4,
     NonTransferable: 8,
     DefaultState: 16,
-    TransferHook: 32
+    TransferHook: 32,
+    MetaData: 64,
+    Collection: 128,
 };
 
 class Create_Token_Instruction {
@@ -116,15 +118,24 @@ class Create_Token_Instruction {
         readonly transfer_fee_bp: number,
         readonly transfer_fee_max: bignum,
         readonly interest_rate: number,
+        readonly name: string,
+        readonly symbol: string,
+        readonly uri: string,
+
+
     ) {}
 
-    static readonly struct = new BeetStruct<Create_Token_Instruction>(
+    static readonly struct = new FixableBeetStruct<Create_Token_Instruction>(
         [
             ["instruction", u8],
-            ["extensions", u8],
+            ["extensions", u64],
             ["transfer_fee_bp", u16],
             ["transfer_fee_max", u64],
             ["interest_rate", i16],
+            ["name", utf8String],
+            ["symbol", utf8String],
+            ["uri", utf8String],
+
         ],
         (args) =>
             new Create_Token_Instruction(
@@ -133,6 +144,10 @@ class Create_Token_Instruction {
                 args.transfer_fee_bp!,
                 args.transfer_fee_max!,
                 args.interest_rate!,
+                args.name!,
+                args.symbol!,
+                args.uri!
+
             ),
         "Create_Token_Instruction",
     );
@@ -174,6 +189,38 @@ class MintCounter {
 
 function dec2bin(dec: number) {
     return (dec >>> 0).toString(2);
+}
+
+function TextInputBox({
+    setValue,
+    display_value,
+    key_string,
+    current_ref,
+}: {
+    setValue: React.Dispatch<SetStateAction<string>>;
+    display_value: string;
+    key_string: string;
+    current_ref: React.RefObject<HTMLInputElement>;
+}) {
+    return (
+        <HStack alignItems="center">
+            <Text width="200px" mb="0">{key_string}</Text>
+            <Input
+                ref={current_ref}
+                maxLength={250}
+                autoFocus={current_ref?.current === document.activeElement}
+                height="20px"
+                width="200px"
+                paddingTop="1rem"
+                paddingBottom="1rem"
+                borderColor="black"
+                value={display_value}
+                onChange={(e) => {
+                    setValue(e.target.value);
+                }}
+            />
+        </HStack>
+    );
 }
 
 function NumberInputBox({
@@ -240,6 +287,7 @@ function Tokens2022App() {
     const [include_soulbound, setIncludeSoulbound] = useState<boolean>(false);
     const [include_default, setIncludeDefault] = useState<boolean>(false);
     const [include_hook, setIncludeHook] = useState<boolean>(false);
+    const [include_metadata, setIncludeMetaData] = useState<boolean>(false);
 
     const [account_frozen, setAccountFrozen] = useState<boolean>(false);
 
@@ -250,6 +298,11 @@ function Tokens2022App() {
     const [transfer_fee_max, setTransferFeeMax] = useState<number>(5000);
     const [interest_rate, setInterestRate] = useState<number>(10000);
 
+    const [name, setName] = useState<string>("");
+    const [symbol, setSymbol] = useState<string>("");
+    const [uri, setURI] = useState<string>("");
+
+
     const [hook_transfers, setHookTransfers] = useState<number>(0);
     const check_hook_transfers = useRef<boolean>(false);
 
@@ -257,6 +310,11 @@ function Tokens2022App() {
     const transfer_fee_bp_ref = useRef<HTMLInputElement>(null);
     const transfer_fee_max_ref = useRef<HTMLInputElement>(null);
     const interest_rate_ref = useRef<HTMLInputElement>(null);
+
+    const name_rate_ref = useRef<HTMLInputElement>(null);
+    const symbol_ref = useRef<HTMLInputElement>(null);
+    const uri_ref = useRef<HTMLInputElement>(null);
+
 
     const state_interval = useRef<number | null>(null);
     const check_keypair_interval = useRef<number | null>(null);
@@ -685,7 +743,8 @@ function Tokens2022App() {
             (Extensions.InterestBearing * Number(include_interest)) |
             (Extensions.NonTransferable * Number(include_soulbound)) |
             (Extensions.DefaultState * Number(include_default)) |
-            (Extensions.TransferHook * Number(include_hook));
+            (Extensions.TransferHook * Number(include_hook)) |
+            (Extensions.MetaData * Number(include_metadata));
 
         console.log(dec2bin(Extensions.TransferFee));
         console.log(dec2bin(Extensions.PermanentDelegate));
@@ -700,6 +759,9 @@ function Tokens2022App() {
             transfer_fee_bp,
             transfer_fee_max,
             interest_rate,
+            name,
+            symbol,
+            uri
         );
         const [idx_buffer] = Create_Token_Instruction.struct.serialize(idx_data);
 
@@ -759,9 +821,13 @@ function Tokens2022App() {
         include_soulbound,
         include_default,
         include_hook,
+        include_metadata,
         transfer_fee_bp,
         transfer_fee_max,
         interest_rate,
+        name,
+        symbol,
+        uri
     ]);
 
     const ThawAccount = useCallback(async () => {
@@ -931,6 +997,20 @@ function Tokens2022App() {
         );
     }
 
+    function IncludeMetaData() {
+        return (
+            <Box
+                width={button_width}
+                as="button"
+                onClick={() => setIncludeMetaData(!include_metadata)}
+                borderWidth="1px"
+                borderColor={include_metadata ? "black" : "white"}
+            >
+                Metadata
+            </Box>
+        );
+    }
+
     function SetTokenOptions() {
         return (
             <Center mb="5rem" width="100%">
@@ -943,6 +1023,7 @@ function Tokens2022App() {
                             <IncludeNonTransferable />
                             <IncludeDefaultState />
                             <IncludeHook />
+                            <IncludeMetaData />
                         </HStack>
                     )}
                     {isMobile && (
@@ -961,6 +1042,36 @@ function Tokens2022App() {
                         <HStack>
                             <IncludeDefaultState />
                         </HStack>
+                    )}
+                    {include_metadata && (
+                        <>
+                            <Divider color={"black"} borderBottomWidth="2px" opacity={1} />
+                            <Text width="100%" textAlign={"left"}>
+                                MetaData Options
+                            </Text>
+                            <VStack width="100%" align="left">
+                                <TextInputBox
+                                    setValue={setName}
+                                    display_value={name}
+                                    key_string="Token Name"
+                                    current_ref={name_rate_ref}
+                                />
+
+                                <TextInputBox
+                                    setValue={setSymbol}
+                                    display_value={symbol}
+                                    key_string="Token Symbol"
+                                    current_ref={symbol_ref}
+                                />
+
+                                <TextInputBox
+                                    setValue={setURI}
+                                    display_value={uri}
+                                    key_string="Token URI"
+                                    current_ref={uri_ref}
+                                />
+                            </VStack>
+                        </>
                     )}
                     {include_transfer && (
                         <>

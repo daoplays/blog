@@ -14,6 +14,7 @@ import quicknode from "components/images/quicknode.png";
 import pokemon from "components/images/daoplays_pokemon.png";
 import solana from "components/images/solana.jpg";
 import ML from "components/images/ML.png";
+import core from "components/images/core.jpeg";
 
 const blog_post_one = {
   title:"DaoPlays is Live!",
@@ -106,6 +107,24 @@ const rlhf_1 = {
 
 };
 
+const rlhf_2 = {
+  title:"Intro to Reinforcement Learning From Human Feedback (part 2)",
+  sub_title:"October 21 2023",
+  post_text:"Continuing on from the previous post, we inrease the complexity of the task by training the reward model on preferences between sequences of states, rather than between single states.  We also add a few extra features from the full implementation - an ensemble of reward models and randomisation of the preferences", 
+  image:ML,
+  display_image: !isMobile
+
+};
+
+const core_1 = {
+  title:"An Introduction To Metaplex Core",
+  sub_title:"May 01 2024",
+  post_text:"Metaplex Core is a new standard for creating NFTs on the Solana blockchain.  It is way cheaper, simpler, and offers more functionality than the old SPL standard.  In this post we'll introduce the basics for how to make use of Core on-chain, creating a collection of NFTs with on chain attributes, and transferring them to others.", 
+  image:core,
+  display_image: !isMobile
+
+};
+
 function RowCard({title, sub_title, post_text, image, display_image}) 
 {
     return (
@@ -151,6 +170,11 @@ export default function Home() {
 
             <Col>
 
+                <Link href="/blog/core_p1">
+                    <RowCard {...core_1}/>
+                </Link>
+
+                <br />
                 <Link href="/blog/rlhf_intro_p1">
                     <RowCard {...rlhf_1}/>
                 </Link>
