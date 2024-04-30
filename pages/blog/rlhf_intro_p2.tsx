@@ -78,41 +78,37 @@ function PostContent() {
 `;
 
   const reward_network_1 = `
-    def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
-        torch.nn.init.orthogonal_(layer.weight, std)
-        torch.nn.init.constant_(layer.bias, bias_const)
-        return layer
-
     class RewardModel(nn.Module):
         def __init__(self, input_size):
             super(RewardModel, self).__init__()
+            self.hidden_size = 8
             self.network = nn.Sequential(
-                layer_init(nn.Linear(input_size, 64)),
+                layer_init(nn.Linear(input_size, self.hidden_size)),
                 nn.Tanh(),
-                layer_init(nn.Linear(64, 64)),
+                layer_init(nn.Linear(self.hidden_size, self.hidden_size)),
                 nn.Tanh(),
-                layer_init(nn.Linear(64, 1), std=1.0),
+                layer_init(nn.Linear(self.hidden_size, 1), std=1.0),
+                nn.Tanh(),
+
             )
 
         def get_reward(self, x):
             return self.network(x)
+
 `;
 
   const reward_network_2 = `
-        def get_loss(self, segment1, segment2, mu1, mu2):
-        
-            reward_one = self.get_reward(segment1).squeeze(1)
-            reward_two = self.get_reward(segment2).squeeze(1)
+        def get_loss(self, segment_one, segment_two, mu_values):
+       
+            reward_one = agent.get_reward(segment_one).sum(axis=1).squeeze(1)
+            reward_two = agent.get_reward(segment_two).sum(axis=1).squeeze(1)
 
-            e1 = torch.exp(reward_one)
-            e2 = torch.exp(reward_two)
+            mean = 0.5 * (reward_one + reward_two)
 
-            P_pref_one = e1 / (e1 + e2)
-            P_pref_two = e2 / (e1 + e2)
+            e1 = torch.exp(reward_one - mean) 
+            e2 = torch.exp(reward_two - mean) 
 
-            loss = -(mu1 * torch.log(P_pref_one) + mu2 * torch.log(P_pref_two))
-
-            return loss
+            return  -(mu_values[:,0] * reward_one + mu_values[:,1] * reward_two - torch.log(e1 + e2) - mean).sum()
 `;
 
   const reward_training_loop = `
@@ -137,6 +133,15 @@ function PostContent() {
         optimizer.step()
 `;
 
+  const reward_randomisation = `
+    selected_mu = preference_table_mu[entries]
+    if (use_random):
+        which = np.random.uniform(0,1,batch_size)  < 0.1
+        selected_mu[which] = [0.5,0.5]
+
+    mu_values = torch.tensor(selected_mu, dtype = torch.float).to(device)
+`;
+
   const rlhf_1 = `
     reward_network = None
     if (args.rlhf):
@@ -157,167 +162,65 @@ function PostContent() {
   return (
     <div className="container">
       <h1 className="h1 text-center mb-0 pt-3 font-weight-bold text-body">
-        Intro to Reinforcement Learning From Human Feedback (part 1)
+        Intro to Reinforcement Learning From Human Feedback (part 2)
       </h1>
       <h1 className="h5 text-center mb-1 pt-0 font-weight-bold text-secondary">
-        October 21 2023
+        October 25 2023
       </h1>
       <br />
       <h2 id="intro-header" className="mt-5" style={{ fontSize: "22px" }}>
         Introduction
       </h2>
       <br />
-      Over the last few years Deep Reinforcement Learning (RL) has made
-      remarkable progress in being applied to ever more complex environments,
-      from{" "}
-      <Link
-        style={{ textDecoration: "underline" }}
-        href="https://www.nature.com/articles/nature16961"
-      >
-        Go
-      </Link>
-      ,{" "}
-      <Link
-        style={{ textDecoration: "underline" }}
-        href="https://cdn.openai.com/dota-2.pdf"
-      >
-        DOTA2
-      </Link>{" "}
-      and{" "}
-      <Link
-        style={{ textDecoration: "underline" }}
-        href="https://www.deepmind.com/blog/alphastar-mastering-the-real-time-strategy-game-starcraft-ii"
-      >
-        StarCraft II
-      </Link>
-      , up to more recent developments in open ended games like{" "}
-      <Link style={{ textDecoration: "underline" }} href="https://minerl.io/">
-        Minecraft
-      </Link>
-      . Broadly speaking the RL learning loop involves an agent operating in
-      some environment, making observations and taking actions. Some actions may
-      result in a reward (positive or negative), for example winning a game, and
-      the agent learns a policy for taking moves in order to maximise its long
-      term reward.
-      <br />
-      <br />
-      For many interesting applications, however, encoding how the environment
-      should hand out rewards and penalities (the reward function) is extremely
-      challenging, and attempts to hard code this has yielded{" "}
-      <Link
-        style={{ textDecoration: "underline" }}
-        href="https://towardsdatascience.com/how-learning-reward-functions-can-go-wrong-6e794e42f4fc"
-      >
-        many
-      </Link>{" "}
-      examples of misaligment between what the agent ends up doing, and what the
-      human designer intended.
-      <br />
-      <br />
-      One potential avenue that attempts to solve this problem is Deep
-      Reinforcement Learning From Human Feedback (RLHF). In their{" "}
+      In our previous post we introduced some of the basic features of RLHF
+      using the moving-dot gym environment. In that case we could create a
+      reward model by generating preferences between individual state-action
+      pairs, and preferring the state that moved the dot closer to the center.
+      For most interesting cases however, individual state-action pairs will not
+      include enough information for a human to be able judge which is better.
+      In their{" "}
       <Link
         style={{ textDecoration: "underline" }}
         href="https://arxiv.org/pdf/1706.03741.pdf"
       >
         paper
       </Link>{" "}
-      (henceforth C17) the authors augment the RL process by having humans watch
-      pairs of videos that show the agent behaving in different ways, and
-      provide their preferences for which video is closer to displaying the
-      behaviour desired from the problem. From these preferences a reward
-      function is trained using a supervised learning process, and that trained
-      reward function can then used as part of the RL process instead of relying
-      on a hand coded function. In the paper the authors use this approach to
-      train an agent to play atari games, and simulate robot locomotion, such as
-      making a <i>Hopper</i> robot do backflips:
+      (henceforth C17) the authors use sequences of state-action pairs (referred
+      to as segment trajectories) and elicit preferences on those, balancing
+      longer sequences which have more context, with the training time
+      associated with having to learn from those longer sequences.
       <br />
       <br />
-      <Center>
-        <VStack>
-          <Image src={hopper.src} />
-          <Text>
-            Image from{" "}
-            <Link
-              style={{ textDecoration: "underline" }}
-              href="https://openai.com/research/learning-from-human-preferences"
-            >
-              OpenAI
-            </Link>{" "}
-            showing their hopper robot doing backflips
-          </Text>
-        </VStack>
-      </Center>
-      <br />
-      This could be achieved with relatively little human input, and resulted in
-      much better behaviour than their attempt to hard code a reward function.
-      <br />
-      <br />
-      Since then RLHF has been used to great effect to produce fine tuned large
-      language models such as{" "}
+      In this post then we will be using the{" "}
       <Link
         style={{ textDecoration: "underline" }}
-        href="https://arxiv.org/abs/2203.02155"
+        href="https://gymnasium.farama.org/environments/classic_control/mountain_car/"
       >
-        InstructGPT
-      </Link>
-      , and has been a significant factor in making ChatGPT so successfull. You
-      can find{" "}
-      <Link
-        style={{ textDecoration: "underline" }}
-        href="https://huggingface.co/blog/rlhf"
-      >
-        articles
+        Mountain Car
       </Link>{" "}
-      out there that go through the details of how to implement RLHF in this
-      kind of context.
+      gym environment and using segment trajectories that each have 30
+      state-action pairs, corresponding to about 1 second of video which is
+      similar in length to the trajectories in C17. In addition to using
+      multiple states, we will also introduce a couple of extra features used in
+      C17:
       <br />
       <br />
-      In this post we will take a bottom up approach, introducing some of the
-      core concepts from RLHF, and applying them to a much simpler problem, the{" "}
-      <Link
-        style={{ textDecoration: "underline" }}
-        href="https://github.com/jakal02/gym-moving-dot"
-      >
-        moving-dot
-      </Link>{" "}
-      gym environment. This problem simply involves a dot that is spawned at a
-      random location in a 2D space, and must move towards the center of the
-      screen. A single episode lasts for 2000 timesteps, during which time the
-      environment provides a score of +1 if the agent moves closer to the
-      center, and -1 if the agent moves further away.
-      <br />
-      <br />
-      <Center>
-        <VStack>
-          <Image src={moving_dot.src} alt="moving dot" />
-          <Text>
-            Example of an optimised moving-dot, originally from{" "}
-            <Link
-              style={{ textDecoration: "underline" }}
-              href="https://github.com/jakal02/gym-moving-dot"
-            >
-              here
-            </Link>
-            .
-          </Text>
-        </VStack>
-      </Center>
-      <br />
-      By using this problem we can greatly simplify many of the details
-      presented in the C17 RLHF implementation, but still cover the core points.
-      In particular we will generate a database of preferences, use that
-      database to train a reward model, and use that model to provide rewards
-      when training the RL agent. In subsequent posts we will expand upon this
-      basic implementation, building towards a setup that lets the user provide
-      feedback in the atari game-playing context.
-      <br />
-      <br />
+      <ul>
+        <li>
+          An ensemble of three reward models - Each is trained separately and we
+          average the rewards from the three networks to produce the final
+          reward.
+        </li>
+        <li>
+          A 10% chance of replacing the probability distribution of the
+          preferences for a particular pair of trajectory segments with 50/50.
+        </li>
+      </ul>
       The code that we will describe can be found in our GitHub repo for this
       post{" "}
       <a
         style={{ textDecoration: "underline" }}
-        href="https://github.com/daoplays/RLHF/tree/main/moving_dot"
+        href="https://github.com/daoplays/RLHF/tree/main/mountain_car"
       >
         here
       </a>
@@ -361,7 +264,7 @@ function PostContent() {
         <li>
           <HStack>
             <Text align="center" m="0" p="0">
-              Training our moving dot agent given the reward model{" "}
+              Training our mountain car agent given the reward model{" "}
             </Text>
             <a href="#training">
               <AiOutlineArrowRight />
@@ -491,37 +394,27 @@ function PostContent() {
         Learning the Reward Model
       </h3>
       <br />
-      When training the reward model we will be using a simple fully-connected
-      network with a single hidden layer with Tanh activation functions. This
-      was chosen to match the architecture used in the original PPO
-      implementation (see{" "}
-      <Link
-        style={{ textDecoration: "underline" }}
-        href="https://iclr-blog-track.github.io/2022/03/25/ppo-implementation-details/"
-      >
-        here
-      </Link>{" "}
-      for more details), and will be the same as we use in the A2C network for
-      the actual training. In this case however there is only a single output
-      value representing the reward, and the input is an observation-action
-      pair.
-      <br />
-      <br />
-      As in the original PPO implementation we also initialise the network
-      layers such that the weights use an orthogonal initialisation, where the
-      input and hidden layer both have scale of sqrt(2), while the output layer
-      has a scale of 1. In all layers the biases are intialised to have a value
-      of zero.
+      We keep the same basic network architecture as in the previous post when
+      training the mountain car reward model: A simple fully-connected network
+      with a single hidden layer with Tanh activation functions. In the previous
+      post we clipped the rewards post hoc to the range -1 to 1 to match the
+      paper, however in this case we just added a Tanh function to the output to
+      normalise the rewards for us.
       <HighLightCode codeBlock={reward_network_1} language={"python"} />
-      The loss function is then defined as in the technical background section.
-      We pass it the two segments, and the probability distribution over the
-      preference for those segments.
+      The loss function is then mathematically identical to the previous post,
+      however just needs to be generalised to accept a sequence of state-action
+      pairs, rather than single ones. In addition, rather than taking the
+      exponential of the sum of rewards directly, we make a simple
+      re-formulation that leaves the answer unchanged but is numerically more
+      stable as we are only taking an exponential of the difference between the
+      sum and the mean.
       <HighLightCode codeBlock={reward_network_2} language={"python"} />
-      To train the network we use the Adam optimizer, again taking the default
-      settings from the original PPO implementation, and iterate over 100000
-      training epochs, taking a batch size of 128 random rows from our
-      preferences table.
-      <HighLightCode codeBlock={reward_training_loop} language={"python"} />
+      The training loop is then unchanged from the previous post, however
+      because we now have much longer segments we iterate for 1 million steps.
+      In addition we include one extra feature from C17, that 10% of trajectory
+      pairs have their probability distribution replaced with an even preference
+      at random:
+      <HighLightCode codeBlock={reward_randomisation} language={"python"} />
       Below we show a moving average of the training loss, averaged over the
       last 100 epochs. After 100000 training epochs the training loss has pretty
       much flattened out. Possibly we could train for longer to improve this
@@ -622,8 +515,8 @@ function PostContent() {
   );
 }
 
-function RLHF1() {
+function RLHF2() {
   return <PostContent />;
 }
 
-export default RLHF1;
+export default RLHF2;

@@ -1,36 +1,35 @@
 import React from "react";
-import Link from 'next/link';
-import { FaDiscord, FaTwitter, FaGithub, FaTwitch } from 'react-icons/fa';
-
+import Link from "next/link";
+import { FaDiscord, FaTwitter, FaGithub, FaTwitch } from "react-icons/fa";
 
 function Navigation() {
   return (
-    <div className="navigation" style={{"marginBottom":"10px"}}>
+    <div className="navigation" style={{ marginBottom: "10px" }}>
       <nav className="navbar navbar-expand navbar-dark bg-dark">
         <div className="container">
-        <Link className="navbar-brand" href="/">
+          <Link className="navbar-brand" href="/">
             DaoPlays
           </Link>
           <div>
-          <ul className="navbar-nav ml-auto">
+            <ul className="navbar-nav ml-auto">
               <li className="nav-item">
                 <a className="nav-link" href="http://www.twitter.com/dao_plays">
-                 <FaTwitter />
+                  <FaTwitter />
                 </a>
               </li>
               <li className="nav-item">
                 <a className="nav-link" href="http://www.discord.gg/4KbYFt3cSg">
-                <FaDiscord/>
+                  <FaDiscord />
                 </a>
               </li>
               <li className="nav-item">
                 <a className="nav-link" href="http://www.twitch.tv/daoplays_">
-                <FaTwitch/>
+                  <FaTwitch />
                 </a>
               </li>
               <li className="nav-item">
                 <a className="nav-link" href="http://www.github.com/daoplays">
-                <FaGithub/>
+                  <FaGithub />
                 </a>
               </li>
             </ul>

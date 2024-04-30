@@ -4,7 +4,9 @@
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format": "prettier --check --ignore-path .gitignore .",
+    "format:fix": "prettier --write --ignore-path .gitignore ."
   },
   "dependencies": {
     "@chakra-ui/next-js": "^2.1.5",
@@ -15,6 +17,9 @@
     "@metaplex-foundation/beet": "^0.7.1",
     "@metaplex-foundation/beet-solana": "^0.4.0",
     "@metaplex-foundation/js": "^0.19.5",
+    "@metaplex-foundation/mpl-core": "^0.4.5",
+    "@metaplex-foundation/umi": "^0.9.1",
+    "@metaplex-foundation/umi-bundle-defaults": "^0.9.1",
     "@project-serum/borsh": "^0.2.5",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/wallet-adapter-react-ui": "^0.9.34",
@@ -37,8 +42,10 @@
     "react-dom": "18.2.0",
     "react-icons": "^4.11.0",
     "react-plotly.js": "^2.6.0",
+    "react-responsive": "^10.0.0",
     "react-router-dom": "^6.16.0",
     "react-syntax-highlighter": "^15.5.0",
+    "react-toastify": "^10.0.5",
     "react-twitch-embed": "^3.0.1",
     "sharp": "^0.32.6"
   },
@@ -52,6 +59,7 @@
     "@types/react": "18.2.28",
     "eslint": "8.51.0",
     "eslint-config-next": "13.5.4",
+    "prettier": "^3.2.5",
     "typescript": "5.2.2"
   }
 }
