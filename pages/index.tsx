@@ -117,7 +117,7 @@ const rlhf_2 = {
 };
 
 const core_1 = {
-  title:"An Introduction To Metaplex Core",
+  title:"An On-Chain Introduction To Metaplex Core",
   sub_title:"May 01 2024",
   post_text:"Metaplex Core is a new standard for creating NFTs on the Solana blockchain.  It is way cheaper, simpler, and offers more functionality than the old SPL standard.  In this post we'll introduce the basics for how to make use of Core on-chain, creating a collection of NFTs with on chain attributes, and transferring them to others.", 
   image:core,

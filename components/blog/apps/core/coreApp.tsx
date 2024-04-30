@@ -11,6 +11,7 @@ import styles from "../../../../styles/Core.module.css";
 import useCreateNFT from "./hooks/useCreateNFT";
 import useTransferNFT from "./hooks/useTransferNFT";
 
+require("@solana/wallet-adapter-react-ui/styles.css");
 
 function SetCollectionOptions({setCollection} : {setCollection: Dispatch<SetStateAction<PublicKey>>}) {
 

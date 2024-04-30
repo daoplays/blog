@@ -23,11 +23,11 @@ function MyApp({ Component, pageProps }) {
                 draggable
                 theme="light"
             />
-    <ChakraProvider theme={theme}>
-      <Navigation />
-      <Component {...pageProps} />
-      <Footer/>
-    </ChakraProvider>
+      <ChakraProvider theme={theme}>
+        <Navigation />
+        <Component {...pageProps} />
+        <Footer/>
+      </ChakraProvider>
     </NoSSR>
   );
 }
