@@ -1,11 +1,10 @@
 import React from "react";
-import { Code, HStack, Text } from '@chakra-ui/react';
-import { AiOutlineArrowRight } from 'react-icons/ai';
-import { Highlight, themes } from "prism-react-renderer"
-import { CharityAuctionDapp } from '../../components/blog/apps/charity_auction';
+import { Code, HStack, Text } from "@chakra-ui/react";
+import { AiOutlineArrowRight } from "react-icons/ai";
+import { Highlight, themes } from "prism-react-renderer";
+import { CharityAuctionDapp } from "../../components/blog/apps/charity_auction";
 
-const state_1 =
-`
+const state_1 = `
     // in state.rs
     pub struct State {
 
@@ -29,11 +28,9 @@ const state_1 =
         // summary of the charity stats for the auction
         pub charity_data : CharityData
     }
-`
+`;
 
-
-const state_2 = 
-`
+const state_2 = `
     // in state.rs
     // we can't unpack  the whole state in one go due to stack limits on chain.
     // we create an enum to make it easier to access elements  within the state
@@ -61,10 +58,9 @@ const state_2 =
 
         CharityData  
     }
-`
+`;
 
-const state_3 =
-`
+const state_3 = `
     // in state.rs
     pub fn get_state_index(element: StateEnum) -> (usize, usize) {
 
@@ -94,10 +90,9 @@ const state_3 =
             StateEnum::CharityData => {(49299, 49379)}
         }
     }
-`
+`;
 
-const state_4 =
-`
+const state_4 = `
     pub struct BidValues {
         pub bid_amounts: [u64; BID_BLOCK],
     }
@@ -109,20 +104,17 @@ const state_4 =
     pub struct WinnersKeys {
         pub keys: [Pubkey; MAX_WINNERS],
     }
-`
+`;
 
-    const init_1 =
-    `
+const init_1 = `
     let program_data_account = Pubkey::create_with_seed(
         &daoplays,
         "data_account",
         &program,
     )?;
-`
+`;
 
-
-const init_2 =
-`
+const init_2 = `
     let data_size: usize = 49381;
     let space : u64 = data_size.try_into().unwrap();
     let lamports = rent::Rent::default().minimum_balance(data_size);
@@ -136,10 +128,9 @@ const init_2 =
         space,
         &program,
     );
-`
+`;
 
-const bid_1 = 
-`
+const bid_1 = `
     ...
 
     // get the bid index from the bidders account
@@ -159,11 +150,9 @@ const bid_1 =
     let key = Pubkey::try_from_slice(&program_data_account_info.data.borrow()[key_idx.0..key_idx.1])?;
 
     ...
-`
+`;
 
-
-const bid_1_2 = 
-`
+const bid_1_2 = `
     ...
 
     // if the keys match then we accumulate the bid
@@ -178,10 +167,9 @@ const bid_1_2 =
     }
 
     ...
-`
+`;
 
-const bid_2 =
-`
+const bid_2 = `
     ...
 
     // if they were a new bidder add their bid to the ladder, first just try and find the first open spot
@@ -221,10 +209,9 @@ const bid_2 =
     }
 
     ...
-`
+`;
 
-const bid_3 =
-`
+const bid_3 = `
     ...
 
     // if there was no open spot we overwrite the oldest bid
@@ -240,10 +227,9 @@ const bid_3 =
     }
 
     ...
-`
+`;
 
-const bid_4 = 
-`
+const bid_4 = `
     ...
 
     // update their bid data
@@ -251,10 +237,9 @@ const bid_4 =
     new_bidder_data.serialize(&mut &mut bidder_data_account_info.data.borrow_mut()[..])?;
 
     ...
-`
+`;
 
-const bid_5 =
-`
+const bid_5 = `
     ...
 
     msg!("update bid details for position {}", bidders_index);
@@ -277,9 +262,8 @@ const bid_5 =
     //  update n_bidders
     n_bidders += 1;
     n_bidders.serialize(&mut &mut program_data_account_info.data.borrow_mut()[n_bidders_idx.0..n_bidders_idx.1])?; 
-`
-const win_1 = 
-`
+`;
+const win_1 = `
     pub fn get_bid_state(max_time : i64, program_data_account_info : &AccountInfo) ->  Result<(u16, u64), ProgramError> {
 
 
@@ -305,11 +289,9 @@ const win_1 =
         Ok((n_bidders, total_bid))
         
     }
-`
+`;
 
-
-const win_2_1 =
-`
+const win_2_1 = `
     pub fn check_winners_state<'a>(
         n_bidders : u16, 
         program_data_account_info : &AccountInfo<'a>,
@@ -323,11 +305,9 @@ const win_2_1 =
         }
 
     ...
-`
+`;
 
-
-const win_2_2 =
-`
+const win_2_2 = `
     ...
 
         // if there aren't enough tokens available then we can't choose winners
@@ -341,11 +321,9 @@ const win_2_2 =
         }
 
     ...
-`
+`;
 
-
-const win_2_3 =
-`
+const win_2_3 = `
     ...
 
         let max_token_blocks = token_balance / TOKENS_WON;
@@ -365,11 +343,9 @@ const win_2_3 =
         }
 
     ...
- `
+ `;
 
-
-const win_2_4 =
-`
+const win_2_4 = `
     ...
 
         let prev_time_idx = get_state_index(StateEnum::PrevSelectionTime);
@@ -396,10 +372,9 @@ const win_2_4 =
 
         Ok(n_winners)
     }
-`
+`;
 
-const win_3 =
-`
+const win_3 = `
     ...
 
     // generate the seed for selecting winners
@@ -420,11 +395,9 @@ const win_3 =
     ran_vec.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
     ...
-`
+`;
 
-
-const win_4 =
-`
+const win_4 = `
     ...
 
     // initialize the starting state
@@ -450,10 +423,9 @@ const win_4 =
             let threshold = ((valid_total_bid as f64) * random_f64) as u64;
 
     ...
-`
+`;
 
-const win_4_2 =
-`
+const win_4_2 = `
     ...
             let mut sub_total : u64 = cumulative_total;
             for bid_index in 0..BID_BLOCK {
@@ -471,11 +443,9 @@ const win_4_2 =
                     winners_found[current_winner as usize] = true;
 
     ...
-`
+`;
 
-const win_4_3 =
-
-`
+const win_4_3 = `
     ...
 
                     let winner_index = idx * BID_BLOCK + bid_index;
@@ -501,10 +471,9 @@ const win_4_3 =
                     solana_program::system_program::id().serialize(&mut &mut program_data_account_info.data.borrow_mut()[key_idx.0..key_idx.1])?;
 
     ...
-`
+`;
 
-const win_4_4 =
-`
+const win_4_4 = `
     ...
 
                     // finally decrement the number of bidders, and the total bid amount
@@ -532,10 +501,9 @@ const win_4_4 =
     }
 
     ...
-`
+`;
 
-const win_5 =
-`
+const win_5 = `
     ...
             
     // update number of bidders
@@ -548,10 +516,9 @@ const win_5 =
 
     let prev_time_idx = get_state_index(StateEnum::PrevSelectionTime);
     current_time.serialize(&mut &mut program_data_account_info.data.borrow_mut()[prev_time_idx.0..prev_time_idx.1])?;  
-`
+`;
 
-const send_tokens_1 =
-`
+const send_tokens_1 = `
     // now check how many winners we expect and make sure the keys match the program data
     let n_winners_idx = get_state_index(StateEnum::NWinners);
     let n_winners = u8::try_from_slice(&program_data_account_info.data.borrow()[n_winners_idx.0..n_winners_idx.1])?;
@@ -562,10 +529,9 @@ const send_tokens_1 =
     }
 
     msg!("have {} winners to send tokens to", n_winners);
- `
+ `;
 
- const send_tokens_2_1 =
- `
+const send_tokens_2_1 = `
     ...
 
     // get the winner's account info
@@ -588,11 +554,9 @@ const send_tokens_1 =
     }
 
     ...
- `
+ `;
 
-
- const send_tokens_2_2 =
- `
+const send_tokens_2_2 = `
     ...
 
     let winners_key_idx = get_state_index(StateEnum::Winners { index: 0 });
@@ -614,11 +578,9 @@ const send_tokens_1 =
         }
     }
     ...
-`
+`;
 
-
- const send_tokens_2_3 =
- `
+const send_tokens_2_3 = `
     ...
 
     // finally check that the remaining entries in the winners data vec are the system program id
@@ -631,11 +593,9 @@ const send_tokens_1 =
         }
     }
     ...
- `
+ `;
 
-
- const send_tokens_3 =
- `
+const send_tokens_3 = `
     // now we can transfer the tokens
 
     for w_idx in 0..(n_winners as usize) {
@@ -650,10 +610,9 @@ const send_tokens_1 =
     
         )?;
     }
- `
+ `;
 
- const send_tokens_4 =
-`
+const send_tokens_4 = `
     // finally just reset the n_winners value to zero so we can select new winners again
     // and reset all the winners keys to their default
     for current_winner in 0..MAX_WINNERS {
@@ -664,484 +623,826 @@ const send_tokens_1 =
     }
 
     0u8.serialize(&mut &mut program_data_account_info.data.borrow_mut()[n_winners_idx.0..n_winners_idx.1])?;
- `
+ `;
 
-
-function HighLightCode({codeBlock, language} : {codeBlock : string, language : string}) {
-    return(
-        <Highlight
-        theme={themes.shadesOfPurple}
-        code={codeBlock}
-        language={language}
-      >
-        {({ style, tokens, getLineProps, getTokenProps }) => (
-          <pre style={style}>
-            {tokens.map((line, i) => (
-              <div key={i} {...getLineProps({ line })}>
-                {line.map((token, key) => (
-                  <span key={key} {...getTokenProps({ token })} />
-                ))}
-              </div>
-            ))}
-          </pre>
-        )}
-      </Highlight>
-    );
+function HighLightCode({
+  codeBlock,
+  language,
+}: {
+  codeBlock: string;
+  language: string;
+}) {
+  return (
+    <Highlight
+      theme={themes.shadesOfPurple}
+      code={codeBlock}
+      language={language}
+    >
+      {({ style, tokens, getLineProps, getTokenProps }) => (
+        <pre style={style}>
+          {tokens.map((line, i) => (
+            <div key={i} {...getLineProps({ line })}>
+              {line.map((token, key) => (
+                <span key={key} {...getTokenProps({ token })} />
+              ))}
+            </div>
+          ))}
+        </pre>
+      )}
+    </Highlight>
+  );
 }
 
 function PostContent() {
-
-
-    return (
-
-        <div className="container">
-
-            <h1 className="h1 text-center mb-0 pt-3 font-weight-bold text-body">Running A Charity Token Auction</h1>
-            <h1 className="h5 text-center mb-1 pt-0 font-weight-bold text-secondary">August 16 2022</h1>
-            <br />
-
-            <h2 id="intro-header" className="mt-5" style={{fontSize: "22px"}}>Introduction</h2><br />
-            
-
-            In this post we are going to be building a token auction program for the Solana blockchain.  Participants will be bidding on a block of one hundred tokens, where their chance of being the next winner is proportional to the size of their bid.  They will also be able to decide how much of their bid we keep, and how much we donate to charity, as well as selecting which charity we donate to from a set of provided options.
-            
-            <br/><br/>
-
-            The more people that take part in the auction the faster new winners will be selected, with new rounds initially spaced out on minute timescales, but reducing to seconds as the number of participants increases.  More people also means more winners will be selected in each round, starting with a single winner and increasing up to four.  A participant's bid will roll over into subsequent rounds and can be added to at any point in order to improve their chances of being chosen as the next winner.
-
-            <br/><br/>
-            
-            In describing the program we will reference a couple of our previous articles; Firstly we will be using <a  style={{textDecoration: "underline"}}  href="https://pyth.network/">Pyth</a> to seed the random number generators used in the auction using the same process we described <a style={{textDecoration: "underline"}} href="https://www.daoplays.org/blog/pyth_seeds">here</a>, and secondly all the donations will be handled via  <a  style={{textDecoration: "underline"}}  href="https://thegivingblock.com/">The Giving Block</a> as in our charity token launch post <a style={{textDecoration: "underline"}} href="https://www.daoplays.org/blog/charity_token_launch">here</a>.
-
-            <br/><br/>
-
-            We decided to make the chance of winning proportional to the size of the bid in order to make the auction as fair as possible to all participants, and avoid the situation where a small number of high-bidders end up receiving all the tokens.  In order to do this, however, we need to store and process all the prevailing bids in order to produce a cumulative distribution whenever new winners are chosen. Given the limitations on how much computation can be done within a single transaction, we  therefore impose a maximum number of bids that can be tracked at any point in time, which we set to 1024 in this example.  If a new bidder enters the auction when this buffer is full, the oldest bid  at that point in time is lost, and replaced with the new bid.  Participants will however be able to 'refresh' the time of their bid by adding to it, and whenever new winners are selected this naturally frees up space in the buffer.
-
-            <br/><br/>
-
-            In addition to needing to save the size of each bid, we also keep a record of the time each bid is placed.   This is to stop users from placing their bid in the same block that winners are being chosen, which could let them pre-determine the random numbers that will be generated and only bid if they knew they were going to win.   By tracking the times of each bid we can ensure that for each round in the auction, we only include bids that were made a short interval before that round ends.
-
-            <br/><br/>
-
-            The program has four main functions, which we will go through in detail below:
-
-            <br/><br/>
-            <ul>
-                <li>
-                    <HStack><Text align="center" m="0" p="0">Create and initialize the program data and derived accounts</Text> <a href="#init-header"><AiOutlineArrowRight/></a></HStack>
-                </li>
-                <li>
-                    <HStack><Text align="center" m="0" p="0">Place a bid </Text><a href="#bid-header"><AiOutlineArrowRight/></a></HStack>
-                </li>
-                <li>
-                    <HStack><Text align="center" m="0" p="0">Choose the set of winners</Text> <a  href="#win-header"><AiOutlineArrowRight /></a></HStack>
-                </li>
-                <li>
-                    <HStack><Text align="center" m="0" p="0">Send tokens to the winners</Text> <a href="#token-header"><AiOutlineArrowRight/></a></HStack>
-                </li>
-            </ul>
-
-            <br/>
-
-            At the end of the post you will also find a simple front end application that interacts with the token auction program currently running on the Solana devnet. You can skip to it <a href="#token-header" style={{textDecoration: "underline"}} >here</a> if you are interested in trying the final product before working through the code.  You can find the source code both for the on-chain program, and a rust client that interacts with it <a  style={{textDecoration: "underline"}} href="https://github.com/daoplays/solana_examples/tree/master/charity_auction">here</a>
-
-            <br/><br/>
-
-            Before going through the program functions themselves, however, we will just have a quick aside on managing large data accounts on the Solana blockchain.
-
-            <h3 id="init-header" className="mt-5" style={{fontSize: "20px"}}>Managing Lots Of Data On Chain</h3><br />
-
-            One issue that we ran up against a lot with this program was the 4kb <a  style={{textDecoration: "underline"}}  href="https://docs.solana.com/developing/on-chain-programs/overview#stack">stack frame</a> that all programs running on the Solana blockchain must limit themselves to.  This means that you need to ensure that you don't use more than 4kb of data within a given scope (for example, within a function).  There are many posts online outlining the issue (for example, <a  style={{textDecoration: "underline"}} href="https://github.com/solana-labs/solana/issues/13391">here</a>), and while there are improvements in the pipeline, for example just increasing this to 8kb, for now programs that have lots of data stored on chain need to be careful how that data is accessed in the program.
-
-            <br/><br/>
-
-            In our case the data on chain is about 50kb, most of which is taken up with the vectors that contain the bid amounts, public keys, and bid times of the auction participant:
-
-            <br /><br />
-            <HighLightCode codeBlock={state_1} language={"rust"}/>
-
-            <br/>
-
-            Note that although we define this in <Code p="0">state.rs</Code> at no point do we ever try and access the whole state on chain, it is there primarily as a reference.  The final entry <Code p="0">charity_data</Code> is the same struct that we used in our charity token launch <a style={{textDecoration: "underline"}} href="https://www.daoplays.org/blog/charity_token_launch">post</a> to store the summary statistics of the donations made and the breakdown per charity.
-
-            <br/><br/>
-
-            In order to try and make it easier to grab different bits of data from this struct we first define the following <Code p="0">enum</Code>, which includes an entry for each item in <Code p="0">State</Code>.  For the vectors the entries take an additional <Code p="0">index</Code> argument,  which is used to specify which element of the vector we want to access:
-
-
-            <br /><br />
-            <HighLightCode codeBlock={state_2} language={"rust"}/>
-
-
-            <br/>
-
-            Given this <Code p="0">enum</Code> we then define the following function, <Code p="0">get_state_index</Code>, which takes an entry from <Code p="0">StateEnum</Code> and returns a tuple that provides the start and end bytes for that element of the state.  
-
-            <br /><br />
-            <HighLightCode codeBlock={state_3} language={"rust"}/>
-
-            <br/>
-
-            While this is not the prettiest function, it means that wherever we access an element of <Code p="0">State</Code> in the code we can simply ask for the byte range of that item by doing something like:
-
-            <br /><br />
-            <HighLightCode codeBlock={`
+  return (
+    <div className="container">
+      <h1 className="h1 text-center mb-0 pt-3 font-weight-bold text-body">
+        Running A Charity Token Auction
+      </h1>
+      <h1 className="h5 text-center mb-1 pt-0 font-weight-bold text-secondary">
+        August 16 2022
+      </h1>
+      <br />
+      <h2 id="intro-header" className="mt-5" style={{ fontSize: "22px" }}>
+        Introduction
+      </h2>
+      <br />
+      In this post we are going to be building a token auction program for the
+      Solana blockchain. Participants will be bidding on a block of one hundred
+      tokens, where their chance of being the next winner is proportional to the
+      size of their bid. They will also be able to decide how much of their bid
+      we keep, and how much we donate to charity, as well as selecting which
+      charity we donate to from a set of provided options.
+      <br />
+      <br />
+      The more people that take part in the auction the faster new winners will
+      be selected, with new rounds initially spaced out on minute timescales,
+      but reducing to seconds as the number of participants increases. More
+      people also means more winners will be selected in each round, starting
+      with a single winner and increasing up to four. A participant's bid will
+      roll over into subsequent rounds and can be added to at any point in order
+      to improve their chances of being chosen as the next winner.
+      <br />
+      <br />
+      In describing the program we will reference a couple of our previous
+      articles; Firstly we will be using{" "}
+      <a style={{ textDecoration: "underline" }} href="https://pyth.network/">
+        Pyth
+      </a>{" "}
+      to seed the random number generators used in the auction using the same
+      process we described{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://www.daoplays.org/blog/pyth_seeds"
+      >
+        here
+      </a>
+      , and secondly all the donations will be handled via{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://thegivingblock.com/"
+      >
+        The Giving Block
+      </a>{" "}
+      as in our charity token launch post{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://www.daoplays.org/blog/charity_token_launch"
+      >
+        here
+      </a>
+      .
+      <br />
+      <br />
+      We decided to make the chance of winning proportional to the size of the
+      bid in order to make the auction as fair as possible to all participants,
+      and avoid the situation where a small number of high-bidders end up
+      receiving all the tokens. In order to do this, however, we need to store
+      and process all the prevailing bids in order to produce a cumulative
+      distribution whenever new winners are chosen. Given the limitations on how
+      much computation can be done within a single transaction, we therefore
+      impose a maximum number of bids that can be tracked at any point in time,
+      which we set to 1024 in this example. If a new bidder enters the auction
+      when this buffer is full, the oldest bid at that point in time is lost,
+      and replaced with the new bid. Participants will however be able to
+      'refresh' the time of their bid by adding to it, and whenever new winners
+      are selected this naturally frees up space in the buffer.
+      <br />
+      <br />
+      In addition to needing to save the size of each bid, we also keep a record
+      of the time each bid is placed. This is to stop users from placing their
+      bid in the same block that winners are being chosen, which could let them
+      pre-determine the random numbers that will be generated and only bid if
+      they knew they were going to win. By tracking the times of each bid we can
+      ensure that for each round in the auction, we only include bids that were
+      made a short interval before that round ends.
+      <br />
+      <br />
+      The program has four main functions, which we will go through in detail
+      below:
+      <br />
+      <br />
+      <ul>
+        <li>
+          <HStack>
+            <Text align="center" m="0" p="0">
+              Create and initialize the program data and derived accounts
+            </Text>{" "}
+            <a href="#init-header">
+              <AiOutlineArrowRight />
+            </a>
+          </HStack>
+        </li>
+        <li>
+          <HStack>
+            <Text align="center" m="0" p="0">
+              Place a bid{" "}
+            </Text>
+            <a href="#bid-header">
+              <AiOutlineArrowRight />
+            </a>
+          </HStack>
+        </li>
+        <li>
+          <HStack>
+            <Text align="center" m="0" p="0">
+              Choose the set of winners
+            </Text>{" "}
+            <a href="#win-header">
+              <AiOutlineArrowRight />
+            </a>
+          </HStack>
+        </li>
+        <li>
+          <HStack>
+            <Text align="center" m="0" p="0">
+              Send tokens to the winners
+            </Text>{" "}
+            <a href="#token-header">
+              <AiOutlineArrowRight />
+            </a>
+          </HStack>
+        </li>
+      </ul>
+      <br />
+      At the end of the post you will also find a simple front end application
+      that interacts with the token auction program currently running on the
+      Solana devnet. You can skip to it{" "}
+      <a href="#token-header" style={{ textDecoration: "underline" }}>
+        here
+      </a>{" "}
+      if you are interested in trying the final product before working through
+      the code. You can find the source code both for the on-chain program, and
+      a rust client that interacts with it{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://github.com/daoplays/solana_examples/tree/master/charity_auction"
+      >
+        here
+      </a>
+      <br />
+      <br />
+      Before going through the program functions themselves, however, we will
+      just have a quick aside on managing large data accounts on the Solana
+      blockchain.
+      <h3 id="init-header" className="mt-5" style={{ fontSize: "20px" }}>
+        Managing Lots Of Data On Chain
+      </h3>
+      <br />
+      One issue that we ran up against a lot with this program was the 4kb{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://docs.solana.com/developing/on-chain-programs/overview#stack"
+      >
+        stack frame
+      </a>{" "}
+      that all programs running on the Solana blockchain must limit themselves
+      to. This means that you need to ensure that you don't use more than 4kb of
+      data within a given scope (for example, within a function). There are many
+      posts online outlining the issue (for example,{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://github.com/solana-labs/solana/issues/13391"
+      >
+        here
+      </a>
+      ), and while there are improvements in the pipeline, for example just
+      increasing this to 8kb, for now programs that have lots of data stored on
+      chain need to be careful how that data is accessed in the program.
+      <br />
+      <br />
+      In our case the data on chain is about 50kb, most of which is taken up
+      with the vectors that contain the bid amounts, public keys, and bid times
+      of the auction participant:
+      <br />
+      <br />
+      <HighLightCode codeBlock={state_1} language={"rust"} />
+      <br />
+      Note that although we define this in <Code p="0">state.rs</Code> at no
+      point do we ever try and access the whole state on chain, it is there
+      primarily as a reference. The final entry <Code p="0">charity_data</Code>{" "}
+      is the same struct that we used in our charity token launch{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://www.daoplays.org/blog/charity_token_launch"
+      >
+        post
+      </a>{" "}
+      to store the summary statistics of the donations made and the breakdown
+      per charity.
+      <br />
+      <br />
+      In order to try and make it easier to grab different bits of data from
+      this struct we first define the following <Code p="0">enum</Code>, which
+      includes an entry for each item in <Code p="0">State</Code>. For the
+      vectors the entries take an additional <Code p="0">index</Code> argument,
+      which is used to specify which element of the vector we want to access:
+      <br />
+      <br />
+      <HighLightCode codeBlock={state_2} language={"rust"} />
+      <br />
+      Given this <Code p="0">enum</Code> we then define the following function,{" "}
+      <Code p="0">get_state_index</Code>, which takes an entry from{" "}
+      <Code p="0">StateEnum</Code> and returns a tuple that provides the start
+      and end bytes for that element of the state.
+      <br />
+      <br />
+      <HighLightCode codeBlock={state_3} language={"rust"} />
+      <br />
+      While this is not the prettiest function, it means that wherever we access
+      an element of <Code p="0">State</Code> in the code we can simply ask for
+      the byte range of that item by doing something like:
+      <br />
+      <br />
+      <HighLightCode
+        codeBlock={`
     let key_idx = get_state_index(StateEnum::BidKeys{index: 0});
-            `} language={"rust"}/>
-
-            <br />
-            
-            and can then get the start and end bytes by accessing <Code p="0">key_idx.0</Code> and <Code p="0">key_idx.1</Code> without having to repeatedly hard code the values.  If we change the contents of <Code p="0">State</Code> we just update <Code p="0">StateEnum</Code> and <Code p="0">get_state_index</Code> and the rest of the code will work without change.
-
-            <br/><br/>
-
-            While the above would allow us to iterate through the vectors and to grab the elements individually, this is not very computationally cost effective.  We therefore also define a few helped structs to allow  us to access chunks of these vectors in sizes that won't violate the stack frame size.
-
-
-            <br /><br />
-            <HighLightCode codeBlock={state_4} language={"rust"}/>
-
-            <br/>
-
-            In <Code p="0">state.rs</Code> we define <Code p="0">BID_BLOCK</Code> to be 64, so <Code p="0">BidValues</Code> and <Code p="0">BidTimes</Code> are each 512 bytes.  Although this is well inside the 4kb limit, due to how these structures are accessed within the code trying to make them any larger led to the program violating the stack size limit.
-
-
-            <h3 id="init-header" className="mt-5" style={{fontSize: "20px"}}>Initializing The Program</h3><br />
-
-            When first initializing the auction program there are four steps that need to be taken:
-
-            <br/><br/>
-            <ul>
-                <li>Check that the accounts passed are those that are expected</li>
-                <li>Create the program's derived account so it can own and transfer tokens</li>
-                <li>Create the program's associated token account </li>
-                <li>Transfer tokens to the program</li>
-                <li>Create a data account to hold all the state for the auction and charity statistics </li>
-            </ul>
-
-            <br/>
-            
-            
-           The first three of these tasks are described in detail in our charity token launch post, which you can see <a style={{textDecoration: "underline"}} href="https://www.daoplays.org/blog/charity_token_launch">here</a>.  In this program we just call the <Code p="0">create_program_account</Code>, <Code p="0">create_token_account</Code> and <Code p="0">transfer_tokens</Code> functions described in that post. 
-
-            <br/><br/>
-
-            Unfortunately the final task of creating the program's data account needs to be handled off chain.  This is because there are limitations to the size of the account that can be created on chain of about 10Kb, and we exceed that by some margin.  You can find the code for the rust client that implements this functionality <a style={{textDecoration: "underline"}} href="https://www.daoplays.org/blog/charity_token_launch">here</a>.
-
-            <br/><br/>
-
-            Much like when finding a program derived address, Solana provides the <Code p="0"><a style={{textDecoration: "underline"}}  href="https://docs.rs/solana-program/latest/solana_program/pubkey/struct.Pubkey.html#method.create_with_seed">create_with_seed</a></Code> function to determine the address of a data account using a seed phrase and a <Code p="0">base_key</Code>.  These are passed as arguments along with the public key of the owner (the program in this case): 
-
-            <br /><br />
-            <HighLightCode codeBlock={init_1} language={"rust"}/>
-
-
-            <br/>
-
-            The public key generated by this function can then be passed to the <Code p="0"><a style={{textDecoration: "underline"}}  href="https://docs.rs/solana-sdk/latest/solana_sdk/system_instruction/fn.create_account_with_seed.html">create_account_with_seed</a></Code> function, along with the size of the account and the balance that needs to be transferred to ensure it is rent exempt:
-
-            <br /><br />
-            <HighLightCode codeBlock={init_2} language={"rust"}/>
-
-
-
-            <br/>
-
-            With that we have everything set up that the program will need, and we can move on to actually placing bids in the auction!
-
-
-            <h3 id="bid-header" className="mt-5" style={{fontSize: "20px"}}>Placing A Bid</h3><br />
-
-            The <Code p="0">process_place_bid</Code> function, which handles new bids from the auction's participants, has the following overall flow:
-
-            <br/><br/>
-            <ul>
-                <li>Check all the accounts passed are as expected</li>
-                <li>Create the bidder's associated token account if required</li>
-                <li>Check the bid, and transfer the SOL</li>
-                <li>Update the <Code p="0">charity_data</Code> in the program's <Code p="0">State</Code></li>
-                <li>Create a program derived account for the bidder if required</li>
-                <li>Update the bid data in the program's <Code p="0">State</Code> with the new bid</li>
-
-            </ul>
-
-            <br/>
-
-            The first four of these tasks follow exactly the same format as when joining the charity token launch <a style={{textDecoration: "underline"}} href="https://www.daoplays.org/blog/charity_token_launch">here</a>, so we will skip over those in this post.  The first new task is to create a new PDA for the program which will use the bidder's public key as the seed to find the address:
-
-            <br /><br />
-            <HighLightCode codeBlock={
-`
+            `}
+        language={"rust"}
+      />
+      <br />
+      and can then get the start and end bytes by accessing{" "}
+      <Code p="0">key_idx.0</Code> and <Code p="0">key_idx.1</Code> without
+      having to repeatedly hard code the values. If we change the contents of{" "}
+      <Code p="0">State</Code> we just update <Code p="0">StateEnum</Code> and{" "}
+      <Code p="0">get_state_index</Code> and the rest of the code will work
+      without change.
+      <br />
+      <br />
+      While the above would allow us to iterate through the vectors and to grab
+      the elements individually, this is not very computationally cost
+      effective. We therefore also define a few helped structs to allow us to
+      access chunks of these vectors in sizes that won't violate the stack frame
+      size.
+      <br />
+      <br />
+      <HighLightCode codeBlock={state_4} language={"rust"} />
+      <br />
+      In <Code p="0">state.rs</Code> we define <Code p="0">BID_BLOCK</Code> to
+      be 64, so <Code p="0">BidValues</Code> and <Code p="0">BidTimes</Code> are
+      each 512 bytes. Although this is well inside the 4kb limit, due to how
+      these structures are accessed within the code trying to make them any
+      larger led to the program violating the stack size limit.
+      <h3 id="init-header" className="mt-5" style={{ fontSize: "20px" }}>
+        Initializing The Program
+      </h3>
+      <br />
+      When first initializing the auction program there are four steps that need
+      to be taken:
+      <br />
+      <br />
+      <ul>
+        <li>Check that the accounts passed are those that are expected</li>
+        <li>
+          Create the program's derived account so it can own and transfer tokens
+        </li>
+        <li>Create the program's associated token account </li>
+        <li>Transfer tokens to the program</li>
+        <li>
+          Create a data account to hold all the state for the auction and
+          charity statistics{" "}
+        </li>
+      </ul>
+      <br />
+      The first three of these tasks are described in detail in our charity
+      token launch post, which you can see{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://www.daoplays.org/blog/charity_token_launch"
+      >
+        here
+      </a>
+      . In this program we just call the{" "}
+      <Code p="0">create_program_account</Code>,{" "}
+      <Code p="0">create_token_account</Code> and{" "}
+      <Code p="0">transfer_tokens</Code> functions described in that post.
+      <br />
+      <br />
+      Unfortunately the final task of creating the program's data account needs
+      to be handled off chain. This is because there are limitations to the size
+      of the account that can be created on chain of about 10Kb, and we exceed
+      that by some margin. You can find the code for the rust client that
+      implements this functionality{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://www.daoplays.org/blog/charity_token_launch"
+      >
+        here
+      </a>
+      .
+      <br />
+      <br />
+      Much like when finding a program derived address, Solana provides the{" "}
+      <Code p="0">
+        <a
+          style={{ textDecoration: "underline" }}
+          href="https://docs.rs/solana-program/latest/solana_program/pubkey/struct.Pubkey.html#method.create_with_seed"
+        >
+          create_with_seed
+        </a>
+      </Code>{" "}
+      function to determine the address of a data account using a seed phrase
+      and a <Code p="0">base_key</Code>. These are passed as arguments along
+      with the public key of the owner (the program in this case):
+      <br />
+      <br />
+      <HighLightCode codeBlock={init_1} language={"rust"} />
+      <br />
+      The public key generated by this function can then be passed to the{" "}
+      <Code p="0">
+        <a
+          style={{ textDecoration: "underline" }}
+          href="https://docs.rs/solana-sdk/latest/solana_sdk/system_instruction/fn.create_account_with_seed.html"
+        >
+          create_account_with_seed
+        </a>
+      </Code>{" "}
+      function, along with the size of the account and the balance that needs to
+      be transferred to ensure it is rent exempt:
+      <br />
+      <br />
+      <HighLightCode codeBlock={init_2} language={"rust"} />
+      <br />
+      With that we have everything set up that the program will need, and we can
+      move on to actually placing bids in the auction!
+      <h3 id="bid-header" className="mt-5" style={{ fontSize: "20px" }}>
+        Placing A Bid
+      </h3>
+      <br />
+      The <Code p="0">process_place_bid</Code> function, which handles new bids
+      from the auction's participants, has the following overall flow:
+      <br />
+      <br />
+      <ul>
+        <li>Check all the accounts passed are as expected</li>
+        <li>Create the bidder's associated token account if required</li>
+        <li>Check the bid, and transfer the SOL</li>
+        <li>
+          Update the <Code p="0">charity_data</Code> in the program's{" "}
+          <Code p="0">State</Code>
+        </li>
+        <li>Create a program derived account for the bidder if required</li>
+        <li>
+          Update the bid data in the program's <Code p="0">State</Code> with the
+          new bid
+        </li>
+      </ul>
+      <br />
+      The first four of these tasks follow exactly the same format as when
+      joining the charity token launch{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://www.daoplays.org/blog/charity_token_launch"
+      >
+        here
+      </a>
+      , so we will skip over those in this post. The first new task is to create
+      a new PDA for the program which will use the bidder's public key as the
+      seed to find the address:
+      <br />
+      <br />
+      <HighLightCode
+        codeBlock={`
     Pubkey::find_program_address(&[&bidder_account_info.key.to_bytes()], &program_id);
-`} language={"rust"}/>
-
-            <br />
-
-            This account needs to hold a single instance of the <Code p="0">BidderData</Code> struct, defined below:
-
-            <br/><br/>
-            <HighLightCode codeBlock={
-`
+`}
+        language={"rust"}
+      />
+      <br />
+      This account needs to hold a single instance of the{" "}
+      <Code p="0">BidderData</Code> struct, defined below:
+      <br />
+      <br />
+      <HighLightCode
+        codeBlock={`
     // in state.rs
     pub struct BidderData {
         pub index : u16
     }
-`
-            } language={"rust"}/>
-
-
-            <br />
-
-            This will store the index into the three bid data arrays contained in the program's <Code p="0">State</Code> (<Code p="0">bid_keys</Code>, <Code p="0">bid_amounts</Code>, and <Code p="0">bid_times</Code>) that are associated with this participant's most recent bid.  Whenever a new bid is made we can check if the participant has an existing bid by just checking the public key in the program's <Code p="0">bid_keys</Code> array at position <Code p="0">index</Code>, rather than searching through all the keys in the array, which is extremely inefficient.
-
-            <br /><br />
-            <HighLightCode codeBlock={bid_1} language={"rust"}/>
-
-            <br/>
-
-          
-
-            What we do next depends on whether the public key at that position matches the bidder.  If it does then the bidder has a valid bid already in the system, and we just have to increment the value of the bid by the new amount:
-
-
-            <br /><br />
-            <HighLightCode codeBlock={bid_1_2} language={"rust"}/>
-            <br/>
-
-
-            If the keys don't match we know we have a new bid, and so we will either insert the bid into an empty slot in the program's <Code p="0">State</Code>, or if there are no empty slots then we are going to need to replace the oldest bid. 
-
-            <br/><br/>
-            
-            Given we might need the oldest bid, we iterate through the <Code p="0">bid_times</Code> array to find the first element that is zero, which indicates an empty slot. As we iterate through we also track <Code p="0">oldest_bid_index</Code>, which if we make it all the way through the loop without finding an empty slot will point to the entry in the data that contains the oldest bid.  Note in the below we are making use of our <Code p="0">BidTimes</Code> helper struct, so that we can deserialize in chunks of  <Code p="0">BID_BLOCK</Code> entries and still remain in the 4kb stack frame limit.
-
-            <br /><br />
-            <HighLightCode codeBlock={bid_2} language={"rust"}/>
-
-           
-            <br/>
-
-            If we didn't find a slot then we are going to need to replace the bid at position <Code p="0">oldest_bid_index</Code>.  We therefore first have to check what bid was present at that position and subtract its value from <Code p="0">bid_total</Code> which tracks the total quantity currently in the program's <Code p="0">State</Code>, and also reduce <Code p="0">n_bidders</Code>, which tracks the number of active bids in the <Code p="0">State</Code>, by one.
-
-            <br /><br />
-            <HighLightCode codeBlock={bid_3} language={"rust"}/>
-
-            <br/>
-
-            With the new index found we can update the participants <Code p="0">BidderData</Code>:
-
-            <br /><br />
-            <HighLightCode codeBlock={bid_4} language={"rust"}/>
-
-            <br/>
-
-            and finally serialize the new bid, public key and the current time, before updating the <Code p="0">total_bid</Code> and <Code p="0">n_bidders</Code> data as well.
-
-            <br /><br />
-            <HighLightCode codeBlock={bid_5} language={"rust"}/>
-
-
-
-            <br/>
-
-
-            <h3 id="win-header" className="mt-5" style={{fontSize: "20px"}}>Choosing Winners</h3><br />
-
-            When selecting new winners the program needs to perform the following sequence of tasks:
-
-            <br/><br/>
-            <ul>
-                <li>Check that the accounts passed are those that are expected</li>
-                <li>Filter out the bids that occurred within the last few seconds</li>
-                <li>Check if, given the number of bids available, now is a valid time to select winners</li>
-                <li>Use Pyth to seed the random number generator, and produce <Code p="0">n_winner</Code> random numbers</li>
-                <li>Iterate through the valid bids, calculating the cumulative distribution and selecting the winners</li>
-                <li>Update the program's <Code p="0">State</Code> with the new winners, and other relevant data</li>
-
-            </ul>
-
-            <br/>
-            
-            As we discussed in the introduction to this post, we need to make sure that bids can't be included within a round of the auction if they are made within the same block that the winners are selected.  This is to stop someone checking the value of the Pyth streams we are using, and determining what the random numbers we generate will be before placing their bid with full knowledge of whether their's will be selected or not.  More generally, the longer the time between the last bid and the selection of winners, the more secure the random number seed will be, because the range of possible values that will be passed by the Pyth streams will increase.
-            
-            
-            <br/><br/>
-            
-            We therefore need to be able to find the subset of bids that occurred more than some threshold time before we enter the <Code p="0">select_winners</Code> function, which in this example we have set to two seconds.  We therefore define the following function, <Code p="0">get_bid_state</Code>, which takes as an argument <Code p="0">max_time</Code>, which is the latest time for a bid that we will consider in order to include it in this round of the auction.  At this stage all we are interested in doing is finding both the total amount bid prior to that time, and the number of valid bids, so we simply iterate through the data, checking that the time of the bid is prior to <Code p="0">max_time</Code> and returning these quantities at the end:
-
-            <br /><br />
-            <HighLightCode codeBlock={win_1} language={"rust"}/>
-
-            <br/>
-
-            Now that we know the number of valid bids, we can check whether or not we are in a position to select new winners at all.  The logic for this is contained in the following function, <Code p="0">check_winners_state</Code>, which starts by just checking whether there are any valid bids at all:
-
-            <br /><br />
-            <HighLightCode codeBlock={win_2_1} language={"rust"}/>
-
-            <br/>
-
-            If there are bids, we next check whether the program has enough tokens to be able to select any winners.  Each participant is bidding on a block of one hundred tokens, so there need to be at least that many in the program's token account.  Note that for our example, the tokens have no decimal places, so we simply need to query the <Code p="0">amount</Code> field of the token account:
-
-            <br /><br />
-            <HighLightCode codeBlock={win_2_2} language={"rust"}/>
-
-            <br/>
-
-            Assuming we have tokens in the bank, we next work out how many winners we are able to select this round, up to a maximum of four.  We allow multiple winners each round because it means we are less likely to run into a situation where a single large bidder dominates the draw.  Each time a winner is selected their bid is removed from the pool, and we recalculate the cumulative distribution of the remaining bids.  This will give participants with lower bids a higher probability of being selected, and hopefully keep them more engaged in the auction process.
-
-            <br/><br/>
-
-            We also want the pool of bids to have the opportunity to grow, and selecting too many winners each round will make this difficult, so in this example we have settled on selecting one winner per 64 bids, up to the maximum of four.  The number of winners selected in each round also needs to be limited by the number of tokens in the bank, and the following code makes these various checks to arrive at the final value of <Code p="0">n_winners</Code> for this round:
-
-            <br /><br />
-            <HighLightCode codeBlock={win_2_3} language={"rust"}/>
-
-            <br/>
-
-            The final check we make is how long it has been since the last winners were selected.  As with the number of winners, we want to strike a balance between allowing the pool of bids to build up, while still having winners being selected on a relatively short timescale.  We chose five minutes as a reasonable time that the average bidder would have to wait to be selected as a winner.  This means if there is only a single bidder in the auction  they will have to wait five minutes until they can call <Code p="0">select_winners</Code>, but already by the time there are ten bidders, new winners can be selected every 30 seconds.  We also remove this limitation entirely once the expected time is below a few seconds, so that if more than one hundred bidders are in the pool new winners can be drawn immediately one after the other:
-
-            <br /><br />
-            <HighLightCode codeBlock={win_2_4} language={"rust"}/>
-
-            <br/>
-
-            To generate the seed for our random number generator we use data feeds from the <a style={{textDecoration: "underline"}} href="https://pyth.network/">Pyth</a> oracle, and follow the same procedure that we outlined in our previous post <a style={{textDecoration: "underline"}} href="https://www.daoplays.org/blog/pyth_seeds">here</a>.  As in that post we then use the xorshift random number generator with that seed to obtain the <Code p="0">n_winner</Code> values we need.  As a final step we then <a style={{textDecoration: "underline"}} href="https://rust-lang-nursery.github.io/rust-cookbook/algorithms/sorting.html">sort</a> the vector of random numbers in order to increase the efficiency with which we can then search through the bid data and actually find the winning keys:
-            
-            
-            <br /><br />
-            <HighLightCode codeBlock={win_3} language={"rust"}/>
-
-
-            <br/>
-
-            We now reach the main loop in this function, which is going to actually select the winners.  When we reach this point <Code p="0">valid_total_bid</Code> has been initialized to the value returned by <Code p="0">get_bid_state</Code>, and so represents the sum of the bids that occurred more than two seconds prior to the time we entered this function.  As before when iterating through all the bids, they will be split up into <Code p="0">N_BID_BLOCK</Code> chunks each of size <Code p="0">BID_BLOCK</Code>.  
-            
-            <br/><br/>
-            
-            Each random number generated earlier is in the interval [0..1].  By multiplying <Code p="0">valid_total_bid</Code> by these numbers we get the point in the cumulative distribution at which a winner will be chosen, which we define as the <Code p="0">threshold</Code> in the code snippet below.  As we iterate through the bids we will be tracking the cumulative bid amount, and comparing this to the <Code p="0">threshold</Code>. The bid that causes the cumulative total to exceed the threshold will then be chosen as the next winner.   As these random values were sorted into numerical order we can just iterate through <Code p="0">N_BID_BLOCK</Code> in the outer loop, and only deserialize each block once in order to increase the computational efficiency of selecting winners.
-
-
-            <br /><br />
-            <HighLightCode codeBlock={win_4} language={"rust"}/>
-
-            <br/>
-
-            Although previously we calculated the total bid amount and number of bidders that we will accept in this round of the auction, we didn't explicitly save the valid indices.  As we loop through the bids we therefore check if the time of the bid was before the required threshold, and ignore it if it was not.  If it was made long enough ago it contributes to the running bid total, which we compare against the threshold.  If this bid exceeds the threshold then we have found our next winner:
-
-            <br /><br />
-            <HighLightCode codeBlock={win_4_2} language={"rust"}/>
-
-            <br/>
-
-            Now that we have found a winner we need to serialize their key into the <Code p="0">winners</Code> array of the program's <Code p="0">State</Code>, and then clear their entries in the <Code p="0">bid_amounts</Code>, <Code p="0">bid_times</Code>, and <Code p="0">bid_keys</Code> arrays:
-
-            <br /><br />
-            <HighLightCode codeBlock={win_4_3} language={"rust"}/>
-
-            <br/>
-
-            We then decrement the current known valid bid total, so that when we re-enter the loop for the next winner and recalculate the threshold with the next random value it will be for the new smaller amount.  We also need to reduce the actual total bid amount as we will update that at the very end of the function, and zero out the bid in this blocks <Code p="0">bid_amounts</Code> array, so that it won't get included as we continue to loop through for the next winner.  If we finish the loop through the current block without having found a winner we update the cumulative total bid with the sum from this block, and move on to the next.
-
-            <br /><br />
-            <HighLightCode codeBlock={win_4_4} language={"rust"}/>
-
-            <br/>
-
-            Finally at the end of the function the last thing we need to do is to serialize the updated values of <Code p="0">total_bid</Code> and <Code p="0">n_bidders</Code>, and to set the last time winners were selected to the current time:
-
-            <br /><br />
-            <HighLightCode codeBlock={win_5} language={"rust"}/>
-
-            <br/>
-
-
-
-            <h3 id="token-header" className="mt-5" style={{fontSize: "20px"}}>Sending Tokens</h3><br />
-
-            This is by far the simplest of the four main functions that are used in the token auction.  As usual we start off by checking the main accounts that are passed, however in this case we also have to pass the function the associated token addresses of the winners, so this process is slightly more involved than normal, so we will just quickly go through that aspect below.
-
-            <br/><br/>
-
-            In order to know how many winners we have we deserialize the <Code p="0">n_winners</Code> value from the program data account.  We do this rather than passing the value as an argument to the program to ensure that users can't pass erroneous values.  As this function can be called at any time, at this stage we also simply check that this value is greater than zero.  If there are no winners we can exit immediately.
-
-
-            <br /><br />
-            <HighLightCode codeBlock={send_tokens_1} language={"rust"}/>
-
-
-            <br/>
-
-            Given the expected number of winners, we now create a vector of references to <Code p="0">AccountInfo</Code> objects, and push the winners onto that from the account iterator.  We make use of the <Code p="0"><a style={{textDecoration: "underline"}} href="https://doc.rust-lang.org/std/iter/struct.Peekable.html">peekable</a></Code> functionality of iterators in order to check whether the correct number of accounts have been passed to the function:
-
-
-            <br /><br />            
-            <HighLightCode codeBlock={send_tokens_2_1} language={"rust"}/>
-
-
-            <br/>
-
-            We now need to make several different checks.  Firstly we deserialize the public keys of the winning token accounts from the program's data account, and check that all the keys passed to the program match those that are stored in the data account.  Secondly, we check none of the keys match the system program key, which is the value we store in our data structures to represent an empty slot.
-
-            <br /><br />
-            <HighLightCode codeBlock={send_tokens_2_2} language={"rust"}/>
-
-
-            <br/>
-
-            Finally we then iterate over the remaining keys in the data account up to the maximum number of winners to make sure that these are equal to the system program key.  If they are not then somehow the <Code p="0">n_winners</Code> variable must not have been set to the right value.  Although this shouldn't ever happen, we check anyway:
-
-            <br /><br />
-            <HighLightCode codeBlock={send_tokens_2_3} language={"rust"}/>
-
-
-            <br/>
-
-            With the winning token accounts in hand we can then make use of our <Code p="0">transfer_tokens</Code> function to send the winning amount to each of the accounts in turn.  Here that amount is defined as the constant <Code p="0">TOKENS_WON</Code>, which in this example we have set to one hundred:
-
-            <br /><br />
-            <HighLightCode codeBlock={send_tokens_3} language={"rust"}/>
-
-            <br/>
-
-            As a final step we then reset all the winning keys in the program's data account to the system program key, and set <Code p="0">n_winners</Code> back to zero, so that the program can start selecting new winners again.
-
-            <br /><br />
-            <HighLightCode codeBlock={send_tokens_4} language={"rust"}/>
-
-            <br/>
-
-            <h3 id="token-header" className="mt-5" style={{fontSize: "20px"}}>Live Example</h3><br />
-
-            Below we have a simple front end to the token auction program running on the Solana devnet blockchain, you can find the source code for it at our website's git repo <a  style={{textDecoration: "underline"}} href="https://github.com/daoplays/website">here</a>.  At the top we show a summary of the donations that have been made, both as a total value and as a breakdown per charity.  Below that you can see the current state of the auction, with the number of active bids, and the average bid price.  
-
-            <br/><br/>
-
-            Whenever you make a bid it will automatically take care of sending out tokens to any winners that are currently waiting, and the program will also attempt to select new winners if the criteria for doing so are met.  You can also see what your current chances are of being the next winner selected given the size of your bid, and the total amount bid by all users.
-
-            <br/><br/>
-
-            Finally, it will also show you how many bids by other users need to be made before your bid is removed as the oldest bid. You can opt to either increase your bid, which will refresh its lifetime, or select new winners which will free up space in the auction.
-            <br/><br/>
-            <CharityAuctionDapp/>
-            
-
-
-            <br/><br/>
-
-            We will be making use of this system in our own apps going forward, and hope that you might be motivated to try and launch your own charitable token auction in the future!  If you are interested to see how we use it feel free to follow us on <a style={{textDecoration: "underline"}} href="http://www.twitter.com/dao_plays">Twitter</a> to keep up to date with future posts!
-
-           
-        </div>
-    
-
-    );
+`}
+        language={"rust"}
+      />
+      <br />
+      This will store the index into the three bid data arrays contained in the
+      program's <Code p="0">State</Code> (<Code p="0">bid_keys</Code>,{" "}
+      <Code p="0">bid_amounts</Code>, and <Code p="0">bid_times</Code>) that are
+      associated with this participant's most recent bid. Whenever a new bid is
+      made we can check if the participant has an existing bid by just checking
+      the public key in the program's <Code p="0">bid_keys</Code> array at
+      position <Code p="0">index</Code>, rather than searching through all the
+      keys in the array, which is extremely inefficient.
+      <br />
+      <br />
+      <HighLightCode codeBlock={bid_1} language={"rust"} />
+      <br />
+      What we do next depends on whether the public key at that position matches
+      the bidder. If it does then the bidder has a valid bid already in the
+      system, and we just have to increment the value of the bid by the new
+      amount:
+      <br />
+      <br />
+      <HighLightCode codeBlock={bid_1_2} language={"rust"} />
+      <br />
+      If the keys don't match we know we have a new bid, and so we will either
+      insert the bid into an empty slot in the program's{" "}
+      <Code p="0">State</Code>, or if there are no empty slots then we are going
+      to need to replace the oldest bid.
+      <br />
+      <br />
+      Given we might need the oldest bid, we iterate through the{" "}
+      <Code p="0">bid_times</Code> array to find the first element that is zero,
+      which indicates an empty slot. As we iterate through we also track{" "}
+      <Code p="0">oldest_bid_index</Code>, which if we make it all the way
+      through the loop without finding an empty slot will point to the entry in
+      the data that contains the oldest bid. Note in the below we are making use
+      of our <Code p="0">BidTimes</Code> helper struct, so that we can
+      deserialize in chunks of <Code p="0">BID_BLOCK</Code> entries and still
+      remain in the 4kb stack frame limit.
+      <br />
+      <br />
+      <HighLightCode codeBlock={bid_2} language={"rust"} />
+      <br />
+      If we didn't find a slot then we are going to need to replace the bid at
+      position <Code p="0">oldest_bid_index</Code>. We therefore first have to
+      check what bid was present at that position and subtract its value from{" "}
+      <Code p="0">bid_total</Code> which tracks the total quantity currently in
+      the program's <Code p="0">State</Code>, and also reduce{" "}
+      <Code p="0">n_bidders</Code>, which tracks the number of active bids in
+      the <Code p="0">State</Code>, by one.
+      <br />
+      <br />
+      <HighLightCode codeBlock={bid_3} language={"rust"} />
+      <br />
+      With the new index found we can update the participants{" "}
+      <Code p="0">BidderData</Code>:
+      <br />
+      <br />
+      <HighLightCode codeBlock={bid_4} language={"rust"} />
+      <br />
+      and finally serialize the new bid, public key and the current time, before
+      updating the <Code p="0">total_bid</Code> and <Code p="0">n_bidders</Code>{" "}
+      data as well.
+      <br />
+      <br />
+      <HighLightCode codeBlock={bid_5} language={"rust"} />
+      <br />
+      <h3 id="win-header" className="mt-5" style={{ fontSize: "20px" }}>
+        Choosing Winners
+      </h3>
+      <br />
+      When selecting new winners the program needs to perform the following
+      sequence of tasks:
+      <br />
+      <br />
+      <ul>
+        <li>Check that the accounts passed are those that are expected</li>
+        <li>Filter out the bids that occurred within the last few seconds</li>
+        <li>
+          Check if, given the number of bids available, now is a valid time to
+          select winners
+        </li>
+        <li>
+          Use Pyth to seed the random number generator, and produce{" "}
+          <Code p="0">n_winner</Code> random numbers
+        </li>
+        <li>
+          Iterate through the valid bids, calculating the cumulative
+          distribution and selecting the winners
+        </li>
+        <li>
+          Update the program's <Code p="0">State</Code> with the new winners,
+          and other relevant data
+        </li>
+      </ul>
+      <br />
+      As we discussed in the introduction to this post, we need to make sure
+      that bids can't be included within a round of the auction if they are made
+      within the same block that the winners are selected. This is to stop
+      someone checking the value of the Pyth streams we are using, and
+      determining what the random numbers we generate will be before placing
+      their bid with full knowledge of whether their's will be selected or not.
+      More generally, the longer the time between the last bid and the selection
+      of winners, the more secure the random number seed will be, because the
+      range of possible values that will be passed by the Pyth streams will
+      increase.
+      <br />
+      <br />
+      We therefore need to be able to find the subset of bids that occurred more
+      than some threshold time before we enter the{" "}
+      <Code p="0">select_winners</Code> function, which in this example we have
+      set to two seconds. We therefore define the following function,{" "}
+      <Code p="0">get_bid_state</Code>, which takes as an argument{" "}
+      <Code p="0">max_time</Code>, which is the latest time for a bid that we
+      will consider in order to include it in this round of the auction. At this
+      stage all we are interested in doing is finding both the total amount bid
+      prior to that time, and the number of valid bids, so we simply iterate
+      through the data, checking that the time of the bid is prior to{" "}
+      <Code p="0">max_time</Code> and returning these quantities at the end:
+      <br />
+      <br />
+      <HighLightCode codeBlock={win_1} language={"rust"} />
+      <br />
+      Now that we know the number of valid bids, we can check whether or not we
+      are in a position to select new winners at all. The logic for this is
+      contained in the following function,{" "}
+      <Code p="0">check_winners_state</Code>, which starts by just checking
+      whether there are any valid bids at all:
+      <br />
+      <br />
+      <HighLightCode codeBlock={win_2_1} language={"rust"} />
+      <br />
+      If there are bids, we next check whether the program has enough tokens to
+      be able to select any winners. Each participant is bidding on a block of
+      one hundred tokens, so there need to be at least that many in the
+      program's token account. Note that for our example, the tokens have no
+      decimal places, so we simply need to query the <Code p="0">
+        amount
+      </Code>{" "}
+      field of the token account:
+      <br />
+      <br />
+      <HighLightCode codeBlock={win_2_2} language={"rust"} />
+      <br />
+      Assuming we have tokens in the bank, we next work out how many winners we
+      are able to select this round, up to a maximum of four. We allow multiple
+      winners each round because it means we are less likely to run into a
+      situation where a single large bidder dominates the draw. Each time a
+      winner is selected their bid is removed from the pool, and we recalculate
+      the cumulative distribution of the remaining bids. This will give
+      participants with lower bids a higher probability of being selected, and
+      hopefully keep them more engaged in the auction process.
+      <br />
+      <br />
+      We also want the pool of bids to have the opportunity to grow, and
+      selecting too many winners each round will make this difficult, so in this
+      example we have settled on selecting one winner per 64 bids, up to the
+      maximum of four. The number of winners selected in each round also needs
+      to be limited by the number of tokens in the bank, and the following code
+      makes these various checks to arrive at the final value of{" "}
+      <Code p="0">n_winners</Code> for this round:
+      <br />
+      <br />
+      <HighLightCode codeBlock={win_2_3} language={"rust"} />
+      <br />
+      The final check we make is how long it has been since the last winners
+      were selected. As with the number of winners, we want to strike a balance
+      between allowing the pool of bids to build up, while still having winners
+      being selected on a relatively short timescale. We chose five minutes as a
+      reasonable time that the average bidder would have to wait to be selected
+      as a winner. This means if there is only a single bidder in the auction
+      they will have to wait five minutes until they can call{" "}
+      <Code p="0">select_winners</Code>, but already by the time there are ten
+      bidders, new winners can be selected every 30 seconds. We also remove this
+      limitation entirely once the expected time is below a few seconds, so that
+      if more than one hundred bidders are in the pool new winners can be drawn
+      immediately one after the other:
+      <br />
+      <br />
+      <HighLightCode codeBlock={win_2_4} language={"rust"} />
+      <br />
+      To generate the seed for our random number generator we use data feeds
+      from the{" "}
+      <a style={{ textDecoration: "underline" }} href="https://pyth.network/">
+        Pyth
+      </a>{" "}
+      oracle, and follow the same procedure that we outlined in our previous
+      post{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://www.daoplays.org/blog/pyth_seeds"
+      >
+        here
+      </a>
+      . As in that post we then use the xorshift random number generator with
+      that seed to obtain the <Code p="0">n_winner</Code> values we need. As a
+      final step we then{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://rust-lang-nursery.github.io/rust-cookbook/algorithms/sorting.html"
+      >
+        sort
+      </a>{" "}
+      the vector of random numbers in order to increase the efficiency with
+      which we can then search through the bid data and actually find the
+      winning keys:
+      <br />
+      <br />
+      <HighLightCode codeBlock={win_3} language={"rust"} />
+      <br />
+      We now reach the main loop in this function, which is going to actually
+      select the winners. When we reach this point{" "}
+      <Code p="0">valid_total_bid</Code> has been initialized to the value
+      returned by <Code p="0">get_bid_state</Code>, and so represents the sum of
+      the bids that occurred more than two seconds prior to the time we entered
+      this function. As before when iterating through all the bids, they will be
+      split up into <Code p="0">N_BID_BLOCK</Code> chunks each of size{" "}
+      <Code p="0">BID_BLOCK</Code>.
+      <br />
+      <br />
+      Each random number generated earlier is in the interval [0..1]. By
+      multiplying <Code p="0">valid_total_bid</Code> by these numbers we get the
+      point in the cumulative distribution at which a winner will be chosen,
+      which we define as the <Code p="0">threshold</Code> in the code snippet
+      below. As we iterate through the bids we will be tracking the cumulative
+      bid amount, and comparing this to the <Code p="0">threshold</Code>. The
+      bid that causes the cumulative total to exceed the threshold will then be
+      chosen as the next winner. As these random values were sorted into
+      numerical order we can just iterate through <Code p="0">N_BID_BLOCK</Code>{" "}
+      in the outer loop, and only deserialize each block once in order to
+      increase the computational efficiency of selecting winners.
+      <br />
+      <br />
+      <HighLightCode codeBlock={win_4} language={"rust"} />
+      <br />
+      Although previously we calculated the total bid amount and number of
+      bidders that we will accept in this round of the auction, we didn't
+      explicitly save the valid indices. As we loop through the bids we
+      therefore check if the time of the bid was before the required threshold,
+      and ignore it if it was not. If it was made long enough ago it contributes
+      to the running bid total, which we compare against the threshold. If this
+      bid exceeds the threshold then we have found our next winner:
+      <br />
+      <br />
+      <HighLightCode codeBlock={win_4_2} language={"rust"} />
+      <br />
+      Now that we have found a winner we need to serialize their key into the{" "}
+      <Code p="0">winners</Code> array of the program's <Code p="0">State</Code>
+      , and then clear their entries in the <Code p="0">bid_amounts</Code>,{" "}
+      <Code p="0">bid_times</Code>, and <Code p="0">bid_keys</Code> arrays:
+      <br />
+      <br />
+      <HighLightCode codeBlock={win_4_3} language={"rust"} />
+      <br />
+      We then decrement the current known valid bid total, so that when we
+      re-enter the loop for the next winner and recalculate the threshold with
+      the next random value it will be for the new smaller amount. We also need
+      to reduce the actual total bid amount as we will update that at the very
+      end of the function, and zero out the bid in this blocks{" "}
+      <Code p="0">bid_amounts</Code> array, so that it won't get included as we
+      continue to loop through for the next winner. If we finish the loop
+      through the current block without having found a winner we update the
+      cumulative total bid with the sum from this block, and move on to the
+      next.
+      <br />
+      <br />
+      <HighLightCode codeBlock={win_4_4} language={"rust"} />
+      <br />
+      Finally at the end of the function the last thing we need to do is to
+      serialize the updated values of <Code p="0">total_bid</Code> and{" "}
+      <Code p="0">n_bidders</Code>, and to set the last time winners were
+      selected to the current time:
+      <br />
+      <br />
+      <HighLightCode codeBlock={win_5} language={"rust"} />
+      <br />
+      <h3 id="token-header" className="mt-5" style={{ fontSize: "20px" }}>
+        Sending Tokens
+      </h3>
+      <br />
+      This is by far the simplest of the four main functions that are used in
+      the token auction. As usual we start off by checking the main accounts
+      that are passed, however in this case we also have to pass the function
+      the associated token addresses of the winners, so this process is slightly
+      more involved than normal, so we will just quickly go through that aspect
+      below.
+      <br />
+      <br />
+      In order to know how many winners we have we deserialize the{" "}
+      <Code p="0">n_winners</Code> value from the program data account. We do
+      this rather than passing the value as an argument to the program to ensure
+      that users can't pass erroneous values. As this function can be called at
+      any time, at this stage we also simply check that this value is greater
+      than zero. If there are no winners we can exit immediately.
+      <br />
+      <br />
+      <HighLightCode codeBlock={send_tokens_1} language={"rust"} />
+      <br />
+      Given the expected number of winners, we now create a vector of references
+      to <Code p="0">AccountInfo</Code> objects, and push the winners onto that
+      from the account iterator. We make use of the{" "}
+      <Code p="0">
+        <a
+          style={{ textDecoration: "underline" }}
+          href="https://doc.rust-lang.org/std/iter/struct.Peekable.html"
+        >
+          peekable
+        </a>
+      </Code>{" "}
+      functionality of iterators in order to check whether the correct number of
+      accounts have been passed to the function:
+      <br />
+      <br />
+      <HighLightCode codeBlock={send_tokens_2_1} language={"rust"} />
+      <br />
+      We now need to make several different checks. Firstly we deserialize the
+      public keys of the winning token accounts from the program's data account,
+      and check that all the keys passed to the program match those that are
+      stored in the data account. Secondly, we check none of the keys match the
+      system program key, which is the value we store in our data structures to
+      represent an empty slot.
+      <br />
+      <br />
+      <HighLightCode codeBlock={send_tokens_2_2} language={"rust"} />
+      <br />
+      Finally we then iterate over the remaining keys in the data account up to
+      the maximum number of winners to make sure that these are equal to the
+      system program key. If they are not then somehow the{" "}
+      <Code p="0">n_winners</Code> variable must not have been set to the right
+      value. Although this shouldn't ever happen, we check anyway:
+      <br />
+      <br />
+      <HighLightCode codeBlock={send_tokens_2_3} language={"rust"} />
+      <br />
+      With the winning token accounts in hand we can then make use of our{" "}
+      <Code p="0">transfer_tokens</Code> function to send the winning amount to
+      each of the accounts in turn. Here that amount is defined as the constant{" "}
+      <Code p="0">TOKENS_WON</Code>, which in this example we have set to one
+      hundred:
+      <br />
+      <br />
+      <HighLightCode codeBlock={send_tokens_3} language={"rust"} />
+      <br />
+      As a final step we then reset all the winning keys in the program's data
+      account to the system program key, and set <Code p="0">
+        n_winners
+      </Code>{" "}
+      back to zero, so that the program can start selecting new winners again.
+      <br />
+      <br />
+      <HighLightCode codeBlock={send_tokens_4} language={"rust"} />
+      <br />
+      <h3 id="token-header" className="mt-5" style={{ fontSize: "20px" }}>
+        Live Example
+      </h3>
+      <br />
+      Below we have a simple front end to the token auction program running on
+      the Solana devnet blockchain, you can find the source code for it at our
+      website's git repo{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="https://github.com/daoplays/website"
+      >
+        here
+      </a>
+      . At the top we show a summary of the donations that have been made, both
+      as a total value and as a breakdown per charity. Below that you can see
+      the current state of the auction, with the number of active bids, and the
+      average bid price.
+      <br />
+      <br />
+      Whenever you make a bid it will automatically take care of sending out
+      tokens to any winners that are currently waiting, and the program will
+      also attempt to select new winners if the criteria for doing so are met.
+      You can also see what your current chances are of being the next winner
+      selected given the size of your bid, and the total amount bid by all
+      users.
+      <br />
+      <br />
+      Finally, it will also show you how many bids by other users need to be
+      made before your bid is removed as the oldest bid. You can opt to either
+      increase your bid, which will refresh its lifetime, or select new winners
+      which will free up space in the auction.
+      <br />
+      <br />
+      <CharityAuctionDapp />
+      <br />
+      <br />
+      We will be making use of this system in our own apps going forward, and
+      hope that you might be motivated to try and launch your own charitable
+      token auction in the future! If you are interested to see how we use it
+      feel free to follow us on{" "}
+      <a
+        style={{ textDecoration: "underline" }}
+        href="http://www.twitter.com/dao_plays"
+      >
+        Twitter
+      </a>{" "}
+      to keep up to date with future posts!
+    </div>
+  );
 }
 
 function CharityAuction() {
-    return (
-        <PostContent />        
-    );
-    }
+  return <PostContent />;
+}
 
 export default CharityAuction;
