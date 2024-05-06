@@ -87,7 +87,7 @@ const OptionsTable = ({ collection, optionsList }: { collection: PublicKey, opti
 
         <tbody>
           {optionsList.map((option: AssetV1, index) => (
-            <LaunchCard collection={collection} option={option} />
+            <LaunchCard key={index}  collection={collection} option={option} />
           ))}
         </tbody>
       </table>
@@ -128,7 +128,7 @@ const LaunchCard = ({ collection, option }: { collection : PublicKey, option: As
   
   if (listed == "0")
     return(<></>)
-  
+
   let date = new Date(parseInt(expiry));
 
   let splitLaunchDate = date.toUTCString().split(" ");
