@@ -122,6 +122,14 @@ const core_1 = {
   display_image: !isMobile,
 };
 
+const options = {
+  title: "Trading Options With Metaplex Core",
+  sub_title: "May 06 2024",
+  post_text: "We use metaplex core to create an options trading program",
+  image: core,
+  display_image: !isMobile,
+};
+
 function RowCard({ title, sub_title, post_text, image, display_image }) {
   return (
     <Card style={{ flexDirection: "row" }}>
@@ -169,6 +177,11 @@ export default function Home() {
       <br />
       <Container>
         <Col>
+          <Link href="/blog/options">
+            <RowCard {...options} />
+          </Link>
+
+          <br />
           <Link href="/blog/core_p1">
             <RowCard {...core_1} />
           </Link>
