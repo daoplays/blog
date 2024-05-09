@@ -5,7 +5,8 @@ import Navigation from "../components/Navigation";
 import "bootstrap/dist/css/bootstrap.css";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
-
+import "../styles/fonts.css";
+import "../styles/table.css";
 import NoSSR from "../utils/NoSSR";
 function MyApp({ Component, pageProps }) {
   console.log({ theme });

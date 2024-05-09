@@ -146,8 +146,7 @@ function App() {
     );
   }
 
-  let optionsList: OptionData[] = [];
-
+  
   return (
     <>
     <Center
@@ -175,7 +174,7 @@ function App() {
         w={"100"}
       >
         <HStack spacing={3} zIndex={99}>
-          {["Create", "Trade"].map((name, i) => {
+          {["Create", "Trade", "Execute", "Refund"].map((name, i) => {
             const isActive = selected === name;
 
             const baseStyle = {
@@ -229,7 +228,12 @@ function App() {
       )
       }
 
-      {selected === "Trade" && <OptionsTable collection={collection} optionsList={collection_assets} />}
+      {selected === "Trade" && <OptionsTable collection={collection} optionsList={collection_assets} mode={0} />}
+
+      {selected === "Execute" && <OptionsTable collection={collection} optionsList={collection_assets} mode={1} />}
+
+      {selected === "Refund" && <OptionsTable collection={collection} optionsList={collection_assets} mode={2} />}
+
       </VStack>
       </Center>
     </>

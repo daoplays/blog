@@ -202,10 +202,9 @@ export function serialise_CreateOption_instruction(
 }
 
 export function serialise_List_instruction(
-  instruction: number,
   price: number,
 ): Buffer {
-  const data = new List_Instruction(instruction, price);
+  const data = new List_Instruction(OptionsInstruction.list, price);
   const [buf] = List_Instruction.struct.serialize(data);
 
   return buf;
