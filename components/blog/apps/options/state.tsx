@@ -21,7 +21,7 @@ import {
 } from "@solana/web3.js";
 
 export const PROGRAM = new PublicKey(
-  "42BuBercjs5puXz9evhkiYbxYoQtuuSo8zDXkWFRFM9a",
+  "E2ConrgkPx3tc7oKbt4phBiBsKuXoh1FWBr82znSipX1",
 );
 export const SYSTEM_KEY = new PublicKey("11111111111111111111111111111111");
 export const CORE = new PublicKey(
