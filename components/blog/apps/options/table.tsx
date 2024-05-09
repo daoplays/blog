@@ -106,7 +106,7 @@ function getAttributes(option : AssetV1) {
 }
 
 
-const OptionsTable = ({ collection, optionsList, mode }: { collection: PublicKey, optionsList: AssetV1[], mode : number }) => {
+const OptionsTable = ({ collection, optionsList, mode, update }: { collection: PublicKey, optionsList: AssetV1[], mode : number, update : () => Promise<void> }) => {
   const { xs, sm, lg } = useResponsive();
   const wallet = useWallet();
 
@@ -191,7 +191,7 @@ const OptionsTable = ({ collection, optionsList, mode }: { collection: PublicKey
 
             <th>
               <Box mt={1} as="button">
-                <TfiReload size={sm ? 18 : 20} onClick={() => {}} />
+                <TfiReload size={sm ? 18 : 20} onClick={update} />
               </Box>
             </th>
           </tr>

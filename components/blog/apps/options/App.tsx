@@ -228,11 +228,11 @@ function App() {
       )
       }
 
-      {selected === "Trade" && <OptionsTable collection={collection} optionsList={collection_assets} mode={0} />}
+      {selected === "Trade" && <OptionsTable collection={collection} optionsList={collection_assets} mode={0} update={checkCollection} />}
 
-      {selected === "Execute" && <OptionsTable collection={collection} optionsList={collection_assets} mode={1} />}
+      {selected === "Execute" && <OptionsTable collection={collection} optionsList={collection_assets} mode={1} update={checkCollection}/>}
 
-      {selected === "Refund" && <OptionsTable collection={collection} optionsList={collection_assets} mode={2} />}
+      {selected === "Refund" && <OptionsTable collection={collection} optionsList={collection_assets} mode={2} update={checkCollection}/>}
 
       </VStack>
       </Center>
