@@ -27,13 +27,23 @@ import {
   Button,
   Stack,
 } from "@chakra-ui/react";
+import {
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getMint,
+  getTransferHook,
+  resolveExtraAccountMeta,
+  ExtraAccountMetaAccountDataLayout,
+} from "@solana/spl-token";
 import useResponsive from "./hooks/useResponsive";
 import useCreateCollection from "./hooks/useCreateCollection";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import styles from "../../../../styles/Core.module.css";
 import HybridInfo from "./tokenInfo";
-import OptionsTable from "./table";
-import { DEV_RPC_NODE, OptionData, default_option_data, PROGRAM, Asset } from "./state";
+import OptionsTable from "./table"
+import { DEV_RPC_NODE, OptionData, default_option_data, PROGRAM, Asset, DEV_WSS_NODE } from "./state";
 import { Mint } from "@solana/spl-token";
 import { CallPut } from "./CallPut";
 import {deserializeAssetV1, Key, getAssetV1GpaBuilder, updateAuthority, AssetV1} from "@metaplex-foundation/mpl-core";
@@ -51,6 +61,9 @@ function App() {
   const option_data = useRef<OptionData>(default_option_data);
   const [collection_assets, setCollectionAssets] = useState<AssetV1[]>([]);
   const [collection, setCollection] = useState<PublicKey | null>(null);
+  const [solBalance, setSOLBalance] = useState<number>(0);
+  const [tokenBalance, setTokenBalance] = useState<number>(0);
+  const [is_token_2022, setTokenOwner] = useState<boolean>(false);
 
   const check_collection = useRef<boolean>(true);
 
@@ -71,13 +84,35 @@ function App() {
     .whereField('updateAuthority', updateAuthority('Collection', [collection_umiKey]))
     .getDeserialized()
 
-    console.log(assets);
-
-   
     setCollectionAssets(assets);
     setCollection(collection_account);
+
+    const connection = new Connection(DEV_RPC_NODE, {
+      wsEndpoint: DEV_WSS_NODE,
+    });
+
+    let user_token_account = getAssociatedTokenAddressSync(
+      token.address, // mint
+      wallet.publicKey, // owner
+      true, // allow owner off curve
+      is_token_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID,
+    );
+
+    let user_balance = await connection.getBalance(wallet.publicKey, "confirmed");
+    let token_balance = 0;
+    try {
+    let response = await connection.getTokenAccountBalance(user_token_account, "confirmed");
+    token_balance = parseFloat(response.value.amount) / Math.pow(10, response.value.decimals);
+    }
+    catch(error){console.log(error)}
+
+    console.log("user balance", user_balance / LAMPORTS_PER_SOL, token_balance);
+
+    setSOLBalance(user_balance / LAMPORTS_PER_SOL);
+    setTokenBalance(token_balance);
+
     
-}, [token]);
+}, [token, is_token_2022]);
 
   useEffect(() => {
     if (token === null) return;
@@ -162,7 +197,7 @@ function App() {
       {!wallet.publicKey && <ConnectWalletButton />}
 
 
-      <HybridInfo option_data={option_data} setMint={setToken}/>
+      <HybridInfo option_data={option_data} setMint={setToken} setTokenOwner={setTokenOwner}/>
 
       <Flex
         px={4}
@@ -218,9 +253,9 @@ function App() {
       token !== null && (
         <CallPut
           mint_data={token}
-          base_balance={0}
-          quote_balance={0}
-          user_balance={0}
+          is_2022={is_token_2022}
+          token_balance={tokenBalance}
+          sol_balance={solBalance}
           icon={option_data.current.token_image}
           uri={option_data.current.token_uri}
           symbol={option_data.current.token_symbol}
@@ -228,11 +263,11 @@ function App() {
       )
       }
 
-      {selected === "Trade" && <OptionsTable collection={collection} optionsList={collection_assets} mode={0} update={checkCollection} />}
+      {selected === "Trade" && <OptionsTable is_2022={is_token_2022} mint={token} collection={collection} optionsList={collection_assets} mode={0} update={checkCollection} />}
 
-      {selected === "Execute" && <OptionsTable collection={collection} optionsList={collection_assets} mode={1} update={checkCollection}/>}
+      {selected === "Execute" && <OptionsTable is_2022={is_token_2022} mint={token}  collection={collection} optionsList={collection_assets} mode={1} update={checkCollection}/>}
 
-      {selected === "Refund" && <OptionsTable collection={collection} optionsList={collection_assets} mode={2} update={checkCollection}/>}
+      {selected === "Refund" && <OptionsTable is_2022={is_token_2022} mint={token} collection={collection} optionsList={collection_assets} mode={2} update={checkCollection}/>}
 
       </VStack>
       </Center>

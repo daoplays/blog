@@ -20,6 +20,7 @@ import {
   getTransferHook,
   resolveExtraAccountMeta,
   ExtraAccountMetaAccountDataLayout,
+  Mint,
 } from "@solana/spl-token";
 
 import {
@@ -79,7 +80,8 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
   }, []);
 
   const CreateOption = async (
-    decimals: number,
+    mint: Mint,
+    is_2022: boolean,
     side: number,
     token_amount: number,
     strike_price: number,
@@ -102,6 +104,9 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
       return;
     }
 
+    let token_program = is_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
+
+
     let token_mint_key = new PublicKey(token_mint);
     //console.log("no lookup data found");
     let collection_account = PublicKey.findProgramAddressSync(
@@ -120,14 +125,14 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
       token_mint_key, // mint
       wallet.publicKey, // owner
       true, // allow owner off curve
-      TOKEN_2022_PROGRAM_ID,
+      token_program,
     );
 
     let program_token_account = getAssociatedTokenAddressSync(
       token_mint_key, // mint
       program_pda, // owner
       true, // allow owner off curve
-      TOKEN_2022_PROGRAM_ID,
+      token_program,
     );
 
     let date = new Date(end_date);
@@ -151,7 +156,7 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
       launchTimeString +
       " UTC";
 
-    let total_tokens = Math.floor(token_amount * Math.pow(10, decimals));
+    let total_tokens = Math.floor(token_amount * Math.pow(10, mint.decimals));
     let strike_lamports = Math.floor(strike_price * Math.pow(10, 9));
     let price_lamports = Math.floor(option_premium * Math.pow(10, 9));
 
@@ -164,6 +169,41 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
       strike_lamports,
       price_lamports,
     );
+
+    let transfer_hook = getTransferHook(mint);
+
+    let transfer_hook_program_account: PublicKey | null = null;
+    let transfer_hook_validation_account: PublicKey | null = null;
+    let extra_hook_accounts: AccountMeta[] = [];
+    if (transfer_hook !== null) {
+        console.log(transfer_hook.programId.toString());
+
+        transfer_hook_program_account = transfer_hook.programId;
+        transfer_hook_validation_account = PublicKey.findProgramAddressSync(
+            [Buffer.from("extra-account-metas"), mint.address.toBuffer()],
+            transfer_hook_program_account,
+        )[0];
+
+        // check if the validation account exists
+        console.log("check extra accounts");
+        let account_info = await connection.getAccountInfo(transfer_hook_validation_account);
+        let hook_accounts = account_info.data;
+
+        let extra_account_metas = ExtraAccountMetaAccountDataLayout.decode(hook_accounts);
+
+        for (let i = 0; i < extra_account_metas.extraAccountsList.count; i++) {
+            let extra = extra_account_metas.extraAccountsList.extraAccounts[i];
+            let meta = await resolveExtraAccountMeta(
+                connection,
+                extra,
+                extra_hook_accounts,
+                Buffer.from([]),
+                transfer_hook_program_account,
+            );
+            console.log(meta);
+            extra_hook_accounts.push(meta);
+        }
+    }
 
     var account_vector = [
       { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
@@ -179,9 +219,22 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
         isSigner: false,
         isWritable: true,
       },
-      { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: true },
+      { pubkey: token_program, isSigner: false, isWritable: true },
       { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
     ];
+
+    if (transfer_hook_program_account !== null) {
+      account_vector.push({ pubkey: transfer_hook_program_account, isSigner: false, isWritable: true });
+      account_vector.push({ pubkey: transfer_hook_validation_account, isSigner: false, isWritable: true });
+
+      for (let i = 0; i < extra_hook_accounts.length; i++) {
+          account_vector.push({
+              pubkey: extra_hook_accounts[i].pubkey,
+              isSigner: extra_hook_accounts[i].isSigner,
+              isWritable: extra_hook_accounts[i].isWritable,
+          });
+      }
+    }
 
     const create_option = new TransactionInstruction({
       keys: account_vector,

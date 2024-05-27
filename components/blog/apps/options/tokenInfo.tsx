@@ -26,13 +26,13 @@ import {
   getPermanentDelegate,
   getMetadataPointerState,
   getTokenMetadata,
+  TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import ShowExtensions from "./extensions";
 import useCreateCollection from "./hooks/useCreateCollection";
-import { CallPut } from "./CallPut";
 
-const HybridInfo = ({option_data, setMint} : {option_data: MutableRefObject<OptionData>, setMint: Dispatch<SetStateAction<Mint>>}) => {
+const HybridInfo = ({option_data, setMint, setTokenOwner} : {option_data: MutableRefObject<OptionData>, setMint: Dispatch<SetStateAction<Mint>>, setTokenOwner: Dispatch<SetStateAction<boolean>>}) => {
   const { sm, md, lg } = useResponsive();
   const [token_mint, setTokenMint] = useState<string>("");
   const [token_name, setTokenName] = useState<string>("");
@@ -68,25 +68,47 @@ const HybridInfo = ({option_data, setMint} : {option_data: MutableRefObject<Opti
     let result = await connection.getAccountInfo(token_key, "confirmed");
 
     let mint: Mint;
-    try {
-      mint = unpackMint(token_key, result, TOKEN_2022_PROGRAM_ID);
-      console.log(mint);
-    } catch (error) {
-      toast.update(searchToken, {
-        render: `Token is not using Token2022 program`,
-        type: "error",
-        isLoading: false,
-        autoClose: 2000,
-      });
-      return;
+    if (result.owner.equals(TOKEN_PROGRAM_ID)) {
+      try {
+        mint = unpackMint(token_key, result, TOKEN_PROGRAM_ID);
+        setTokenOwner(false)
+        console.log(mint);
+      } catch (error) {
+        toast.update(searchToken, {
+          render: `Error loading token`,
+          type: "error",
+          isLoading: false,
+          autoClose: 2000,
+        });
+        return;
+      }
+    }
+    else {
+      try {
+        mint = unpackMint(token_key, result, TOKEN_2022_PROGRAM_ID);
+        setTokenOwner(true)
+        console.log(mint);
+      } catch (error) {
+        toast.update(searchToken, {
+          render: `Token is not using Token2022 program`,
+          type: "error",
+          isLoading: false,
+          autoClose: 2000,
+        });
+        return;
+      }
     }
 
     setMint(mint);
 
     let uri = null;
-    // first look for t22 metadata
-    let metadata_pointer = getMetadataPointerState(mint);
-    console.log("metadata pinter:", metadata_pointer);
+    let metadata_pointer = null;
+    if (result.owner.equals(TOKEN_2022_PROGRAM_ID)) {
+      // first look for t22 metadata
+      metadata_pointer = getMetadataPointerState(mint);
+      console.log("metadata pinter:", metadata_pointer);
+    }
+
     if (metadata_pointer !== null) {
       let metadata = await getTokenMetadata(
         connection,
@@ -202,7 +224,7 @@ const HybridInfo = ({option_data, setMint} : {option_data: MutableRefObject<Opti
                 >
                   {token_icon_url ? (
                     <VStack spacing={3}>
-                      <Image
+                      <img
                         src={token_icon_url}
                         width={lg ? 180 : 235}
                         height={lg ? 180 : 235}

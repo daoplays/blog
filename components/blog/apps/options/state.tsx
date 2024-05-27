@@ -10,14 +10,7 @@ import {
 } from "@metaplex-foundation/beet";
 import { AssetV1 } from "@metaplex-foundation/mpl-core";
 import {
-  ComputeBudgetProgram,
-  SYSVAR_RENT_PUBKEY,
   PublicKey,
-  Transaction,
-  TransactionInstruction,
-  Connection,
-  Keypair,
-  AccountMeta,
 } from "@solana/web3.js";
 
 export const PROGRAM = new PublicKey(

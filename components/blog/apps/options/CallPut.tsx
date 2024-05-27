@@ -48,17 +48,17 @@ import styles from "../../../../styles/Launch.module.css";
 import useCreateOption from "./hooks/useCreateOption";
 export const CallPut = ({
   mint_data,
-  base_balance,
-  quote_balance,
-  user_balance,
+  is_2022,
+  token_balance,
+  sol_balance,
   icon,
   uri,
   symbol,
 }: {
   mint_data: Mint;
-  base_balance: number;
-  quote_balance: number;
-  user_balance: number;
+  is_2022: boolean;
+  token_balance: number;
+  sol_balance: number;
   icon: string;
   uri: string;
   symbol: string;
@@ -117,7 +117,7 @@ export const CallPut = ({
     if (tab == "Put") setOrderType(1);
   };
 
-  console.log("Mint data", mint_data);
+  //console.log("Mint data", mint_data);
   let transfer_fee = 0;
   let max_transfer_fee = 0;
   let transfer_fee_config = getTransferFeeConfig(mint_data);
@@ -127,8 +127,6 @@ export const CallPut = ({
       Number(transfer_fee_config.newerTransferFee.maximumFee) /
       Math.pow(10, mint_data.decimals);
   }
-
-  let userSOLBalance = 0;
 
   return (
     <Center
@@ -193,15 +191,15 @@ export const CallPut = ({
           fontFamily="ReemKufiRegular"
           fontSize={"medium"}
         >
-          {selected === "Call"
-            ? userSOLBalance.toFixed(5)
-            : (user_balance / Math.pow(10, mint_data.decimals)).toLocaleString(
+          {selected === "Put"
+            ? sol_balance.toFixed(5)
+            : (token_balance).toLocaleString(
                 "en-US",
                 {
                   minimumFractionDigits: 2,
                 },
               )}{" "}
-          {selected === "Call" ? "SOL" : symbol}
+          {selected === "Put" ? "SOL" : symbol}
         </Text>
       </HStack>
       <HStack justify="space-between" w="100%" mt={2}>
@@ -285,7 +283,7 @@ export const CallPut = ({
             min="0"
           />
           <InputRightElement h="100%" w={50}>
-            <Image
+            <img
               src={icon}
               width={30}
               height={30}
@@ -441,7 +439,8 @@ export const CallPut = ({
         //isLoading={placingOrder}
         onClick={() => {
           CreateOption(
-            mint_data.decimals,
+            mint_data,
+            is_2022,
             order_type,
             token_amount,
             strike_price,

@@ -37,6 +37,7 @@ import usePurchaseOption from "./hooks/usePurchaseOption";
 import useExecuteOption from "./hooks/useExecuteOption";
 import useRefundOption from "./hooks/useRefundOption";
 import useRelistOption from "./hooks/useRelistOption";
+import { Mint } from "@solana/spl-token";
 
 interface Header {
   text: string;
@@ -106,7 +107,7 @@ function getAttributes(option : AssetV1) {
 }
 
 
-const OptionsTable = ({ collection, optionsList, mode, update }: { collection: PublicKey, optionsList: AssetV1[], mode : number, update : () => Promise<void> }) => {
+const OptionsTable = ({ is_2022, mint, collection, optionsList, mode, update }: { is_2022 : boolean, mint: Mint, collection: PublicKey, optionsList: AssetV1[], mode : number, update : () => Promise<void> }) => {
   const { xs, sm, lg } = useResponsive();
   const wallet = useWallet();
 
@@ -175,12 +176,14 @@ const OptionsTable = ({ collection, optionsList, mode, update }: { collection: P
             {tableHeaders.map((i) => (
               <th key={i.text} style={{ color:"white", minWidth: sm ? "90px" : "120px" }}>
                 <HStack
-                  gap={sm ? 1 : 10}
+                  gap={sm ? 1 : 15}
                   justify="center"
                 >
                     <Text
                         fontSize={sm ? "medium" : "large"}
                         m={0}
+                        pl={sm ? 1 : 10}
+                        pr={sm ? 1 : 10}
                         onClick={i.field !== null ? () => handleHeaderClick(i.field) : () => {}}
                     >
                     {i.text}
@@ -201,7 +204,7 @@ const OptionsTable = ({ collection, optionsList, mode, update }: { collection: P
         {filterTable(mode)
             .sort()
             .map((option: AssetV1, index) => (
-                <LaunchCard key={index} collection={collection} option={option} mode={mode} />
+                <LaunchCard key={index} is_2022={is_2022} mint={mint} collection={collection} option={option} mode={mode} />
             ))}
         </tbody>
       </table>
@@ -213,7 +216,7 @@ const OptionsTable = ({ collection, optionsList, mode, update }: { collection: P
   );
 };
 
-const LaunchCard = ({ collection, option, mode }: { collection : PublicKey, option: AssetV1, mode : number }) => {
+const LaunchCard = ({ is_2022, mint, collection, option, mode }: { is_2022 : boolean, mint: Mint, collection : PublicKey, option: AssetV1, mode : number }) => {
   const router = useRouter();
   const { xs, sm, md, lg } = useResponsive();
 
@@ -303,7 +306,7 @@ const LaunchCard = ({ collection, option, mode }: { collection : PublicKey, opti
         }
         {mode === 1 && time_left > 0 &&
         <HStack>
-            <Button onClick={() => ExecuteOption(new PublicKey(option.publicKey.toString()), collection, attributes.creator, attributes.token_mint)} style={{ textDecoration: "none" }}>
+            <Button onClick={() => ExecuteOption(is_2022, mint, new PublicKey(option.publicKey.toString()), collection, attributes.creator, attributes.token_mint)} style={{ textDecoration: "none" }}>
             Execute
         </Button>
         <Button onClick={onOpen} style={{ textDecoration: "none" }}>
@@ -312,7 +315,7 @@ const LaunchCard = ({ collection, option, mode }: { collection : PublicKey, opti
     </HStack>
         }
         {mode === 1 && time_left < 0 &&
-            <Button onClick={() => RefundOption(new PublicKey(option.publicKey.toString()), collection, new PublicKey(option.owner.toString()), attributes.creator, attributes.token_mint)} style={{ textDecoration: "none" }}>
+            <Button onClick={() => RefundOption(is_2022, mint, new PublicKey(option.publicKey.toString()), collection, new PublicKey(option.owner.toString()), attributes.creator, attributes.token_mint)} style={{ textDecoration: "none" }}>
                 Burn
             </Button>
         }
@@ -322,7 +325,7 @@ const LaunchCard = ({ collection, option, mode }: { collection : PublicKey, opti
         </Text>
         }
         {mode === 2 && time_left < 0 &&
-            <Button onClick={() => RefundOption(new PublicKey(option.publicKey.toString()), collection, new PublicKey(option.owner.toString()), attributes.creator, attributes.token_mint)} style={{ textDecoration: "none" }}>
+            <Button onClick={() => RefundOption(is_2022, mint, new PublicKey(option.publicKey.toString()), collection, new PublicKey(option.owner.toString()), attributes.creator, attributes.token_mint)} style={{ textDecoration: "none" }}>
             Refund
         </Button>
         }
