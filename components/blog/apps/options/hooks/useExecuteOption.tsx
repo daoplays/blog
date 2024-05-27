@@ -20,6 +20,7 @@ import {
   getTransferHook,
   resolveExtraAccountMeta,
   ExtraAccountMetaAccountDataLayout,
+  Mint,
 } from "@solana/spl-token";
 
 import {
@@ -30,7 +31,7 @@ import {
   DEV_WSS_NODE,
   serialise_CreateCollection_instruction,
   serialise_basic_instruction,
-  OptionsInstruction
+  OptionsInstruction,
 } from "../state";
 const useExecuteOption = () => {
   const wallet = useWallet();
@@ -38,7 +39,6 @@ const useExecuteOption = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const signature_ws_id = useRef<number | null>(null);
-
 
   const check_signature_update = useCallback(async (result: any) => {
     //console.log(result);
@@ -77,10 +77,12 @@ const useExecuteOption = () => {
   }, []);
 
   const ExecuteOption = async (
-      asset: PublicKey,
-      collection: PublicKey,
-      creator: PublicKey,
-      token: PublicKey
+    is_2022: boolean,
+    mint: Mint,
+    asset: PublicKey,
+    collection: PublicKey,
+    creator: PublicKey,
+    token: PublicKey,
   ) => {
     const connection = new Connection(DEV_RPC_NODE, {
       wsEndpoint: DEV_WSS_NODE,
@@ -97,7 +99,8 @@ const useExecuteOption = () => {
       return;
     }
 
-    
+    let token_program = is_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
+
     let program_pda = PublicKey.findProgramAddressSync(
       [Buffer.from("pda")],
       PROGRAM,
@@ -107,26 +110,64 @@ const useExecuteOption = () => {
       token, // mint
       wallet.publicKey, // owner
       true, // allow owner off curve
-      TOKEN_2022_PROGRAM_ID,
+      token_program,
     );
 
     let program_token_account = getAssociatedTokenAddressSync(
       token, // mint
       program_pda, // owner
       true, // allow owner off curve
-      TOKEN_2022_PROGRAM_ID,
+      token_program,
     );
 
     let creator_token_account = getAssociatedTokenAddressSync(
       token, // mint
       creator, // owner
       true, // allow owner off curve
-      TOKEN_2022_PROGRAM_ID,
+      token_program,
     );
 
     const instruction_data = serialise_basic_instruction(
-      OptionsInstruction.execute
+      OptionsInstruction.execute,
     );
+
+    let transfer_hook = getTransferHook(mint);
+
+    let transfer_hook_program_account: PublicKey | null = null;
+    let transfer_hook_validation_account: PublicKey | null = null;
+    let extra_hook_accounts: AccountMeta[] = [];
+    if (transfer_hook !== null) {
+      console.log(transfer_hook.programId.toString());
+
+      transfer_hook_program_account = transfer_hook.programId;
+      transfer_hook_validation_account = PublicKey.findProgramAddressSync(
+        [Buffer.from("extra-account-metas"), mint.address.toBuffer()],
+        transfer_hook_program_account,
+      )[0];
+
+      // check if the validation account exists
+      console.log("check extra accounts");
+      let account_info = await connection.getAccountInfo(
+        transfer_hook_validation_account,
+      );
+      let hook_accounts = account_info.data;
+
+      let extra_account_metas =
+        ExtraAccountMetaAccountDataLayout.decode(hook_accounts);
+
+      for (let i = 0; i < extra_account_metas.extraAccountsList.count; i++) {
+        let extra = extra_account_metas.extraAccountsList.extraAccounts[i];
+        let meta = await resolveExtraAccountMeta(
+          connection,
+          extra,
+          extra_hook_accounts,
+          Buffer.from([]),
+          transfer_hook_program_account,
+        );
+        console.log(meta);
+        extra_hook_accounts.push(meta);
+      }
+    }
 
     var account_vector = [
       { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
@@ -141,10 +182,35 @@ const useExecuteOption = () => {
       { pubkey: creator_token_account, isSigner: false, isWritable: true },
 
       { pubkey: CORE, isSigner: false, isWritable: false },
-      { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: true },
-      { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: true },
+      {
+        pubkey: ASSOCIATED_TOKEN_PROGRAM_ID,
+        isSigner: false,
+        isWritable: true,
+      },
+      { pubkey: token_program, isSigner: false, isWritable: true },
       { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
     ];
+
+    if (transfer_hook_program_account !== null) {
+      account_vector.push({
+        pubkey: transfer_hook_program_account,
+        isSigner: false,
+        isWritable: true,
+      });
+      account_vector.push({
+        pubkey: transfer_hook_validation_account,
+        isSigner: false,
+        isWritable: true,
+      });
+
+      for (let i = 0; i < extra_hook_accounts.length; i++) {
+        account_vector.push({
+          pubkey: extra_hook_accounts[i].pubkey,
+          isSigner: extra_hook_accounts[i].isSigner,
+          isWritable: extra_hook_accounts[i].isWritable,
+        });
+      }
+    }
 
     const purchase_option = new TransactionInstruction({
       keys: account_vector,
@@ -163,7 +229,6 @@ const useExecuteOption = () => {
     let transaction = new Transaction(txArgs);
 
     transaction.feePayer = wallet.publicKey;
-
 
     transaction.add(purchase_option);
 

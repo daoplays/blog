@@ -30,7 +30,7 @@ import {
   DEV_WSS_NODE,
   serialise_CreateCollection_instruction,
   serialise_basic_instruction,
-  OptionsInstruction
+  OptionsInstruction,
 } from "../state";
 import useCreateCollection from "./useCreateCollection";
 const usePurchaseOption = () => {
@@ -39,7 +39,6 @@ const usePurchaseOption = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const signature_ws_id = useRef<number | null>(null);
-
 
   const check_signature_update = useCallback(async (result: any) => {
     //console.log(result);
@@ -78,9 +77,9 @@ const usePurchaseOption = () => {
   }, []);
 
   const PurchaseOption = async (
-      asset: PublicKey,
-      collection: PublicKey,
-      seller: PublicKey
+    asset: PublicKey,
+    collection: PublicKey,
+    seller: PublicKey,
   ) => {
     const connection = new Connection(DEV_RPC_NODE, {
       wsEndpoint: DEV_WSS_NODE,
@@ -97,15 +96,13 @@ const usePurchaseOption = () => {
       return;
     }
 
-    
     let program_pda = PublicKey.findProgramAddressSync(
       [Buffer.from("pda")],
       PROGRAM,
     )[0];
 
-
     const instruction_data = serialise_basic_instruction(
-      OptionsInstruction.purchase
+      OptionsInstruction.purchase,
     );
 
     var account_vector = [
@@ -135,7 +132,6 @@ const usePurchaseOption = () => {
     let transaction = new Transaction(txArgs);
 
     transaction.feePayer = wallet.publicKey;
-
 
     transaction.add(purchase_option);
 

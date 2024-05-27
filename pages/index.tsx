@@ -125,7 +125,8 @@ const core_1 = {
 const options = {
   title: "Trading Options With Metaplex Core",
   sub_title: "May 06 2024",
-  post_text: "We use metaplex core to create an options trading program",
+  post_text:
+    "We now extend the previous post and use metaplex core to create an options trading program!",
   image: core,
   display_image: !isMobile,
 };

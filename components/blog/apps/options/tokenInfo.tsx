@@ -16,7 +16,13 @@ import useResponsive from "./hooks/useResponsive";
 import styles2 from "../../styles/LaunchDetails.module.css";
 import { Keypair, PublicKey, Connection } from "@solana/web3.js";
 import { toast } from "react-toastify";
-import { METAPLEX_META, Extensions, DEV_RPC_NODE, DEV_WSS_NODE, OptionData } from "./state";
+import {
+  METAPLEX_META,
+  Extensions,
+  DEV_RPC_NODE,
+  DEV_WSS_NODE,
+  OptionData,
+} from "./state";
 import {
   unpackMint,
   Mint,
@@ -26,13 +32,21 @@ import {
   getPermanentDelegate,
   getMetadataPointerState,
   getTokenMetadata,
+  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import ShowExtensions from "./extensions";
 import useCreateCollection from "./hooks/useCreateCollection";
-import { CallPut } from "./CallPut";
 
-const HybridInfo = ({option_data, setMint} : {option_data: MutableRefObject<OptionData>, setMint: Dispatch<SetStateAction<Mint>>}) => {
+const HybridInfo = ({
+  option_data,
+  setMint,
+  setTokenOwner,
+}: {
+  option_data: MutableRefObject<OptionData>;
+  setMint: Dispatch<SetStateAction<Mint>>;
+  setTokenOwner: Dispatch<SetStateAction<boolean>>;
+}) => {
   const { sm, md, lg } = useResponsive();
   const [token_mint, setTokenMint] = useState<string>("");
   const [token_name, setTokenName] = useState<string>("");
@@ -68,25 +82,46 @@ const HybridInfo = ({option_data, setMint} : {option_data: MutableRefObject<Opti
     let result = await connection.getAccountInfo(token_key, "confirmed");
 
     let mint: Mint;
-    try {
-      mint = unpackMint(token_key, result, TOKEN_2022_PROGRAM_ID);
-      console.log(mint);
-    } catch (error) {
-      toast.update(searchToken, {
-        render: `Token is not using Token2022 program`,
-        type: "error",
-        isLoading: false,
-        autoClose: 2000,
-      });
-      return;
+    if (result.owner.equals(TOKEN_PROGRAM_ID)) {
+      try {
+        mint = unpackMint(token_key, result, TOKEN_PROGRAM_ID);
+        setTokenOwner(false);
+        console.log(mint);
+      } catch (error) {
+        toast.update(searchToken, {
+          render: `Error loading token`,
+          type: "error",
+          isLoading: false,
+          autoClose: 2000,
+        });
+        return;
+      }
+    } else {
+      try {
+        mint = unpackMint(token_key, result, TOKEN_2022_PROGRAM_ID);
+        setTokenOwner(true);
+        console.log(mint);
+      } catch (error) {
+        toast.update(searchToken, {
+          render: `Token is not using Token2022 program`,
+          type: "error",
+          isLoading: false,
+          autoClose: 2000,
+        });
+        return;
+      }
     }
 
     setMint(mint);
 
     let uri = null;
-    // first look for t22 metadata
-    let metadata_pointer = getMetadataPointerState(mint);
-    console.log("metadata pinter:", metadata_pointer);
+    let metadata_pointer = null;
+    if (result.owner.equals(TOKEN_2022_PROGRAM_ID)) {
+      // first look for t22 metadata
+      metadata_pointer = getMetadataPointerState(mint);
+      console.log("metadata pinter:", metadata_pointer);
+    }
+
     if (metadata_pointer !== null) {
       let metadata = await getTokenMetadata(
         connection,
@@ -99,9 +134,8 @@ const HybridInfo = ({option_data, setMint} : {option_data: MutableRefObject<Opti
       setTokenName(metadata.name);
       setTokenSymbol(metadata.symbol);
 
-      option_data.current.token_name = metadata.name
-      option_data.current.token_symbol = metadata.symbol
-
+      option_data.current.token_name = metadata.name;
+      option_data.current.token_symbol = metadata.symbol;
     } else {
       let token_meta_key = PublicKey.findProgramAddressSync(
         [
@@ -129,9 +163,8 @@ const HybridInfo = ({option_data, setMint} : {option_data: MutableRefObject<Opti
       setTokenName(meta_data[0].data.name);
       setTokenSymbol(meta_data[0].data.symbol);
 
-      option_data.current.token_name = meta_data[0].data.name
-      option_data.current.token_symbol = meta_data[0].data.symbol
-
+      option_data.current.token_name = meta_data[0].data.name;
+      option_data.current.token_symbol = meta_data[0].data.symbol;
     }
 
     // check the extensions we care about
@@ -156,7 +189,6 @@ const HybridInfo = ({option_data, setMint} : {option_data: MutableRefObject<Opti
     option_data.current.token_uri = uri;
     option_data.current.token_image = uri_json["image"];
 
-
     toast.update(searchToken, {
       render: `Successfully found and retrieved token metadata`,
       type: "success",
@@ -171,10 +203,7 @@ const HybridInfo = ({option_data, setMint} : {option_data: MutableRefObject<Opti
   }
 
   return (
-    <Center
-      
-      width="100%"
-    >
+    <Center width="100%">
       <VStack w="100%" style={{ paddingBottom: md ? 35 : "50px" }}>
         <Text
           align="start"
@@ -202,7 +231,7 @@ const HybridInfo = ({option_data, setMint} : {option_data: MutableRefObject<Opti
                 >
                   {token_icon_url ? (
                     <VStack spacing={3}>
-                      <Image
+                      <img
                         src={token_icon_url}
                         width={lg ? 180 : 235}
                         height={lg ? 180 : 235}
