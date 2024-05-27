@@ -423,7 +423,7 @@ const TradePage = ({launch} : {launch : AMMLaunch}) => {
         setLastDayVolume(last_volume);
         check_market_data.current = false;
     
-    }, [amm, wallet.publicKey]);
+    }, [amm, wallet.publicKey, launch]);
 
     useEffect(() => {
         CheckMarketData();
