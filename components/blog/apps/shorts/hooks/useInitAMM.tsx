@@ -22,6 +22,8 @@ class InitAMM_Instruction {
         readonly base_quantity: bignum,
         readonly quote_quantity: bignum,
         readonly fee: number,
+        readonly short_frac: number,
+        readonly borrow_cost: number,
     ) {}
 
     static readonly struct = new FixableBeetStruct<InitAMM_Instruction>(
@@ -30,14 +32,17 @@ class InitAMM_Instruction {
             ["base_quantity", u64],
             ["quote_quantity", u64],
             ["fee", u16],
+            ["short_frac", u16],
+            ["borrow_cost", u16],
+
         ],
-        (args) => new InitAMM_Instruction(args.instruction!, args.base_quantity!, args.quote_quantity!, args.fee!),
+        (args) => new InitAMM_Instruction(args.instruction!, args.base_quantity!, args.quote_quantity!, args.fee!, args.short_frac!, args.borrow_cost!),
         "InitAMM_Instruction",
     );
 }
 
-export function serialise_InitAMM_instruction(base_quantity: number, quote_quantity : number, fee : number): Buffer {
-    const data = new InitAMM_Instruction(AMMInstruction.init_amm, base_quantity, quote_quantity, fee);
+export function serialise_InitAMM_instruction(base_quantity: number, quote_quantity : number, fee : number, short_frac : number, borrow_cost : number): Buffer {
+    const data = new InitAMM_Instruction(AMMInstruction.init_amm, base_quantity, quote_quantity, fee, short_frac, borrow_cost);
     const [buf] = InitAMM_Instruction.struct.serialize(data);
 
     return buf;
@@ -86,7 +91,7 @@ const useInitAMM = () => {
         });
       }, []);
 
-    const InitAMM = async (base_mint_string : string, quote_mint_string : string, base_quantity : number, quote_quantity : number, fee : number) => {
+    const InitAMM = async (base_mint_string : string, quote_mint_string : string, base_quantity : number, quote_quantity : number, fee : number, short_frac: number, borrow_fee : number) => {
 
 
         toast.info("Sending Transaction", {
@@ -136,6 +141,7 @@ const useInitAMM = () => {
         );
 
         let lp_mint_account = PublicKey.findProgramAddressSync([amm_data_account.toBytes(), Buffer.from("LP")], PROGRAM)[0];
+        let short_account = PublicKey.findProgramAddressSync([amm_data_account.toBytes(), Buffer.from("Short")], PROGRAM)[0];
 
         let user_base = await getAssociatedTokenAddress(
             base_mint, // mint
@@ -166,7 +172,7 @@ const useInitAMM = () => {
         )[0];
 
         
-        const instruction_data = serialise_InitAMM_instruction(base_quantity * Math.pow(10, base_mint_data.decimals), quote_quantity * Math.pow(10, quote_mint_data.decimals), fee);
+        const instruction_data = serialise_InitAMM_instruction(base_quantity * Math.pow(10, base_mint_data.decimals), quote_quantity * Math.pow(10, quote_mint_data.decimals), fee, short_frac, borrow_fee);
 
         var account_vector = [
             { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
@@ -183,6 +189,7 @@ const useInitAMM = () => {
             { pubkey: user_lp, isSigner: false, isWritable: true },
             { pubkey: amm_base, isSigner: false, isWritable: true },
             { pubkey: amm_quote, isSigner: false, isWritable: true },
+            { pubkey: short_account, isSigner: false, isWritable: true },
             { pubkey: price_data_account, isSigner: false, isWritable: true },
             { pubkey: quote_mint_account.owner, isSigner: false, isWritable: false },
 

@@ -18,7 +18,7 @@ interface Header {
 
 
 
-const AMMTable = ({ ammList, setCurrentLaunch, setScreen }: { ammList: Map<String, AMMLaunch>, setCurrentLaunch : Dispatch<SetStateAction<AMMLaunch>>, setScreen  : Dispatch<SetStateAction<Screen>> }) => {
+const AMMTable = ({ ammList, setCurrentLaunch, setSelected }: { ammList: Map<String, AMMLaunch>, setCurrentLaunch : Dispatch<SetStateAction<AMMLaunch>>, setSelected  : Dispatch<SetStateAction<String>>}) => {
     const { sm } = useResponsive();
 
     
@@ -76,7 +76,7 @@ const AMMTable = ({ ammList, setCurrentLaunch, setScreen }: { ammList: Map<Strin
 
                 <tbody>
                     {amm_array.map((launch, i) => (
-                        <LaunchCard key={i} amm_launch={launch.value} setCurrentLaunch={setCurrentLaunch} setScreen={setScreen} />
+                        <LaunchCard key={i} amm_launch={launch.value} setCurrentLaunch={setCurrentLaunch} setSelected={setSelected}/>
                     ))}
                 </tbody>
             </table>
@@ -84,7 +84,7 @@ const AMMTable = ({ ammList, setCurrentLaunch, setScreen }: { ammList: Map<Strin
     );
 };
 
-const LaunchCard = ({ amm_launch, setCurrentLaunch, setScreen }: { amm_launch: AMMLaunch; setCurrentLaunch : Dispatch<SetStateAction<AMMLaunch>>; setScreen  : Dispatch<SetStateAction<Screen>>  }) => {
+const LaunchCard = ({ amm_launch, setCurrentLaunch, setSelected }: { amm_launch: AMMLaunch; setCurrentLaunch : Dispatch<SetStateAction<AMMLaunch>>; setSelected  : Dispatch<SetStateAction<String>>}) => {
     const router = useRouter();
     const { sm, md, lg } = useResponsive();
 
@@ -106,7 +106,7 @@ const LaunchCard = ({ amm_launch, setCurrentLaunch, setScreen }: { amm_launch: A
             onMouseOut={(e) => {
                 e.currentTarget.style.backgroundColor = ""; // Reset to default background color
             }}
-            onClick={() => {setCurrentLaunch(amm_launch); setScreen(Screen.trade)}}
+            onClick={() => {setCurrentLaunch(amm_launch); setSelected("Trade")}}
         >
             <td style={{ minWidth: "160px" }}>
                 <HStack m="0 auto" w={160} px={3} spacing={3} justify="start">

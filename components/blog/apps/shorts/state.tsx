@@ -52,10 +52,12 @@ export class AMMData {
         readonly lp_mint: PublicKey,
         readonly base_key: PublicKey,
         readonly quote_key: PublicKey,
+        readonly short_key: PublicKey,
         readonly fee: number,
         readonly num_data_accounts: number,
         readonly last_price: number[],
         readonly lp_amount: bignum,
+        readonly borrow_cost: number
     ) {}
 
     static readonly struct = new FixableBeetStruct<AMMData>(
@@ -66,10 +68,12 @@ export class AMMData {
             ["lp_mint", publicKey],
             ["base_key", publicKey],
             ["quote_key", publicKey],
+            ["short_key", publicKey],
             ["fee", u16],
             ["num_data_accounts", u32],
             ["last_price", uniformFixedSizeArray(u8, 4)],
             ["lp_amount", u64],
+            ["borrow_cost", u16],
         ],
         (args) =>
             new AMMData(
@@ -79,10 +83,12 @@ export class AMMData {
                 args.lp_mint!,
                 args.base_key!,
                 args.quote_key!,
+                args.short_key!,
                 args.fee!,
                 args.num_data_accounts!,
                 args.last_price!,
                 args.lp_amount!,
+                args.borrow_cost!
             ),
         "AMMData",
     );

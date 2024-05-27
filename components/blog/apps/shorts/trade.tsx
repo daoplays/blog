@@ -495,7 +495,7 @@ const TradePage = ({launch} : {launch : AMMLaunch}) => {
         <>
           
            
-                <HStack spacing={0} align="start" pb={sm ? 14 : 0}>
+                <HStack  w="full"  spacing={0} align="start" pb={sm ? 14 : 0}>
                     {(!sm || (sm && (mobilePageContent === "Info" || mobilePageContent === "Trade"))) && (
                         <VStack
                             py={5}
@@ -528,6 +528,7 @@ const TradePage = ({launch} : {launch : AMMLaunch}) => {
 
                             {leftPanel === "Info" && (
                                 <InfoContent
+                                    amm={amm.amm_data}
                                     base_data={base_data}
                                     quote_data={quote_data}
                                     volume={last_day_volume}
@@ -1102,6 +1103,7 @@ const BuyAndSell = ({
 };
 
 const InfoContent = ({
+    amm,
     base_data,
     quote_data,
     price,
@@ -1109,6 +1111,7 @@ const InfoContent = ({
     volume,
     total_supply,
 }: {
+    amm : AMMData,
     base_data: MintData,
     quote_data: MintData,
     price: number;
@@ -1116,7 +1119,6 @@ const InfoContent = ({
     volume: number;
     total_supply: number;
 }) => {
-    const wallet = useWallet();
 
     return (
         <VStack spacing={8} w="100%" mb={3}>
@@ -1176,6 +1178,22 @@ const InfoContent = ({
                         maximumFractionDigits: 2,
                     })}{" "}
                     {quote_data.symbol}
+                </Text>
+            </HStack>
+            <HStack px={5} justify="space-between" w="100%">
+                <Text m={0} color={"white"} fontFamily="ReemKufiRegular" fontSize={"medium"} opacity={0.5}>
+                    AMM FEE:
+                </Text>
+                <Text m={0} color={"white"} fontFamily="ReemKufiRegular" fontSize={"large"}>
+                    {amm.fee.toLocaleString()} Bps
+                </Text>
+            </HStack>
+            <HStack px={5} justify="space-between" w="100%">
+                <Text m={0} color={"white"} fontFamily="ReemKufiRegular" fontSize={"medium"} opacity={0.5}>
+                    BORROW FEE:
+                </Text>
+                <Text m={0} color={"white"} fontFamily="ReemKufiRegular" fontSize={"large"}>
+                    {amm.borrow_cost.toLocaleString()} Bps
                 </Text>
             </HStack>
 

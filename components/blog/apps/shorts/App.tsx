@@ -79,10 +79,12 @@ function App() {
           let data = program_data[i].data;
 
           if (data[0] === 6) {
+            try{
               const [amm] = AMMData.struct.deserialize(data);
               amm_data.push(amm);
-
-              continue;
+            } catch (error) {
+              console.log(error);
+            }
           }
             
       }
@@ -146,6 +148,9 @@ function App() {
       }
       if (selected === "View") {
         setScreen(Screen.table)
+      }
+      if (selected === "Trade") {
+        setScreen(Screen.trade)
       }
 
     }, [selected]);
@@ -281,7 +286,7 @@ function App() {
                 }
 
               {screen === Screen.table &&
-                    <AMMTable ammList={amm_launches} setCurrentLaunch={setCurrentLaunch} setScreen={setScreen}/>
+                    <AMMTable ammList={amm_launches} setCurrentLaunch={setCurrentLaunch} setSelected={setSelected}/>
                 }
                 </VStack>
                 </Center>
