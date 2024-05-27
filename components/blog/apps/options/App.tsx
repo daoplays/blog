@@ -135,7 +135,7 @@ function App() {
 
     setSOLBalance(user_balance / LAMPORTS_PER_SOL);
     setTokenBalance(token_balance);
-  }, [token, is_token_2022]);
+  }, [wallet, token, is_token_2022]);
 
   useEffect(() => {
     if (token === null) return;
