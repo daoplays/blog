@@ -590,14 +590,6 @@ const TradePage = ({launch} : {launch : AMMLaunch}) => {
                                     }}
                                 />
                             </div>
-
-                            {!wallet.connected && (
-                                <HStack w="100%" align="center" justify="center" mt={25}>
-                                    <Text fontSize={lg ? "large" : "x-large"} m={0} color={"white"} style={{ opacity: 0.5 }}>
-                                        Connect your wallet to see your orders
-                                    </Text>
-                                </HStack>
-                            )}
                         </VStack>
                     )}
                 </HStack>

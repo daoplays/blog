@@ -13,7 +13,7 @@ import React, {
     useWalletModal,
   } from "@solana/wallet-adapter-react-ui";
 import TradePage from "./trade";
-import { Flex, HStack, VStack, Text, Center } from "@chakra-ui/react";
+import { Flex, HStack, VStack, Text, Center, Box } from "@chakra-ui/react";
 import SideNav from "./sideNav";
 import useResponsive from "../commonHooks/useResponsive";
 import {AMMData, AMMLaunch, PROGRAM, Screen} from './state'
@@ -21,6 +21,8 @@ import LaunchAMM from "./launch";
 import { DEV_RPC_NODE, DEV_WSS_NODE, GPAccount, MintData, RunGPA, setMintData } from "../common";
 import { Connection, ConnectionConfig, PublicKey } from "@solana/web3.js";
 import AMMTable from "./table";
+
+require("@solana/wallet-adapter-react-ui/styles.css");
 
 const GetProgramData = async (check_program_data, setProgramData) => {
   if (!check_program_data.current) return;
@@ -47,6 +49,8 @@ const GetTradeMintData = async (trade_keys : PublicKey[], setMintMap) => {
 };
 
 function App() {
+    const wallet = useWallet();
+
     const [sidePanelCollapsed, setSidePanelCollapsed] = useState(true);
     const [screen, setScreen] = useState<Screen>(Screen.table);
     const [selected, setSelected] = useState<string>("View");
@@ -146,7 +150,62 @@ function App() {
 
     }, [selected]);
 
-
+    function ConnectWalletButton() {
+      const { setVisible } = useWalletModal();
+  
+      const handleConnectWallet = useCallback(async () => {
+        setVisible(true);
+      }, [setVisible]);
+  
+      return (
+        <>
+          <Box mt="10px"  mb="1rem" as="button" onClick={handleConnectWallet}>
+            <div className="font-face-sfpb">
+              <Text
+                borderColor="white"
+                borderWidth="1px"
+                width="140px"
+                height="25px"
+                fontSize={"16px"}
+                textAlign="center"
+                color="white"
+                mb="0"
+              >
+                CONNECT
+              </Text>
+            </div>
+          </Box>
+        </>
+      );
+    }
+  
+    const DisconnectWallet = useCallback(async () => {
+      console.log("call wallet disconnect");
+      await wallet.disconnect();
+    }, [wallet]);
+  
+    function DisconnectWalletButton() {
+      return (
+        <>
+          <Box mt = "10px" mb="1rem" as="button" onClick={() => DisconnectWallet()}>
+            <div className="font-face-sfpb">
+              <Text
+                borderColor="white"
+                borderWidth="1px"
+                width="140px"
+                height="25px"
+                fontSize={"16px"}
+                textAlign="center"
+                color="white"
+                mb="0"
+              >
+                DISCONNECT
+              </Text>
+            </div>
+          </Box>
+        </>
+      );
+    }
 
 
     return(
@@ -208,7 +267,9 @@ function App() {
               </HStack>
             );
           })}
-        </HStack>
+        {wallet.publicKey && <DisconnectWalletButton />}
+        {!wallet.publicKey && <ConnectWalletButton />}       
+         </HStack>
       </Flex>
                  {screen === Screen.create &&
                 <LaunchAMM />
