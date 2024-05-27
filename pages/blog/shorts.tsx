@@ -50,7 +50,6 @@ function PostContent() {
         <br />
 
         <ShortsApp />
-      
       </div>
     </div>
   );

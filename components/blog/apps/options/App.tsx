@@ -42,14 +42,27 @@ import useCreateCollection from "./hooks/useCreateCollection";
 import { PublicKey, Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import styles from "../../../../styles/Core.module.css";
 import HybridInfo from "./tokenInfo";
-import OptionsTable from "./table"
-import { DEV_RPC_NODE, OptionData, default_option_data, PROGRAM, Asset, DEV_WSS_NODE } from "./state";
+import OptionsTable from "./table";
+import {
+  DEV_RPC_NODE,
+  OptionData,
+  default_option_data,
+  PROGRAM,
+  Asset,
+  DEV_WSS_NODE,
+} from "./state";
 import { Mint } from "@solana/spl-token";
 import { CallPut } from "./CallPut";
-import {deserializeAssetV1, Key, getAssetV1GpaBuilder, updateAuthority, AssetV1} from "@metaplex-foundation/mpl-core";
-import type { RpcAccount, PublicKey as umiKey } from '@metaplex-foundation/umi';
-import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
-import { publicKey } from '@metaplex-foundation/umi';
+import {
+  deserializeAssetV1,
+  Key,
+  getAssetV1GpaBuilder,
+  updateAuthority,
+  AssetV1,
+} from "@metaplex-foundation/mpl-core";
+import type { RpcAccount, PublicKey as umiKey } from "@metaplex-foundation/umi";
+import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
+import { publicKey } from "@metaplex-foundation/umi";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -80,9 +93,12 @@ function App() {
     let collection_umiKey = publicKey(collection_account.toString());
 
     const assets = await getAssetV1GpaBuilder(umi)
-    .whereField('key', Key.AssetV1)
-    .whereField('updateAuthority', updateAuthority('Collection', [collection_umiKey]))
-    .getDeserialized()
+      .whereField("key", Key.AssetV1)
+      .whereField(
+        "updateAuthority",
+        updateAuthority("Collection", [collection_umiKey]),
+      )
+      .getDeserialized();
 
     setCollectionAssets(assets);
     setCollection(collection_account);
@@ -98,30 +114,35 @@ function App() {
       is_token_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID,
     );
 
-    let user_balance = await connection.getBalance(wallet.publicKey, "confirmed");
+    let user_balance = await connection.getBalance(
+      wallet.publicKey,
+      "confirmed",
+    );
     let token_balance = 0;
     try {
-    let response = await connection.getTokenAccountBalance(user_token_account, "confirmed");
-    token_balance = parseFloat(response.value.amount) / Math.pow(10, response.value.decimals);
+      let response = await connection.getTokenAccountBalance(
+        user_token_account,
+        "confirmed",
+      );
+      token_balance =
+        parseFloat(response.value.amount) /
+        Math.pow(10, response.value.decimals);
+    } catch (error) {
+      console.log(error);
     }
-    catch(error){console.log(error)}
 
     console.log("user balance", user_balance / LAMPORTS_PER_SOL, token_balance);
 
     setSOLBalance(user_balance / LAMPORTS_PER_SOL);
     setTokenBalance(token_balance);
-
-    
-}, [token, is_token_2022]);
+  }, [token, is_token_2022]);
 
   useEffect(() => {
     if (token === null) return;
 
-    if (!check_collection.current)
-      return;
+    if (!check_collection.current) return;
 
     checkCollection();
-
   }, [token, checkCollection]);
 
   function ConnectWalletButton() {
@@ -133,7 +154,7 @@ function App() {
 
     return (
       <>
-        <Box mt="10px"  mb="1rem" as="button" onClick={handleConnectWallet}>
+        <Box mt="10px" mb="1rem" as="button" onClick={handleConnectWallet}>
           <div className="font-face-sfpb">
             <Text
               borderColor="white"
@@ -161,7 +182,7 @@ function App() {
   function DisconnectWalletButton() {
     return (
       <>
-        <Box mt = "10px" mb="1rem" as="button" onClick={() => DisconnectWallet()}>
+        <Box mt="10px" mb="1rem" as="button" onClick={() => DisconnectWallet()}>
           <div className="font-face-sfpb">
             <Text
               borderColor="white"
@@ -181,95 +202,124 @@ function App() {
     );
   }
 
-  
   return (
     <>
-    <Center
-      style={{
-        background: "linear-gradient(180deg, #292929 0%, #0B0B0B 100%)",
-      }}
-      width="100%"
-      mt="10px"
-      mb="50px"
-    >
-      <VStack  w="100%" >
-      {wallet.publicKey && <DisconnectWalletButton />}
-      {!wallet.publicKey && <ConnectWalletButton />}
-
-
-      <HybridInfo option_data={option_data} setMint={setToken} setTokenOwner={setTokenOwner}/>
-
-      <Flex
-        px={4}
-        py={18}
-        gap={4}
-        alignItems="center"
-        justifyContent={!sm ? "space-between" : "end"}
-        style={{ position: "relative", flexDirection: sm ? "column" : "row" }}
-        w={"100"}
+      <Center
+        style={{
+          background: "linear-gradient(180deg, #292929 0%, #0B0B0B 100%)",
+        }}
+        width="100%"
+        mt="10px"
+        mb="50px"
       >
-        <HStack spacing={3} zIndex={99}>
-          {["Create", "Trade", "Execute", "Refund"].map((name, i) => {
-            const isActive = selected === name;
+        <VStack w="100%">
+          {wallet.publicKey && <DisconnectWalletButton />}
+          {!wallet.publicKey && <ConnectWalletButton />}
 
-            const baseStyle = {
-              display: "flex",
-              alignItems: "center",
-              cursor: "pointer",
-            };
+          <HybridInfo
+            option_data={option_data}
+            setMint={setToken}
+            setTokenOwner={setTokenOwner}
+          />
 
-            const activeStyle = {
-              color: "white",
-              borderBottom: isActive ? "2px solid white" : "",
-              opacity: isActive ? 1 : 0.5,
-            };
+          <Flex
+            px={4}
+            py={18}
+            gap={4}
+            alignItems="center"
+            justifyContent={!sm ? "space-between" : "end"}
+            style={{
+              position: "relative",
+              flexDirection: sm ? "column" : "row",
+            }}
+            w={"100"}
+          >
+            <HStack spacing={3} zIndex={99}>
+              {["Create", "Trade", "Execute", "Refund"].map((name, i) => {
+                const isActive = selected === name;
 
-            return (
-              <HStack
-                key={i}
-                style={{
-                  ...baseStyle,
-                  ...activeStyle,
-                }}
-                onClick={() => {
-                  setSelected(name);
-                }}
-                px={4}
-                py={2}
-                mt={-2}
-                w={"fit-content"}
-                justify="center"
-              >
-                <Text m={"0 auto"} fontSize="medium" fontWeight="semibold">
-                  {name}
-                </Text>
-              </HStack>
-            );
-          })}
-        </HStack>
-      </Flex>
+                const baseStyle = {
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                };
 
-      {selected === "Create" &&
-      token !== null && (
-        <CallPut
-          mint_data={token}
-          is_2022={is_token_2022}
-          token_balance={tokenBalance}
-          sol_balance={solBalance}
-          icon={option_data.current.token_image}
-          uri={option_data.current.token_uri}
-          symbol={option_data.current.token_symbol}
-        />
-      )
-      }
+                const activeStyle = {
+                  color: "white",
+                  borderBottom: isActive ? "2px solid white" : "",
+                  opacity: isActive ? 1 : 0.5,
+                };
 
-      {selected === "Trade" && <OptionsTable is_2022={is_token_2022} mint={token} collection={collection} optionsList={collection_assets} mode={0} update={checkCollection} />}
+                return (
+                  <HStack
+                    key={i}
+                    style={{
+                      ...baseStyle,
+                      ...activeStyle,
+                    }}
+                    onClick={() => {
+                      setSelected(name);
+                    }}
+                    px={4}
+                    py={2}
+                    mt={-2}
+                    w={"fit-content"}
+                    justify="center"
+                  >
+                    <Text m={"0 auto"} fontSize="medium" fontWeight="semibold">
+                      {name}
+                    </Text>
+                  </HStack>
+                );
+              })}
+            </HStack>
+          </Flex>
 
-      {selected === "Execute" && <OptionsTable is_2022={is_token_2022} mint={token}  collection={collection} optionsList={collection_assets} mode={1} update={checkCollection}/>}
+          {selected === "Create" && token !== null && (
+            <CallPut
+              mint_data={token}
+              is_2022={is_token_2022}
+              token_balance={tokenBalance}
+              sol_balance={solBalance}
+              icon={option_data.current.token_image}
+              uri={option_data.current.token_uri}
+              symbol={option_data.current.token_symbol}
+            />
+          )}
 
-      {selected === "Refund" && <OptionsTable is_2022={is_token_2022} mint={token} collection={collection} optionsList={collection_assets} mode={2} update={checkCollection}/>}
+          {selected === "Trade" && (
+            <OptionsTable
+              is_2022={is_token_2022}
+              mint={token}
+              collection={collection}
+              optionsList={collection_assets}
+              mode={0}
+              update={checkCollection}
+            />
+          )}
 
-      </VStack>
+          {selected === "Execute" && (
+            <OptionsTable
+              is_2022={is_token_2022}
+              mint={token}
+              collection={collection}
+              optionsList={collection_assets}
+              mode={1}
+              update={checkCollection}
+            />
+          )}
+
+          {selected === "Refund" && (
+            <OptionsTable
+              is_2022={is_token_2022}
+              mint={token}
+              collection={collection}
+              optionsList={collection_assets}
+              mode={2}
+              update={checkCollection}
+            />
+          )}
+        </VStack>
       </Center>
     </>
   );

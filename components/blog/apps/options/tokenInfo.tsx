@@ -16,7 +16,13 @@ import useResponsive from "./hooks/useResponsive";
 import styles2 from "../../styles/LaunchDetails.module.css";
 import { Keypair, PublicKey, Connection } from "@solana/web3.js";
 import { toast } from "react-toastify";
-import { METAPLEX_META, Extensions, DEV_RPC_NODE, DEV_WSS_NODE, OptionData } from "./state";
+import {
+  METAPLEX_META,
+  Extensions,
+  DEV_RPC_NODE,
+  DEV_WSS_NODE,
+  OptionData,
+} from "./state";
 import {
   unpackMint,
   Mint,
@@ -26,13 +32,21 @@ import {
   getPermanentDelegate,
   getMetadataPointerState,
   getTokenMetadata,
-  TOKEN_PROGRAM_ID
+  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import ShowExtensions from "./extensions";
 import useCreateCollection from "./hooks/useCreateCollection";
 
-const HybridInfo = ({option_data, setMint, setTokenOwner} : {option_data: MutableRefObject<OptionData>, setMint: Dispatch<SetStateAction<Mint>>, setTokenOwner: Dispatch<SetStateAction<boolean>>}) => {
+const HybridInfo = ({
+  option_data,
+  setMint,
+  setTokenOwner,
+}: {
+  option_data: MutableRefObject<OptionData>;
+  setMint: Dispatch<SetStateAction<Mint>>;
+  setTokenOwner: Dispatch<SetStateAction<boolean>>;
+}) => {
   const { sm, md, lg } = useResponsive();
   const [token_mint, setTokenMint] = useState<string>("");
   const [token_name, setTokenName] = useState<string>("");
@@ -71,7 +85,7 @@ const HybridInfo = ({option_data, setMint, setTokenOwner} : {option_data: Mutabl
     if (result.owner.equals(TOKEN_PROGRAM_ID)) {
       try {
         mint = unpackMint(token_key, result, TOKEN_PROGRAM_ID);
-        setTokenOwner(false)
+        setTokenOwner(false);
         console.log(mint);
       } catch (error) {
         toast.update(searchToken, {
@@ -82,11 +96,10 @@ const HybridInfo = ({option_data, setMint, setTokenOwner} : {option_data: Mutabl
         });
         return;
       }
-    }
-    else {
+    } else {
       try {
         mint = unpackMint(token_key, result, TOKEN_2022_PROGRAM_ID);
-        setTokenOwner(true)
+        setTokenOwner(true);
         console.log(mint);
       } catch (error) {
         toast.update(searchToken, {
@@ -121,9 +134,8 @@ const HybridInfo = ({option_data, setMint, setTokenOwner} : {option_data: Mutabl
       setTokenName(metadata.name);
       setTokenSymbol(metadata.symbol);
 
-      option_data.current.token_name = metadata.name
-      option_data.current.token_symbol = metadata.symbol
-
+      option_data.current.token_name = metadata.name;
+      option_data.current.token_symbol = metadata.symbol;
     } else {
       let token_meta_key = PublicKey.findProgramAddressSync(
         [
@@ -151,9 +163,8 @@ const HybridInfo = ({option_data, setMint, setTokenOwner} : {option_data: Mutabl
       setTokenName(meta_data[0].data.name);
       setTokenSymbol(meta_data[0].data.symbol);
 
-      option_data.current.token_name = meta_data[0].data.name
-      option_data.current.token_symbol = meta_data[0].data.symbol
-
+      option_data.current.token_name = meta_data[0].data.name;
+      option_data.current.token_symbol = meta_data[0].data.symbol;
     }
 
     // check the extensions we care about
@@ -178,7 +189,6 @@ const HybridInfo = ({option_data, setMint, setTokenOwner} : {option_data: Mutabl
     option_data.current.token_uri = uri;
     option_data.current.token_image = uri_json["image"];
 
-
     toast.update(searchToken, {
       render: `Successfully found and retrieved token metadata`,
       type: "success",
@@ -193,10 +203,7 @@ const HybridInfo = ({option_data, setMint, setTokenOwner} : {option_data: Mutabl
   }
 
   return (
-    <Center
-      
-      width="100%"
-    >
+    <Center width="100%">
       <VStack w="100%" style={{ paddingBottom: md ? 35 : "50px" }}>
         <Text
           align="start"

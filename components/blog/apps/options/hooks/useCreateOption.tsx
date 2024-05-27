@@ -106,7 +106,6 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
 
     let token_program = is_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
 
-
     let token_mint_key = new PublicKey(token_mint);
     //console.log("no lookup data found");
     let collection_account = PublicKey.findProgramAddressSync(
@@ -146,7 +145,7 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
     console.log(launchDateString, launchTimeString);
 
     let option_name =
-      (side === 0 ? "CALL " : "PUT ") + 
+      (side === 0 ? "CALL " : "PUT ") +
       token_amount.toString() +
       "@" +
       strike_price +
@@ -176,33 +175,36 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
     let transfer_hook_validation_account: PublicKey | null = null;
     let extra_hook_accounts: AccountMeta[] = [];
     if (transfer_hook !== null) {
-        console.log(transfer_hook.programId.toString());
+      console.log(transfer_hook.programId.toString());
 
-        transfer_hook_program_account = transfer_hook.programId;
-        transfer_hook_validation_account = PublicKey.findProgramAddressSync(
-            [Buffer.from("extra-account-metas"), mint.address.toBuffer()],
-            transfer_hook_program_account,
-        )[0];
+      transfer_hook_program_account = transfer_hook.programId;
+      transfer_hook_validation_account = PublicKey.findProgramAddressSync(
+        [Buffer.from("extra-account-metas"), mint.address.toBuffer()],
+        transfer_hook_program_account,
+      )[0];
 
-        // check if the validation account exists
-        console.log("check extra accounts");
-        let account_info = await connection.getAccountInfo(transfer_hook_validation_account);
-        let hook_accounts = account_info.data;
+      // check if the validation account exists
+      console.log("check extra accounts");
+      let account_info = await connection.getAccountInfo(
+        transfer_hook_validation_account,
+      );
+      let hook_accounts = account_info.data;
 
-        let extra_account_metas = ExtraAccountMetaAccountDataLayout.decode(hook_accounts);
+      let extra_account_metas =
+        ExtraAccountMetaAccountDataLayout.decode(hook_accounts);
 
-        for (let i = 0; i < extra_account_metas.extraAccountsList.count; i++) {
-            let extra = extra_account_metas.extraAccountsList.extraAccounts[i];
-            let meta = await resolveExtraAccountMeta(
-                connection,
-                extra,
-                extra_hook_accounts,
-                Buffer.from([]),
-                transfer_hook_program_account,
-            );
-            console.log(meta);
-            extra_hook_accounts.push(meta);
-        }
+      for (let i = 0; i < extra_account_metas.extraAccountsList.count; i++) {
+        let extra = extra_account_metas.extraAccountsList.extraAccounts[i];
+        let meta = await resolveExtraAccountMeta(
+          connection,
+          extra,
+          extra_hook_accounts,
+          Buffer.from([]),
+          transfer_hook_program_account,
+        );
+        console.log(meta);
+        extra_hook_accounts.push(meta);
+      }
     }
 
     var account_vector = [
@@ -224,15 +226,23 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
     ];
 
     if (transfer_hook_program_account !== null) {
-      account_vector.push({ pubkey: transfer_hook_program_account, isSigner: false, isWritable: true });
-      account_vector.push({ pubkey: transfer_hook_validation_account, isSigner: false, isWritable: true });
+      account_vector.push({
+        pubkey: transfer_hook_program_account,
+        isSigner: false,
+        isWritable: true,
+      });
+      account_vector.push({
+        pubkey: transfer_hook_validation_account,
+        isSigner: false,
+        isWritable: true,
+      });
 
       for (let i = 0; i < extra_hook_accounts.length; i++) {
-          account_vector.push({
-              pubkey: extra_hook_accounts[i].pubkey,
-              isSigner: extra_hook_accounts[i].isSigner,
-              isWritable: extra_hook_accounts[i].isWritable,
-          });
+        account_vector.push({
+          pubkey: extra_hook_accounts[i].pubkey,
+          isSigner: extra_hook_accounts[i].isSigner,
+          isWritable: extra_hook_accounts[i].isWritable,
+        });
       }
     }
 

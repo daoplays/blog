@@ -9,9 +9,7 @@ import {
   FixableBeetStruct,
 } from "@metaplex-foundation/beet";
 import { AssetV1 } from "@metaplex-foundation/mpl-core";
-import {
-  PublicKey,
-} from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 
 export const PROGRAM = new PublicKey(
   "E2ConrgkPx3tc7oKbt4phBiBsKuXoh1FWBr82znSipX1",
@@ -60,14 +58,13 @@ export interface Asset {
   asset: AssetV1;
 }
 
-export const default_option_data : OptionData = {
+export const default_option_data: OptionData = {
   token_name: "",
   token_image: "",
   token_uri: "",
   token_symbol: "",
-  amount: 0
-
-}
+  amount: 0,
+};
 
 class Create_Collection_Instruction {
   constructor(
@@ -194,9 +191,7 @@ export function serialise_CreateOption_instruction(
   return buf;
 }
 
-export function serialise_List_instruction(
-  price: number,
-): Buffer {
+export function serialise_List_instruction(price: number): Buffer {
   const data = new List_Instruction(OptionsInstruction.list, price);
   const [buf] = List_Instruction.struct.serialize(data);
 

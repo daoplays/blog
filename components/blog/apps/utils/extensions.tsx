@@ -8,8 +8,11 @@ export const Extensions = {
   TransferHook: 4,
 };
 
-
-export const ShowExtensions = ({ extension_flag }: { extension_flag: number }) => {
+export const ShowExtensions = ({
+  extension_flag,
+}: {
+  extension_flag: number;
+}) => {
   const { lg } = useResponsive();
   return (
     <HStack justify="center">
