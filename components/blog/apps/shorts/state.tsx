@@ -19,7 +19,7 @@ import { publicKey } from "@metaplex-foundation/beet-solana";
 import { MintData } from "../common";
 
 export const PROGRAM = new PublicKey(
-  "twy8tiAMy9TVpVTdnSJF9X9cgAgmKthsrKtcRZnzU7y",
+  "DQ8rUMXqfvD6HYVt15ci9xLETZZuz49z5Q1i8tXNWSdq",
 );
 
 export const enum Screen {
@@ -34,6 +34,10 @@ export const enum AMMInstruction {
   swap = 2,
   add_liquidity = 3,
   remove_liquidity = 4,
+  create_collection = 5,
+  enter_short = 6,
+  exit_short = 7,
+  liquidate = 8
 }
 
 export interface AMMLaunch {
@@ -50,12 +54,16 @@ export class AMMData {
     readonly lp_mint: PublicKey,
     readonly base_key: PublicKey,
     readonly quote_key: PublicKey,
-    readonly short_key: PublicKey,
     readonly fee: number,
     readonly num_data_accounts: number,
     readonly last_price: number[],
     readonly lp_amount: bignum,
     readonly borrow_cost: number,
+    readonly amm_base_amount: bignum,
+    readonly amm_quote_amount: bignum,
+    readonly short_base_amount: bignum,
+
+
   ) {}
 
   static readonly struct = new FixableBeetStruct<AMMData>(
@@ -66,12 +74,15 @@ export class AMMData {
       ["lp_mint", publicKey],
       ["base_key", publicKey],
       ["quote_key", publicKey],
-      ["short_key", publicKey],
       ["fee", u16],
       ["num_data_accounts", u32],
       ["last_price", uniformFixedSizeArray(u8, 4)],
       ["lp_amount", u64],
       ["borrow_cost", u16],
+      ["amm_base_amount", u64],
+      ["amm_quote_amount", u64],
+      ["short_base_amount", u64],
+
     ],
     (args) =>
       new AMMData(
@@ -81,12 +92,15 @@ export class AMMData {
         args.lp_mint!,
         args.base_key!,
         args.quote_key!,
-        args.short_key!,
         args.fee!,
         args.num_data_accounts!,
         args.last_price!,
         args.lp_amount!,
         args.borrow_cost!,
+        args.amm_base_amount!,
+        args.amm_quote_amount!,
+        args.short_base_amount!,
+
       ),
     "AMMData",
   );

@@ -22,7 +22,7 @@ const WoodenButton = ({
       bg="url(/images/Wood\ Panel.png)"
       backgroundSize="cover"
       borderRadius={10}
-      px={5}
+      px={2}
       onClick={action}
       style={{
         cursor: "pointer",
@@ -31,18 +31,18 @@ const WoodenButton = ({
       {isLoading ? (
         <Spinner />
       ) : (
-        <VStack h="100%" align="center" justify="center">
           <Text
             w={lg ? "fit-content" : !width ? "310px" : width}
+            h={"15px"}
             align={"center"}
-            my={lg ? 2 : 4}
+            mt={lg ? 2 : 1}
+            mb={lg ? 2 : 3}
             fontSize={lg ? "medium" : size}
             color="#683309"
             className="font-face-kg"
           >
             {label}
           </Text>
-        </VStack>
       )}
     </Box>
   );

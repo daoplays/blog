@@ -44,7 +44,7 @@ const AMMTable = ({
     ? Array.from(ammList, ([name, value]) => ({ name, value }))
     : [];
 
-  console.log("in table", amm_array);
+  //console.log("in table", amm_array);
   const [sortedField, setSortedField] = useState<string>("end_date");
   const [reverseSort, setReverseSort] = useState<boolean>(false);
 
