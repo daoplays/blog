@@ -19,7 +19,6 @@ import {
 import TradePage from "./trade";
 import { Flex, HStack, VStack, Text, Center, Box } from "@chakra-ui/react";
 import SideNav from "./sideNav";
-import useResponsive from "../commonHooks/useResponsive";
 import { AMMData, AMMLaunch, PROGRAM, Screen } from "./state";
 import LaunchAMM from "./launch";
 import {
@@ -29,13 +28,14 @@ import {
   MintData,
   RunGPA,
   setMintData,
-} from "../common";
+} from "../blog/apps/common";
 import { Connection, ConnectionConfig, PublicKey } from "@solana/web3.js";
 import AMMTable from "./table";
+import useResponsive from "../../hooks/useResponsive";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
-export const GetProgramData = async (check_program_data, setProgramData) => {
+const GetProgramData = async (check_program_data, setProgramData) => {
   if (!check_program_data.current) return;
 
   let list = await RunGPA(PROGRAM);
@@ -45,7 +45,7 @@ export const GetProgramData = async (check_program_data, setProgramData) => {
   check_program_data.current = false;
 };
 
-export const GetTradeMintData = async (trade_keys: PublicKey[], setMintMap) => {
+const GetTradeMintData = async (trade_keys: PublicKey[], setMintMap) => {
   let mint_map = new Map<String, MintData>();
   for (let i = 0; i < trade_keys.length; i++) {
     if (mint_map.has(trade_keys[i].toString())) {
@@ -60,6 +60,8 @@ export const GetTradeMintData = async (trade_keys: PublicKey[], setMintMap) => {
 
 function App() {
   const wallet = useWallet();
+
+  const [sidePanelCollapsed, setSidePanelCollapsed] = useState(true);
   const [screen, setScreen] = useState<Screen>(Screen.table);
   const [selected, setSelected] = useState<string>("View");
   const [program_data, setProgramData] = useState<GPAccount[] | null>(null);

@@ -8,7 +8,18 @@ import { ToastContainer } from "react-toastify";
 import "../styles/fonts.css";
 import "../styles/table.css";
 import NoSSR from "../utils/NoSSR";
+
+const bonkathonLinks = [
+  "/bonkathon2024",
+  "/bonkathon2024/create",
+  "/bonkathon2024/view",
+];
+
+import { usePathname } from "next/navigation";
+import NavigationBonk from "../components/bonkathon/Navigation";
 function MyApp({ Component, pageProps }) {
+  const pathname = usePathname();
+
   console.log({ theme });
   return (
     <NoSSR>
@@ -25,9 +36,13 @@ function MyApp({ Component, pageProps }) {
         theme="light"
       />
       <ChakraProvider theme={theme}>
-        <Navigation />
+        {bonkathonLinks.includes(pathname) ? (
+          <NavigationBonk />
+        ) : (
+          <Navigation />
+        )}
         <Component {...pageProps} />
-        <Footer />
+        {!bonkathonLinks.includes(pathname) && <Footer />}
       </ChakraProvider>
     </NoSSR>
   );
