@@ -23,7 +23,7 @@ import {
   unpackMint,
   unpackAccount,
   AccountLayout,
-  ACCOUNT_SIZE
+  ACCOUNT_SIZE,
 } from "@solana/spl-token";
 
 import {
@@ -69,7 +69,12 @@ import useEnterShort from "./hooks/useEnterShort";
 import type { RpcAccount, PublicKey as umiKey } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { publicKey } from "@metaplex-foundation/umi";
-import { AssetV1, Key, getAssetV1GpaBuilder, updateAuthority } from "@metaplex-foundation/mpl-core";
+import {
+  AssetV1,
+  Key,
+  getAssetV1GpaBuilder,
+  updateAuthority,
+} from "@metaplex-foundation/mpl-core";
 import useExitShort from "./hooks/useExitShort.";
 interface MarketData {
   time: UTCTimestamp;
@@ -101,10 +106,10 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
   const [quote_address, setQuoteAddress] = useState<PublicKey | null>(null);
   const [price_address, setPriceAddress] = useState<PublicKey | null>(null);
   const [user_base_address, setUserBaseAddress] = useState<PublicKey | null>(
-    null,
+    null
   );
   const [user_quote_address, setUserQuoteAddress] = useState<PublicKey | null>(
-    null,
+    null
   );
   const [user_lp_address, setUserLPAddress] = useState<PublicKey | null>(null);
   const [amm_lp_amount, setLPAmount] = useState<number | null>(null);
@@ -121,14 +126,12 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
   const [quote_data, setQuoteData] = useState<MintData | null>(null);
   const [owned_assets, setOwnedAssets] = useState<AssetV1[]>([]);
 
-  
   const price_ws_id = useRef<number | null>(null);
   const user_sol_token_ws_id = useRef<number | null>(null);
   const user_base_token_ws_id = useRef<number | null>(null);
   const user_quote_token_ws_id = useRef<number | null>(null);
   const user_lp_token_ws_id = useRef<number | null>(null);
   const check_market_data = useRef<boolean>(true);
-
 
   const check_nft_balance = useCallback(async () => {
     if (launch === null || wallet === null || wallet.publicKey === null) return;
@@ -138,7 +141,9 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     const umi = createUmi(DEV_RPC_NODE, "confirmed");
 
     let amm_seed_keys = [];
-    if (launch.base.mint.address.toString() < launch.quote.mint.address.toString()) {
+    if (
+      launch.base.mint.address.toString() < launch.quote.mint.address.toString()
+    ) {
       amm_seed_keys.push(launch.base.mint.address);
       amm_seed_keys.push(launch.quote.mint.address);
     } else {
@@ -152,30 +157,33 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
         amm_seed_keys[1].toBytes(),
         Buffer.from("AMM"),
       ],
-      PROGRAM,
+      PROGRAM
     )[0];
 
     let collection_account = PublicKey.findProgramAddressSync(
       [amm_data_account.toBytes(), Buffer.from("Collection")],
-      PROGRAM,
+      PROGRAM
     )[0];
 
     let collection_umiKey = publicKey(collection_account.toString());
 
     const assets = await getAssetV1GpaBuilder(umi)
-        .whereField("key", Key.AssetV1)
-        .whereField("updateAuthority", updateAuthority("Collection", [collection_umiKey]))
-        .getDeserialized();
+      .whereField("key", Key.AssetV1)
+      .whereField(
+        "updateAuthority",
+        updateAuthority("Collection", [collection_umiKey])
+      )
+      .getDeserialized();
 
-    console.log("assets", assets)
-    let owned_assets = []; 
+    console.log("assets", assets);
+    let owned_assets = [];
     for (let i = 0; i < assets.length; i++) {
-        if (assets[i].owner.toString() === wallet.publicKey.toString()) {
-          owned_assets.push(assets[i]);
-        }
+      if (assets[i].owner.toString() === wallet.publicKey.toString()) {
+        owned_assets.push(assets[i]);
+      }
     }
     console.log("have ", owned_assets.length, "addresses with balance");
-    console.log(owned_assets)
+    console.log(owned_assets);
     setOwnedAssets(owned_assets);
   }, [launch, wallet]);
 
@@ -183,8 +191,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     if (launch === null || wallet === null || wallet.publicKey === null) return;
 
     check_nft_balance();
-}, [launch, check_nft_balance, wallet]);
-
+  }, [launch, check_nft_balance, wallet]);
 
   const check_price_update = useCallback(async (result: any) => {
     //console.log(result);
@@ -223,7 +230,9 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     //console.log("base update:", result);
     // if we have a subscription field check against ws_id
 
-    let token_account = AccountLayout.decode(result.data.slice(0, ACCOUNT_SIZE))
+    let token_account = AccountLayout.decode(
+      result.data.slice(0, ACCOUNT_SIZE)
+    );
     let amount = bignum_to_num(token_account.amount);
     // console.log("update quote amount", amount);
 
@@ -234,11 +243,12 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     //console.log("quote update", user_quote_address.toString());
     // if we have a subscription field check against ws_id
 
-
     try {
-      let token_account = AccountLayout.decode(result.data.slice(0, ACCOUNT_SIZE))
+      let token_account = AccountLayout.decode(
+        result.data.slice(0, ACCOUNT_SIZE)
+      );
       let amount = bignum_to_num(token_account.amount);
-       //console.log("update quote amount", token_account);
+      //console.log("update quote amount", token_account);
 
       setUserQuoteAmount(amount);
     } catch (error) {
@@ -250,7 +260,9 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     //console.log("lp update", result);
     // if we have a subscription field check against ws_id
 
-    let token_account = AccountLayout.decode(result.data.slice(0, ACCOUNT_SIZE))
+    let token_account = AccountLayout.decode(
+      result.data.slice(0, ACCOUNT_SIZE)
+    );
     let amount = bignum_to_num(token_account.amount);
 
     setUserLPAmount(amount);
@@ -258,12 +270,11 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
 
   // launch account subscription handler
   useEffect(() => {
-
     if (price_ws_id.current === null && price_address !== null) {
       price_ws_id.current = connection.onAccountChange(
         price_address,
         check_price_update,
-        "confirmed",
+        "confirmed"
       );
     }
 
@@ -271,7 +282,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
       user_base_token_ws_id.current = connection.onAccountChange(
         user_base_address,
         check_user_base_update,
-        "confirmed",
+        "confirmed"
       );
     }
     if (
@@ -281,14 +292,14 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
       user_quote_token_ws_id.current = connection.onAccountChange(
         user_quote_address,
         check_user_quote_update,
-        "confirmed",
+        "confirmed"
       );
     }
     if (user_lp_token_ws_id.current === null && user_lp_address !== null) {
       user_lp_token_ws_id.current = connection.onAccountChange(
         user_lp_address,
         check_user_lp_update,
-        "confirmed",
+        "confirmed"
       );
     }
   }, [
@@ -335,7 +346,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
         amm_seed_keys[1].toBytes(),
         Buffer.from("AMM"),
       ],
-      PROGRAM,
+      PROGRAM
     )[0];
 
     let base_amm_account = amm.amm_data.base_key;
@@ -355,21 +366,21 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
       base_mint, // mint
       wallet.publicKey, // owner
       true, // allow owner off curve
-      baseMintData.token_program,
+      baseMintData.token_program
     );
 
     let user_quote_token_account_key = await getAssociatedTokenAddress(
       quote_mint, // mint
       wallet.publicKey, // owner
       true, // allow owner off curve
-      quoteMintData.token_program,
+      quoteMintData.token_program
     );
 
     let user_lp_token_account_key = await getAssociatedTokenAddress(
       lp_mint, // mint
       wallet.publicKey, // owner
       true, // allow owner off curve
-      baseMintData.token_program,
+      baseMintData.token_program
     );
     // console.log(base_amm_account.toString(), quote_amm_account.toString());
 
@@ -382,10 +393,10 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     let base_amount = amm.amm_data.amm_base_amount;
     let quote_amount = amm.amm_data.amm_quote_amount;
     let user_base_amount = await request_token_amount(
-      user_base_token_account_key,
+      user_base_token_account_key
     );
     let user_quote_amount = await request_token_amount(
-      user_quote_token_account_key,
+      user_quote_token_account_key
     );
     let user_lp_amount = await request_token_amount(user_lp_token_account_key);
 
@@ -394,7 +405,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
       user_base_amount,
       user_lp_amount,
       base_amount,
-      quote_amount,
+      quote_amount
     );
     setUserBaseAmount(user_base_amount);
     setUserLPAmount(user_lp_amount);
@@ -408,7 +419,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     let index_buffer = uInt32ToLEBytes(0);
     let price_data_account = PublicKey.findProgramAddressSync(
       [amm_data_account.toBytes(), index_buffer, Buffer.from("TimeSeries")],
-      PROGRAM,
+      PROGRAM
     )[0];
 
     setPriceAddress(price_data_account);
@@ -440,8 +451,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
       let close = Buffer.from(item.close).readFloatLE(0);
       let volume = Buffer.from(item.volume).readFloatLE(0);
 
-      console.log(time, new Date(time * 1000), close)
-
+      console.log(time, new Date(time * 1000), close);
 
       if (now - time < 24 * 60 * 60) {
         last_volume += volume;
@@ -559,7 +569,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
                 onClick={(e) => {
                   e.preventDefault();
                   navigator.clipboard.writeText(
-                    amm.amm_data.base_mint.toString(),
+                    amm.amm_data.base_mint.toString()
                   );
                 }}
               >
@@ -620,42 +630,37 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
                 style={{ borderBottom: "1px solid rgba(134, 142, 150, 0.5)" }}
               >
                 <HStack>
-                <WoodenButton
-                  action={() => setLeftPanel("Info")}
-                  
-                  label={"Info"}
-                  size={15}
-                  width="100%"
-                />
-                <WoodenButton
-                  action={() => {
-                    
-                         setLeftPanel("Trade");
-                  }}
-                  label={"Trade"}
-                  size={15}
-                  width="100%"
-                />
-                <WoodenButton
-                  action={() => {
-                    
-                         setLeftPanel("LP");
-                  }}
-                  label={"LP"}
-                  size={15}
-                  width="100%"
-                />
-                <WoodenButton
-                  action={() => {
-                    
-                         setLeftPanel("Shorts");
-                  }}
-                  label={"Shorts"}
-                  size={15}
-                  width="100%"
-                />
+                  <WoodenButton
+                    action={() => setLeftPanel("Info")}
+                    label={"Info"}
+                    size={15}
+                    width="100%"
+                  />
+                  <WoodenButton
+                    action={() => {
+                      setLeftPanel("Trade");
+                    }}
+                    label={"Trade"}
+                    size={15}
+                    width="100%"
+                  />
+                  <WoodenButton
+                    action={() => {
+                      setLeftPanel("LP");
+                    }}
+                    label={"LP"}
+                    size={15}
+                    width="100%"
+                  />
+                  <WoodenButton
+                    action={() => {
+                      setLeftPanel("Shorts");
+                    }}
+                    label={"Shorts"}
+                    size={15}
+                    width="100%"
+                  />
                 </HStack>
-                
               </Box>
             )}
 
@@ -670,12 +675,17 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
                     ? market_data[market_data.length - 1].close
                     : 0
                 }
-                total_supply={bignum_to_num(amm.amm_data.amm_base_amount) / Math.pow(10, amm.base.mint.decimals)}
+                total_supply={
+                  bignum_to_num(amm.amm_data.amm_base_amount) /
+                  Math.pow(10, amm.base.mint.decimals)
+                }
                 quote_amount={bignum_to_num(amm.amm_data.amm_quote_amount)}
               />
             )}
 
-            {(leftPanel === "Trade" || leftPanel === "LP" || leftPanel === "Shorts") && (
+            {(leftPanel === "Trade" ||
+              leftPanel === "LP" ||
+              leftPanel === "Shorts") && (
               <BuyAndSell
                 default_selected={leftPanel === "Trade" ? "Buy" : "LP+"}
                 left_panel={leftPanel}
@@ -811,24 +821,20 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
   );
 };
 
-
-
 function getAttributes(option: AssetV1) {
-  let attributes_map : Map<string, string> = new Map<string, string>();
+  let attributes_map: Map<string, string> = new Map<string, string>();
   let attributes = option.attributes.attributeList;
 
   for (let i = 0; i < attributes.length; i++) {
     attributes_map.set(attributes[i].key, attributes[i].value);
   }
 
-
   return attributes_map;
 }
 
 function formatPrice(price: number, decimals: number) {
-  let priceString = price <= 1e-3
-  ? price.toExponential(3)
-  : price.toFixed(decimals);
+  let priceString =
+    price <= 1e-3 ? price.toExponential(3) : price.toFixed(decimals);
 
   return priceString;
 }
@@ -837,12 +843,12 @@ const ShortCard = ({
   asset,
   amm,
   base_mint,
-  quote_mint
+  quote_mint,
 }: {
-  asset : AssetV1,
-  amm : AMMData,
-  base_mint: MintData,
-  quote_mint : MintData
+  asset: AssetV1;
+  amm: AMMData;
+  base_mint: MintData;
+  quote_mint: MintData;
 }) => {
   const wallet = useWallet();
   const { handleConnectWallet } = UseWalletConnection();
@@ -851,71 +857,80 @@ const ShortCard = ({
   let base_balance = bignum_to_num(amm.amm_base_amount);
   let quote_balance = bignum_to_num(amm.amm_quote_amount);
 
- 
-
   let attributes = getAttributes(asset);
-  let base_input = parseFloat(attributes.get("short_base_amount"))
-  let quote_input = parseFloat(attributes.get("short_quote_amount"))
-  let deposit = parseFloat(attributes.get("deposit_amount"))
-  let short_price = parseFloat(attributes.get("short_price"))
-  let start_time = parseFloat(attributes.get("start_time"))
-  let liquidation_price = parseFloat(attributes.get("liquidation_price"))
+  let base_input = parseFloat(attributes.get("short_base_amount"));
+  let quote_input = parseFloat(attributes.get("short_quote_amount"));
+  let deposit = parseFloat(attributes.get("deposit_amount"));
+  let short_price = parseFloat(attributes.get("short_price"));
+  let start_time = parseFloat(attributes.get("start_time"));
+  let liquidation_price = parseFloat(attributes.get("liquidation_price"));
 
-  let quote_output =
-  (base_input * quote_balance) /
-  (base_balance - base_input) 
+  let quote_output = (base_input * quote_balance) / (base_balance - base_input);
 
-  let quote_post_fees = quote_output / (1 - amm.fee/100/100);
+  let quote_post_fees = quote_output / (1 - amm.fee / 100 / 100);
 
+  console.log("short", attributes, base_input, quote_input, quote_post_fees);
 
-  console.log("short", attributes, base_input, quote_input, quote_post_fees)
-
-  let current_price = quote_post_fees /
-  Math.pow(10, quote_mint.mint.decimals) / (base_input / Math.pow(10, base_mint.mint.decimals));
-
+  let current_price =
+    quote_post_fees /
+    Math.pow(10, quote_mint.mint.decimals) /
+    (base_input / Math.pow(10, base_mint.mint.decimals));
 
   let current_time = new Date().getTime() / 1000;
   let time_delta_years = (current_time - start_time) / 60 / 60 / 24 / 365;
-  let borrow_fee = Math.floor(time_delta_years * quote_input * (amm.borrow_cost / 100) + 1) /
-  Math.pow(10, quote_mint.mint.decimals);
-  let profit = (quote_input - quote_post_fees) / Math.pow(10, quote_mint.mint.decimals) - borrow_fee;
-
+  let borrow_fee =
+    Math.floor(time_delta_years * quote_input * (amm.borrow_cost / 100) + 1) /
+    Math.pow(10, quote_mint.mint.decimals);
+  let profit =
+    (quote_input - quote_post_fees) / Math.pow(10, quote_mint.mint.decimals) -
+    borrow_fee;
 
   return (
-  <>
-  <VStack align="left">
-  <Text m="0" color="white">Base {base_input}</Text>
-  <Text m="0" color="white">Quote {quote_input}</Text>
+    <>
+      <VStack align="left">
+        <Text m="0" color="white">
+          Base {base_input}
+        </Text>
+        <Text m="0" color="white">
+          Quote {quote_input}
+        </Text>
 
-  <Text m="0" color="white">Short Price {formatPrice(short_price, quote_mint.mint.decimals) }</Text>
-  <Text m="0" color="white">Liq Price {formatPrice(liquidation_price, quote_mint.mint.decimals) }</Text>
+        <Text m="0" color="white">
+          Short Price {formatPrice(short_price, quote_mint.mint.decimals)}
+        </Text>
+        <Text m="0" color="white">
+          Liq Price {formatPrice(liquidation_price, quote_mint.mint.decimals)}
+        </Text>
 
-  <Text m="0" color="white">Current Price {formatPrice(current_price, quote_mint.mint.decimals) }</Text>
-  <Text m="0" color="white">Borrow Fee {formatPrice(borrow_fee, quote_mint.mint.decimals) }</Text>
-  <Text m= "0" color="white">PnL {formatPrice(profit, quote_mint.mint.decimals) }</Text>
-  <Button
-            mt={2}
-            size="lg"
-            w="100%"
-            px={4}
-            py={2}
-            bg={"#83FF81"}
-            isLoading={exitShortLoading}
-            onClick={() => {
-              !wallet.connected
-                ? handleConnectWallet()
-                : ExitShort(amm, asset);
-            }}
-          >
-            <Text m={"0 auto"} fontSize="large" fontWeight="semibold">
-              {!wallet.connected
-                ? "Connect Wallet"
-                : "Exit"}
-            </Text>
-          </Button>
-  </VStack>
-  </>);
-}
+        <Text m="0" color="white">
+          Current Price {formatPrice(current_price, quote_mint.mint.decimals)}
+        </Text>
+        <Text m="0" color="white">
+          Borrow Fee {formatPrice(borrow_fee, quote_mint.mint.decimals)}
+        </Text>
+        <Text m="0" color="white">
+          PnL {formatPrice(profit, quote_mint.mint.decimals)}
+        </Text>
+        <Button
+          mt={2}
+          size="lg"
+          w="100%"
+          px={4}
+          py={2}
+          bg={"#83FF81"}
+          isLoading={exitShortLoading}
+          onClick={() => {
+            !wallet.connected ? handleConnectWallet() : ExitShort(amm, asset);
+          }}
+        >
+          <Text m={"0 auto"} fontSize="large" fontWeight="semibold">
+            {!wallet.connected ? "Connect Wallet" : "Exit"}
+          </Text>
+        </Button>
+      </VStack>
+    </>
+  );
+};
 
 const BuyAndSell = ({
   left_panel,
@@ -927,10 +942,10 @@ const BuyAndSell = ({
   user_base_balance,
   user_quote_balance,
   user_lp_balance,
-  owned_assets
+  owned_assets,
 }: {
-  left_panel : String,
-  default_selected: String,
+  left_panel: String;
+  default_selected: String;
   base_data: MintData;
   quote_data: MintData;
   amm: AMMData;
@@ -938,7 +953,7 @@ const BuyAndSell = ({
   user_base_balance: number;
   user_quote_balance: number;
   user_lp_balance: number;
-  owned_assets : AssetV1[]
+  owned_assets: AssetV1[];
 }) => {
   const { xs } = useResponsive();
   const wallet = useWallet();
@@ -967,7 +982,7 @@ const BuyAndSell = ({
   let quote_balance = bignum_to_num(amm.amm_quote_amount);
 
   let base_raw = Math.floor(
-    token_amount * Math.pow(10, base_data.mint.decimals),
+    token_amount * Math.pow(10, base_data.mint.decimals)
   );
   let total_base_fee = 0;
   let transfer_fee = 0;
@@ -979,7 +994,7 @@ const BuyAndSell = ({
       Number(transfer_fee_config.newerTransferFee.maximumFee) /
       Math.pow(10, base_data.mint.decimals);
     total_base_fee += Number(
-      calculateFee(transfer_fee_config.newerTransferFee, BigInt(base_raw)),
+      calculateFee(transfer_fee_config.newerTransferFee, BigInt(base_raw))
     );
   }
 
@@ -999,12 +1014,17 @@ const BuyAndSell = ({
   //console.log("base in/out", base_input_amount / Math.pow(10, launch.decimals), quote_output)
 
   let quote_raw = Math.floor(
-    sol_amount * Math.pow(10, quote_data.mint.decimals),
+    sol_amount * Math.pow(10, quote_data.mint.decimals)
   );
   let amm_quote_fee = Math.ceil((quote_raw * amm.fee) / 100 / 100);
   let quote_input_amount = quote_raw - amm_quote_fee;
 
-  console.log(quote_input_amount, base_balance, quote_balance, quote_input_amount)
+  console.log(
+    quote_input_amount,
+    base_balance,
+    quote_balance,
+    quote_input_amount
+  );
   let base_output =
     (quote_input_amount * base_balance) /
     (quote_balance + quote_input_amount) /
@@ -1019,7 +1039,7 @@ const BuyAndSell = ({
   let quote_no_slip = token_amount * price;
 
   let max_sol_amount = Math.floor(
-    quote_no_slip * Math.pow(10, quote_data.mint.decimals) * 2,
+    quote_no_slip * Math.pow(10, quote_data.mint.decimals) * 2
   );
 
   let slippage =
@@ -1070,39 +1090,39 @@ const BuyAndSell = ({
         : lp_base_output.toFixed(base_data.mint.decimals);
   }
 
-  
-  let short_base_amount = short_amount * (1 - amm.fee / 100 / 100) * Math.pow(10, base_data.mint.decimals);
+  let short_base_amount =
+    short_amount *
+    (1 - amm.fee / 100 / 100) *
+    Math.pow(10, base_data.mint.decimals);
   let short_quote_output =
-  (short_base_amount * quote_balance) /
-  (short_base_amount + base_balance) /
-  Math.pow(10, quote_data.mint.decimals);
+    (short_base_amount * quote_balance) /
+    (short_base_amount + base_balance) /
+    Math.pow(10, quote_data.mint.decimals);
 
   let deposit_per_token = deposit_amount / short_amount;
-  let liquidation_price = deposit_amount > 0 ? deposit_per_token + short_quote_output/short_amount : short_quote_output/short_amount
-  let liquidation_price_string = liquidation_price <= 1e-3
-  ? liquidation_price.toExponential(3)
-  : liquidation_price.toFixed(quote_data.mint.decimals);
+  let liquidation_price =
+    deposit_amount > 0
+      ? deposit_per_token + short_quote_output / short_amount
+      : short_quote_output / short_amount;
+  let liquidation_price_string =
+    liquidation_price <= 1e-3
+      ? liquidation_price.toExponential(3)
+      : liquidation_price.toFixed(quote_data.mint.decimals);
 
   //console.log("quote: ", user_quote_balance);
 
-  let options = []
+  let options = [];
   if (left_panel === "Trade") {
-    options = ["Buy", "Sell"]
-    
-    
+    options = ["Buy", "Sell"];
   }
   if (left_panel === "LP") {
-    
-    options = ["LP+", "LP-"]
-      
+    options = ["LP+", "LP-"];
   }
   if (left_panel === "Shorts") {
-    
-    options = ["Enter", "Exit"]
-      
+    options = ["Enter", "Exit"];
   }
 
-  console.log("left panel", left_panel, options)
+  console.log("left panel", left_panel, options);
 
   return (
     <VStack align="start" px={5} w="100%" mt={-2} spacing={4}>
@@ -1265,20 +1285,19 @@ const BuyAndSell = ({
             >
               Remove:
             </Text>
-          ) : selected == "Enter" ?  (<>
-           <Text
-              m={0}
-              color={"white"}
-              fontFamily="ReemKufiRegular"
-              fontSize={"medium"}
-              opacity={0.5}
-            >
-              Short:
-            </Text>
-          </>)
-          
-          : selected !== "Exit" ?
-          (
+          ) : selected == "Enter" ? (
+            <>
+              <Text
+                m={0}
+                color={"white"}
+                fontFamily="ReemKufiRegular"
+                fontSize={"medium"}
+                opacity={0.5}
+              >
+                Short:
+              </Text>
+            </>
+          ) : selected !== "Exit" ? (
             <Text
               m={0}
               color={"white"}
@@ -1288,66 +1307,68 @@ const BuyAndSell = ({
             >
               Swap:
             </Text>
-          )
-        : <></>}
+          ) : (
+            <></>
+          )}
 
-          {selected !== "Enter" && selected !== "Exit" &&
-          <HStack spacing={2}>
-            <Text
-              m={0}
-              color={"white"}
-              fontFamily="ReemKufiRegular"
-              fontSize={"medium"}
-              opacity={0.5}
-              style={{ cursor: "pointer" }}
-              onClick={() => {
-                if (selected === "Buy") {
-                  setSOLAmount(
-                    user_quote_balance /
-                      Math.pow(10, quote_data.mint.decimals) /
-                      2,
-                  );
-                }
+          {selected !== "Enter" && selected !== "Exit" && (
+            <HStack spacing={2}>
+              <Text
+                m={0}
+                color={"white"}
+                fontFamily="ReemKufiRegular"
+                fontSize={"medium"}
+                opacity={0.5}
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  if (selected === "Buy") {
+                    setSOLAmount(
+                      user_quote_balance /
+                        Math.pow(10, quote_data.mint.decimals) /
+                        2
+                    );
+                  }
 
-                if (selected === "Sell") {
-                  setTokenAmount(
-                    user_base_balance /
-                      Math.pow(10, base_data.mint.decimals) /
-                      2,
-                  );
-                }
-              }}
-            >
-              Half
-            </Text>
-            <Center height="15px">
-              <Divider orientation="vertical" opacity={0.25} />
-            </Center>
-            <Text
-              m={0}
-              color={"white"}
-              fontFamily="ReemKufiRegular"
-              fontSize={"medium"}
-              opacity={0.5}
-              style={{ cursor: "pointer" }}
-              onClick={() => {
-                if (selected === "Buy") {
-                  setSOLAmount(
-                    user_quote_balance / Math.pow(10, quote_data.mint.decimals),
-                  );
-                }
+                  if (selected === "Sell") {
+                    setTokenAmount(
+                      user_base_balance /
+                        Math.pow(10, base_data.mint.decimals) /
+                        2
+                    );
+                  }
+                }}
+              >
+                Half
+              </Text>
+              <Center height="15px">
+                <Divider orientation="vertical" opacity={0.25} />
+              </Center>
+              <Text
+                m={0}
+                color={"white"}
+                fontFamily="ReemKufiRegular"
+                fontSize={"medium"}
+                opacity={0.5}
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  if (selected === "Buy") {
+                    setSOLAmount(
+                      user_quote_balance /
+                        Math.pow(10, quote_data.mint.decimals)
+                    );
+                  }
 
-                if (selected === "Sell") {
-                  setTokenAmount(
-                    user_base_balance / Math.pow(10, base_data.mint.decimals),
-                  );
-                }
-              }}
-            >
-              Max
-            </Text>
-          </HStack>
-        }
+                  if (selected === "Sell") {
+                    setTokenAmount(
+                      user_base_balance / Math.pow(10, base_data.mint.decimals)
+                    );
+                  }
+                }}
+              >
+                Max
+              </Text>
+            </HStack>
+          )}
         </HStack>
         {selected === "Buy" ? (
           <InputGroup size="md">
@@ -1360,7 +1381,7 @@ const BuyAndSell = ({
                 setSOLAmount(
                   !isNaN(parseFloat(e.target.value)) || e.target.value === ""
                     ? parseFloat(e.target.value)
-                    : sol_amount,
+                    : sol_amount
                 );
               }}
               type="number"
@@ -1376,37 +1397,36 @@ const BuyAndSell = ({
               />
             </InputRightElement>
           </InputGroup>
-        ) : selected === "Enter" ?  (<>
-
-        <InputGroup size="md">
-            <Input
-              color="white"
-              size="lg"
-              borderColor="rgba(134, 142, 150, 0.5)"
-              value={short_amount}
-              onChange={(e) => {
-                setShortAmount(
-                  !isNaN(parseFloat(e.target.value)) || e.target.value === ""
-                    ? parseFloat(e.target.value)
-                    : short_amount,
-                );
-              }}
-              type="number"
-              min="0"
-            />
-            <InputRightElement h="100%" w={50}>
-              <Image
-                src={base_data.icon}
-                width={30}
-                height={30}
-                alt="SOL Icon"
-                style={{ borderRadius: "100%" }}
+        ) : selected === "Enter" ? (
+          <>
+            <InputGroup size="md">
+              <Input
+                color="white"
+                size="lg"
+                borderColor="rgba(134, 142, 150, 0.5)"
+                value={short_amount}
+                onChange={(e) => {
+                  setShortAmount(
+                    !isNaN(parseFloat(e.target.value)) || e.target.value === ""
+                      ? parseFloat(e.target.value)
+                      : short_amount
+                  );
+                }}
+                type="number"
+                min="0"
               />
-            </InputRightElement>
-          </InputGroup>
-        </>)
-        : selected !== "Exit" ?
-        (
+              <InputRightElement h="100%" w={50}>
+                <Image
+                  src={base_data.icon}
+                  width={30}
+                  height={30}
+                  alt="SOL Icon"
+                  style={{ borderRadius: "100%" }}
+                />
+              </InputRightElement>
+            </InputGroup>
+          </>
+        ) : selected !== "Exit" ? (
           <InputGroup size="md">
             <Input
               color="white"
@@ -1417,7 +1437,7 @@ const BuyAndSell = ({
                 setTokenAmount(
                   !isNaN(parseFloat(e.target.value)) || e.target.value === ""
                     ? parseFloat(e.target.value)
-                    : token_amount,
+                    : token_amount
                 );
               }}
               type="number"
@@ -1445,52 +1465,54 @@ const BuyAndSell = ({
               )}
             </InputRightElement>
           </InputGroup>
-        ) : <></>}
+        ) : (
+          <></>
+        )}
       </VStack>
 
-      {selected === "Exit" &&
-      <>
-      {owned_assets.map((asset, i) => (
+      {selected === "Exit" && (
+        <>
+          {owned_assets.map((asset, i) => (
             <ShortCard
               key={i}
               asset={asset}
               amm={amm}
               base_mint={base_data}
               quote_mint={quote_data}
-              />
+            />
           ))}
-      </>
-      }
+        </>
+      )}
 
-      {selected === "Enter" &&
-      <>
-       <VStack align="start" w="100%">
-          <Text
-            m={0}
-            color={"white"}
-            fontFamily="ReemKufiRegular"
-            fontSize={"medium"}
-            opacity={0.5}
-          >
-            Deposit:
-          </Text>
-          <InputGroup size="md">
-            <Input
-              color="white"
-              size="lg"
-              borderColor="rgba(134, 142, 150, 0.5)"
-              value={deposit_amount}
-              onChange={(e) => {
-                setDepositAmount(
-                  !isNaN(parseFloat(e.target.value)) || e.target.value === ""
-                    ? parseFloat(e.target.value)
-                    : deposit_amount,
-                );
-              }}
-              type="number"
-              min="0"
-            />
-            <InputRightElement h="100%" w={50}>
+      {selected === "Enter" && (
+        <>
+          <VStack align="start" w="100%">
+            <Text
+              m={0}
+              color={"white"}
+              fontFamily="ReemKufiRegular"
+              fontSize={"medium"}
+              opacity={0.5}
+            >
+              Deposit:
+            </Text>
+            <InputGroup size="md">
+              <Input
+                color="white"
+                size="lg"
+                borderColor="rgba(134, 142, 150, 0.5)"
+                value={deposit_amount}
+                onChange={(e) => {
+                  setDepositAmount(
+                    !isNaN(parseFloat(e.target.value)) || e.target.value === ""
+                      ? parseFloat(e.target.value)
+                      : deposit_amount
+                  );
+                }}
+                type="number"
+                min="0"
+              />
+              <InputRightElement h="100%" w={50}>
                 <Image
                   src={quote_data.icon}
                   width={30}
@@ -1498,29 +1520,31 @@ const BuyAndSell = ({
                   alt=""
                   style={{ borderRadius: "100%" }}
                 />
-              
-            </InputRightElement>
-          </InputGroup>
-          <Text
-            m={0}
-            color={"white"}
-            fontFamily="ReemKufiRegular"
-            fontSize={"medium"}
-            opacity={0.5}
-          >
-            Liquidation Price:
-          </Text>
-          <InputGroup size="md">
-            <Input
-              readOnly={true}
-              color="white"
-              size="lg"
-              borderColor="rgba(134, 142, 150, 0.5)"
-              value={liquidation_price_string === "NaN" ? "0" : liquidation_price_string}
-              disabled
-            
-            />
-            <InputRightElement h="100%" w={50}>
+              </InputRightElement>
+            </InputGroup>
+            <Text
+              m={0}
+              color={"white"}
+              fontFamily="ReemKufiRegular"
+              fontSize={"medium"}
+              opacity={0.5}
+            >
+              Liquidation Price:
+            </Text>
+            <InputGroup size="md">
+              <Input
+                readOnly={true}
+                color="white"
+                size="lg"
+                borderColor="rgba(134, 142, 150, 0.5)"
+                value={
+                  liquidation_price_string === "NaN"
+                    ? "0"
+                    : liquidation_price_string
+                }
+                disabled
+              />
+              <InputRightElement h="100%" w={50}>
                 <Image
                   src={quote_data.icon}
                   width={30}
@@ -1528,12 +1552,11 @@ const BuyAndSell = ({
                   alt=""
                   style={{ borderRadius: "100%" }}
                 />
-              
-            </InputRightElement>
-          </InputGroup>
-        </VStack>
-      </>
-      }
+              </InputRightElement>
+            </InputGroup>
+          </VStack>
+        </>
+      )}
 
       <VStack align="start" w="100%">
         {selected === "LP+" ? (
@@ -1716,9 +1739,9 @@ const BuyAndSell = ({
             {!wallet.connected ? "Connect Wallet" : "Remove Liquidity"}
           </Text>
         </Button>
-      ) : selected === "Enter" ?  (
+      ) : selected === "Enter" ? (
         <>
-         <Button
+          <Button
             mt={2}
             size="lg"
             w="100%"
@@ -1733,16 +1756,11 @@ const BuyAndSell = ({
             }}
           >
             <Text m={"0 auto"} fontSize="large" fontWeight="semibold">
-              {!wallet.connected
-                ? "Connect Wallet"
-                : "Enter"}
+              {!wallet.connected ? "Connect Wallet" : "Enter"}
             </Text>
           </Button>
         </>
-      )
-      
-      : selected !== "Exit" ?
-      (
+      ) : selected !== "Exit" ? (
         <>
           <Button
             mt={2}
@@ -1769,7 +1787,9 @@ const BuyAndSell = ({
             </Text>
           </Button>
         </>
-      ) : <></>}
+      ) : (
+        <></>
+      )}
     </VStack>
   );
 };
@@ -1791,8 +1811,7 @@ const InfoContent = ({
   volume: number;
   total_supply: number;
 }) => {
-
-  console.log(quote_amount, total_supply, quote_amount / total_supply)
+  console.log(quote_amount, total_supply, quote_amount / total_supply);
   return (
     <VStack spacing={8} w="100%" mb={3}>
       <HStack mt={-2} px={5} justify="space-between" w="100%">

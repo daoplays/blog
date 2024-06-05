@@ -92,11 +92,7 @@ const AMMTable = ({
           >
             {tableHeaders.map((i) => (
               <th key={i.text} style={{ minWidth: sm ? "90px" : "120px" }}>
-                <HStack
-                  gap={sm ? 1 : 2}
-                  justify="center"
-                  style={{ cursor: i.text === "LOGO" ? "" : "pointer" }}
-                >
+                <HStack gap={sm ? 1 : 2} justify="center">
                   <Text
                     fontSize={sm ? "medium" : "large"}
                     fontWeight="normal"
@@ -129,6 +125,7 @@ const AMMTable = ({
 const LaunchCard = ({
   amm_launch,
   setCurrentLaunch,
+  setSelected,
 }: {
   amm_launch: AMMLaunch;
   setCurrentLaunch: Dispatch<SetStateAction<AMMLaunch>>;
@@ -159,6 +156,7 @@ const LaunchCard = ({
       }}
       onClick={() => {
         setCurrentLaunch(amm_launch);
+        setSelected("Trade");
       }}
     >
       <td style={{ minWidth: "160px" }}>
@@ -236,14 +234,18 @@ const LaunchCard = ({
 
       <td style={{ minWidth: "100px" }}>
         <Button
-          onClick={() =>
-            router.push(
-              `/launch/` +
-                amm_launch.amm_data.base_key +
-                `-` +
-                amm_launch.amm_data.quote_key
-            )
-          }
+          // onClick={() =>
+          //   router.push(
+          //     `/launch/` +
+          //       amm_launch.amm_data.base_key +
+          //       `-` +
+          //       amm_launch.amm_data.quote_key
+          //   )
+          // }
+          onClick={() => {
+            setCurrentLaunch(amm_launch);
+            setSelected("Trade");
+          }}
           style={{ textDecoration: "none" }}
         >
           Trade

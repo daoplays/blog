@@ -1,5 +1,10 @@
 import React, { useRef, useEffect, useState } from "react";
-import { AMMData, AMMLaunch, PROGRAM } from "../../components/bonkathon/state";
+import {
+  AMMData,
+  AMMLaunch,
+  PROGRAM,
+  Screen,
+} from "../../components/bonkathon/state";
 import { PublicKey } from "@solana/web3.js";
 import { GPAccount, MintData } from "../../components/blog/apps/common";
 import {
@@ -8,10 +13,12 @@ import {
 } from "../../components/blog/apps/shorts/App";
 import useResponsive from "../../hooks/useResponsive";
 import AMMTable from "../../components/bonkathon/table";
-import { Text, HStack } from "@chakra-ui/react";
+import { HStack } from "@chakra-ui/react";
+import TradePage from "../../components/bonkathon/trade";
 
 const ViewAMMs = () => {
-  const [selected, setSelected] = useState<string>("");
+  const { lg, xl } = useResponsive();
+
   const [program_data, setProgramData] = useState<GPAccount[] | null>(null);
   const [amm_data, setAMMData] = useState<AMMData[]>([]);
   const [mintData, setMintData] = useState<Map<String, MintData> | null>(null);
@@ -19,9 +26,13 @@ const ViewAMMs = () => {
     String,
     AMMLaunch
   > | null>(null);
-  const [current_launch, setCurrentLaunch] = useState<AMMLaunch | null>(null);
 
-  const { lg, xl } = useResponsive();
+  const [selected, setSelected] = useState<string>("View");
+  const [current_launch, setCurrentLaunch] = useState<AMMLaunch | null>(null);
+  const [screen, setScreen] = useState<Screen>(Screen.table);
+
+  const last_selected = useRef<string>("View");
+
   const check_program_data = useRef<boolean>(true);
 
   useEffect(() => {
@@ -98,6 +109,23 @@ const ViewAMMs = () => {
     setAMMLaunches(amm_launches);
   }, [amm_data, mintData]);
 
+  useEffect(() => {
+    if (selected == last_selected.current) {
+      return;
+    }
+
+    last_selected.current = selected;
+    if (selected === "Create") {
+      setScreen(Screen.create);
+    }
+    if (selected === "View") {
+      setScreen(Screen.table);
+    }
+    if (selected === "Trade") {
+      setScreen(Screen.trade);
+    }
+  }, [selected]);
+
   return (
     <main
       style={{
@@ -108,14 +136,20 @@ const ViewAMMs = () => {
       <HStack
         align="start"
         h="100%"
-        style={{ width: lg ? "100%" : "1200px" }}
-        px={lg ? 0 : 12}
+        style={{
+          width: screen === Screen.trade ? "100%" : lg ? "100%" : "1200px",
+        }}
+        px={screen === Screen.trade ? 0 : lg ? 0 : 12}
       >
-        <AMMTable
-          ammList={amm_launches}
-          setCurrentLaunch={setCurrentLaunch}
-          setSelected={setSelected}
-        />
+        {screen === Screen.trade && <TradePage launch={current_launch} />}
+
+        {screen === Screen.table && (
+          <AMMTable
+            ammList={amm_launches}
+            setCurrentLaunch={setCurrentLaunch}
+            setSelected={setSelected}
+          />
+        )}
       </HStack>
     </main>
   );

@@ -605,7 +605,14 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
 
   return (
     <>
-      <HStack w="full" spacing={0} align="start" pb={sm ? 14 : 0}>
+      <HStack
+        w="full"
+        spacing={0}
+        align="start"
+        h="100vh"
+        pb={sm ? 14 : 0}
+        mt={-4}
+      >
         {(!sm ||
           (sm &&
             (mobilePageContent === "Info" ||
