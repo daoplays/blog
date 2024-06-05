@@ -1071,22 +1071,11 @@ export function IceCreamApp() {
 }
 
 export function IceCream() {
-  const network = "devnet";
-  const endpoint = clusterApiUrl(network);
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    [],
-  );
+
 
   return (
-    <ChakraProvider theme={theme}>
-      <ConnectionProvider endpoint={endpoint}>
-        <WalletProvider wallets={wallets} autoConnect>
-          <WalletModalProvider>
+
             <IceCreamApp />
-          </WalletModalProvider>
-        </WalletProvider>
-      </ConnectionProvider>
-    </ChakraProvider>
+
   );
 }

@@ -1,12 +1,12 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import {
   AMMData,
   AMMLaunch,
   PROGRAM,
   Screen,
 } from "../../components/bonkathon/state";
-import { PublicKey } from "@solana/web3.js";
-import { GPAccount, MintData } from "../../components/blog/apps/common";
+import { ConnectionConfig, PublicKey } from "@solana/web3.js";
+import { DEV_RPC_NODE, DEV_WSS_NODE, GPAccount, MintData } from "../../components/blog/apps/common";
 import {
   GetProgramData,
   GetTradeMintData,
@@ -166,4 +166,14 @@ const ViewAMMs = () => {
   );
 };
 
-export default ViewAMMs;
+function BonkAThon() {
+  
+
+  return (
+   
+          <ViewAMMs />
+   );
+}
+
+
+export default BonkAThon;

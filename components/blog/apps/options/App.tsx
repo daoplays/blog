@@ -9,7 +9,7 @@ import React, {
 import { SetStateAction } from "react";
 import { WalletProvider, useWallet } from "@solana/wallet-adapter-react";
 import {
-  WalletModalProvider,
+  
   useWalletModal,
 } from "@solana/wallet-adapter-react-ui";
 import Head from "next/head";
@@ -329,10 +329,8 @@ export function OptionsApp() {
   const wallets = useMemo(() => [], []);
 
   return (
-    <WalletProvider wallets={wallets} autoConnect>
-      <WalletModalProvider>
+
         <App />
-      </WalletModalProvider>
-    </WalletProvider>
+
   );
 }

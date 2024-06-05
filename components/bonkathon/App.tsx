@@ -306,19 +306,9 @@ function App() {
   );
 }
 export function ShortsApp() {
-  const wallets = useMemo(() => [], []);
-  const connectionConfig: ConnectionConfig = {
-    wsEndpoint: DEV_WSS_NODE,
-    commitment: "confirmed",
-  };
 
   return (
-    <ConnectionProvider endpoint={DEV_RPC_NODE} config={connectionConfig}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
+    
           <App />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
   );
 }

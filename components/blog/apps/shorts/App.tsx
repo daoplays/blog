@@ -8,12 +8,10 @@ import React, {
 } from "react";
 import { SetStateAction } from "react";
 import {
-  ConnectionProvider,
-  WalletProvider,
+
   useWallet,
 } from "@solana/wallet-adapter-react";
 import {
-  WalletModalProvider,
   useWalletModal,
 } from "@solana/wallet-adapter-react-ui";
 import TradePage from "./trade";
@@ -311,12 +309,8 @@ export function ShortsApp() {
   };
 
   return (
-    <ConnectionProvider endpoint={DEV_RPC_NODE} config={connectionConfig}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
+
           <App />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
+
   );
 }

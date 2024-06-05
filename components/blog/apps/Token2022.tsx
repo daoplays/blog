@@ -1366,20 +1366,11 @@ function Tokens2022App() {
 }
 
 export function Tokens2022() {
-  const network = "devnet";
-  const endpoint = clusterApiUrl(network);
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    [],
-  );
+
 
   return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
+
           <Tokens2022App />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
+
   );
 }

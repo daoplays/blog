@@ -225,19 +225,10 @@ export function AirDropApp() {
 }
 
 export function AirDrop() {
-  const network = "devnet";
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    [],
-  );
 
   return (
-    <ChakraProvider theme={theme}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
+
           <AirDropApp />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ChakraProvider>
+       
   );
 }

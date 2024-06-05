@@ -19,8 +19,18 @@ const bonkathonLinks = [
 
 import { usePathname } from "next/navigation";
 import NavigationBonk from "../components/bonkathon/Navigation";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
+import { DEV_RPC_NODE, DEV_WSS_NODE } from "../components/blog/apps/common";
+import { useMemo } from "react";
+import { ConnectionConfig } from "@solana/web3.js";
 function MyApp({ Component, pageProps }) {
   const pathname = usePathname();
+
+  const wallets = useMemo(() => [], []);
+
+  const connectionConfig: ConnectionConfig = { wsEndpoint: DEV_WSS_NODE, commitment: "confirmed" };
+
 
   console.log({ theme });
   return (
@@ -38,6 +48,9 @@ function MyApp({ Component, pageProps }) {
         theme="light"
       />
       <ChakraProvider theme={theme}>
+      <ConnectionProvider endpoint={DEV_RPC_NODE} config={connectionConfig}>
+                    <WalletProvider wallets={wallets} autoConnect>
+                        <WalletModalProvider>
         {bonkathonLinks.includes(pathname) ? (
           <NavigationBonk />
         ) : (
@@ -45,6 +58,9 @@ function MyApp({ Component, pageProps }) {
         )}
         <Component {...pageProps} />
         {!bonkathonLinks.includes(pathname) && <Footer />}
+        </WalletModalProvider>
+                    </WalletProvider>
+                </ConnectionProvider>
       </ChakraProvider>
     </NoSSR>
   );
