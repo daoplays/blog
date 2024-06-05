@@ -7,6 +7,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import "../styles/fonts.css";
 import "../styles/table.css";
+import "../styles/global.css";
+
 import NoSSR from "../utils/NoSSR";
 
 const bonkathonLinks = [

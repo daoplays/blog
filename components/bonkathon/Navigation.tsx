@@ -26,15 +26,16 @@ function NavigationBonk() {
         boxShadow: "0px 2px 13px 0px rgba(0, 0, 0, 0.50)",
       }}
     >
-      <Text
-        fontSize={md ? "medium" : "x-large"}
-        color={"#683309"}
-        className="font-face-kg"
-        style={{ cursor: "pointer", margin: "auto 0" }}
-        onClick={() => router.push("/bonkathon2024")}
-      >
-        LET&apos;S COOK
-      </Text>
+      <Link href="/bonkathon2024" style={{ textDecoration: "none" }}>
+        <Text
+          fontSize={md ? "medium" : "x-large"}
+          color={"#683309"}
+          className="font-face-kg"
+          style={{ cursor: "pointer", margin: "auto 0" }}
+        >
+          LET&apos;S COOK
+        </Text>
+      </Link>
 
       <HStack
         gap={2}

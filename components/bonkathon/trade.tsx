@@ -12,7 +12,7 @@ import {
   uInt32ToLEBytes,
 } from "../blog/apps/common";
 import { TimeSeriesData, AMMData, PROGRAM, AMMLaunch } from "./state";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { PublicKey, Connection } from "@solana/web3.js";
 import {
   getAssociatedTokenAddress,
@@ -95,6 +95,12 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
   const [leftPanel, setLeftPanel] = useState("Info");
 
   const [additionalPixels, setAdditionalPixels] = useState(0);
+
+  const [selectedTab, setSelectedTab] = useState("Options");
+
+  const handleClick = (tab: string) => {
+    setSelectedTab(tab);
+  };
 
   const [mobilePageContent, setMobilePageContent] = useState("Chart");
 
@@ -605,14 +611,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
 
   return (
     <>
-      <HStack
-        w="full"
-        spacing={0}
-        align="start"
-        h="100vh"
-        pb={sm ? 14 : 0}
-        mt={-4}
-      >
+      <HStack w="full" h="full" spacing={0} align="start" pb={sm ? 14 : 0}>
         {(!sm ||
           (sm &&
             (mobilePageContent === "Info" ||
@@ -621,8 +620,9 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
             py={5}
             align="start"
             w={sm ? "100%" : 320}
+            h="100%"
             style={{
-              minWidth: "350px",
+              minWidth: "360px",
               borderRight: "0.5px solid rgba(134, 142, 150, 0.5)",
             }}
             spacing={8}
@@ -646,20 +646,21 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
                   />
                   <WoodenButton
                     action={() => {
-                      setLeftPanel("Trade");
-                    }}
-                    label={"Trade"}
-                    size={15}
-                    width="100%"
-                  />
-                  <WoodenButton
-                    action={() => {
                       setLeftPanel("LP");
                     }}
                     label={"LP"}
                     size={15}
                     width="100%"
                   />
+                  <WoodenButton
+                    action={() => {
+                      setLeftPanel("Trade");
+                    }}
+                    label={"Options"}
+                    size={15}
+                    width="100%"
+                  />
+
                   <WoodenButton
                     action={() => {
                       setLeftPanel("Shorts");
@@ -750,6 +751,73 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
                 }}
               />
             </div>
+
+            <HStack
+              align="center"
+              w="100%"
+              px={4}
+              style={{
+                height: "55px",
+                borderTop: "1px solid rgba(134, 142, 150, 0.5)",
+              }}
+            >
+              <HStack spacing={3}>
+                {["Options", "Shorts"].map((name, i) => {
+                  const isActive = selectedTab === name;
+
+                  const baseStyle = {
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  };
+
+                  const activeStyle = {
+                    color: "white",
+                    borderBottom: isActive ? "2px solid white" : "",
+                    opacity: isActive ? 1 : 0.5,
+                  };
+
+                  return (
+                    <HStack
+                      key={i}
+                      style={{
+                        ...baseStyle,
+                        ...activeStyle,
+                      }}
+                      onClick={() => {
+                        handleClick(name);
+                      }}
+                      px={4}
+                      py={2}
+                      mt={-2}
+                      w={"fit-content"}
+                      justify="center"
+                    >
+                      <Text
+                        m={"0 auto"}
+                        fontSize="medium"
+                        fontWeight="semibold"
+                      >
+                        {name}
+                      </Text>
+                    </HStack>
+                  );
+                })}
+              </HStack>
+            </HStack>
+
+            {/* {selectedTab === "Options" && wallet.connected && (
+              <OptionsTable
+                is_2022={is_token_2022}
+                mint={token}
+                collection={collection}
+                optionsList={collection_assets}
+                mode={0}
+                update={checkCollection}
+              />
+            )} */}
+
+            {/* {selectedTab === "Shorts" && wallet.connected && <ShortsTable />} */}
           </VStack>
         )}
       </HStack>
@@ -1119,7 +1187,14 @@ const BuyAndSell = ({
 
   //console.log("quote: ", user_quote_balance);
 
-  let options = [];
+  let options = useMemo(
+    () => {
+      return []; // replace this with your actual logic to generate options
+    },
+    [
+      /* dependencies that affect options */
+    ]
+  );
   if (left_panel === "Trade") {
     options = ["Buy", "Sell"];
   }
@@ -1129,6 +1204,11 @@ const BuyAndSell = ({
   if (left_panel === "Shorts") {
     options = ["Enter", "Exit"];
   }
+
+  useEffect(() => {
+    setSelected(options[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [left_panel]);
 
   console.log("left panel", left_panel, options);
 
@@ -1152,7 +1232,7 @@ const BuyAndSell = ({
           };
 
           return (
-            <Box
+            <Button
               key={i}
               style={{
                 ...baseStyle,
@@ -1161,14 +1241,10 @@ const BuyAndSell = ({
               onClick={() => {
                 handleClick(name);
               }}
-              px={4}
-              py={2}
               w={"50%"}
             >
-              <Text m={"0 auto"} fontSize="large" fontWeight="semibold">
-                {name}
-              </Text>
-            </Box>
+              {name}
+            </Button>
           );
         })}
       </HStack>
@@ -2059,7 +2135,7 @@ const ChartComponent = (props) => {
       id="chartContainer"
       w="100%"
       style={{
-        height: `calc(60vh + ${additionalPixels}px)`,
+        height: `calc(62vh + ${additionalPixels}px)`,
         overflow: "auto",
         position: "relative",
         borderBottom: "1px solid rgba(134, 142, 150, 0.5)",

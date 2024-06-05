@@ -141,7 +141,18 @@ const ViewAMMs = () => {
         }}
         px={screen === Screen.trade ? 0 : lg ? 0 : 12}
       >
-        {screen === Screen.trade && <TradePage launch={current_launch} />}
+        {screen === Screen.trade && (
+          <div
+            style={{
+              background: "linear-gradient(180deg, #292929 10%, #0B0B0B 100%)",
+              height: "100vh",
+              width: "100%",
+              marginTop: "-12px",
+            }}
+          >
+            <TradePage launch={current_launch} />
+          </div>
+        )}
 
         {screen === Screen.table && (
           <AMMTable
