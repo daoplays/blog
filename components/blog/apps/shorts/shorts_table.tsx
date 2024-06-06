@@ -227,7 +227,7 @@ const LaunchCard = ({
   let time_delta_years = (current_time - start_time) / 60 / 60 / 24 / 365;
   let borrow_fee =
     Math.floor(
-      time_delta_years * quote_input * (amm.borrow_cost / 100 / 100) + 1
+      time_delta_years * quote_input * (amm.borrow_cost / 100 / 100) + 1,
     ) / Math.pow(10, quote_mint.decimals);
   let profit =
     (quote_input - quote_post_fees) / Math.pow(10, quote_mint.decimals) -
@@ -266,7 +266,10 @@ const LaunchCard = ({
         </td>
         <td style={{ minWidth: "170px" }}>
           <Text color="white" fontSize={"large"} m={0}>
-            {formatPrice(quote_post_fees/Math.pow(10, quote_mint.decimals)/base_input, 5)}
+            {formatPrice(
+              quote_post_fees / Math.pow(10, quote_mint.decimals) / base_input,
+              5,
+            )}
           </Text>
         </td>
         <td style={{ minWidth: "170px" }}>
