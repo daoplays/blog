@@ -9,7 +9,7 @@ import React, {
 import { SetStateAction } from "react";
 import { WalletProvider, useWallet } from "@solana/wallet-adapter-react";
 import {
-  
+  WalletModalProvider,
   useWalletModal,
 } from "@solana/wallet-adapter-react-ui";
 import Head from "next/head";
@@ -87,7 +87,7 @@ function App() {
 
     let collection_account = PublicKey.findProgramAddressSync(
       [token.address.toBytes(), Buffer.from("Collection")],
-      PROGRAM,
+      PROGRAM
     )[0];
 
     let collection_umiKey = publicKey(collection_account.toString());
@@ -96,7 +96,7 @@ function App() {
       .whereField("key", Key.AssetV1)
       .whereField(
         "updateAuthority",
-        updateAuthority("Collection", [collection_umiKey]),
+        updateAuthority("Collection", [collection_umiKey])
       )
       .getDeserialized();
 
@@ -111,18 +111,18 @@ function App() {
       token.address, // mint
       wallet.publicKey, // owner
       true, // allow owner off curve
-      is_token_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID,
+      is_token_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID
     );
 
     let user_balance = await connection.getBalance(
       wallet.publicKey,
-      "confirmed",
+      "confirmed"
     );
     let token_balance = 0;
     try {
       let response = await connection.getTokenAccountBalance(
         user_token_account,
-        "confirmed",
+        "confirmed"
       );
       token_balance =
         parseFloat(response.value.amount) /
@@ -329,8 +329,10 @@ export function OptionsApp() {
   const wallets = useMemo(() => [], []);
 
   return (
-
+    <WalletProvider wallets={wallets} autoConnect>
+      <WalletModalProvider>
         <App />
-
+      </WalletModalProvider>
+    </WalletProvider>
   );
 }

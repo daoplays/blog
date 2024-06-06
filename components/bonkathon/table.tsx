@@ -156,6 +156,7 @@ const LaunchCard = ({
       }}
       onClick={() => {
         setCurrentLaunch(amm_launch);
+        console.log("mint data: ", amm_launch);
         setSelected("Trade");
       }}
     >
