@@ -104,6 +104,7 @@ const ShortsTable = ({
     { text: "NUM TOKENS", field: "number tokens" },
     { text: "SHORT PRICE", field: "short price" },
     { text: "LIQUIDATION PRICE", field: "liquidation price" },
+    { text: "EXECUTION PRICE", field: "liquidation price" },
     { text: "BORROW FEE", field: "borrow fee" },
     { text: "PNL", field: "pnl" },
   ];
@@ -127,14 +128,14 @@ const ShortsTable = ({
               {tableHeaders.map((i) => (
                 <th
                   key={i.text}
-                  style={{ color: "white", minWidth: sm ? "90px" : "120px" }}
+                  style={{ color: "white", minWidth: sm ? "90px" : "110px" }}
                 >
-                  <HStack gap={sm ? 1 : 15} justify="center">
+                  <HStack gap={sm ? 1 : 10} justify="center">
                     <Text
                       fontSize={sm ? "medium" : "large"}
                       m={0}
-                      pl={sm ? 1 : 10}
-                      pr={sm ? 1 : 10}
+                      pl={sm ? 1 : 5}
+                      pr={sm ? 1 : 5}
                       onClick={
                         i.field !== null
                           ? () => handleHeaderClick(i.field)
@@ -261,6 +262,11 @@ const LaunchCard = ({
         <td style={{ minWidth: "150px" }}>
           <Text color="white" fontSize={"large"} m={0}>
             {formatPrice(liquidation_price, quote_mint.decimals)}
+          </Text>
+        </td>
+        <td style={{ minWidth: "170px" }}>
+          <Text color="white" fontSize={"large"} m={0}>
+            {formatPrice(quote_post_fees/Math.pow(10, quote_mint.decimals)/base_input, 5)}
           </Text>
         </td>
         <td style={{ minWidth: "170px" }}>

@@ -37,7 +37,10 @@ export const enum AMMInstruction {
   create_collection = 5,
   enter_short = 6,
   exit_short = 7,
-  liquidate = 8,
+  liquidate_short = 8,
+  enter_long = 6,
+  exit_long = 7,
+  liquidate_long = 8,
 }
 
 export interface AMMLaunch {
@@ -59,9 +62,11 @@ export class AMMData {
     readonly last_price: number[],
     readonly lp_amount: bignum,
     readonly borrow_cost: number,
+    readonly leverage_fraction: number,
     readonly amm_base_amount: bignum,
     readonly amm_quote_amount: bignum,
     readonly short_base_amount: bignum,
+    readonly long_quote_amount: bignum,
   ) {}
 
   static readonly struct = new FixableBeetStruct<AMMData>(
@@ -77,9 +82,11 @@ export class AMMData {
       ["last_price", uniformFixedSizeArray(u8, 4)],
       ["lp_amount", u64],
       ["borrow_cost", u16],
+      ["leverage_fraction", u16],
       ["amm_base_amount", u64],
       ["amm_quote_amount", u64],
       ["short_base_amount", u64],
+      ["long_quote_amount", u64],
     ],
     (args) =>
       new AMMData(
@@ -94,9 +101,11 @@ export class AMMData {
         args.last_price!,
         args.lp_amount!,
         args.borrow_cost!,
+        args.leverage_fraction!,
         args.amm_base_amount!,
         args.amm_quote_amount!,
         args.short_base_amount!,
+        args.long_quote_amount!,
       ),
     "AMMData",
   );

@@ -136,7 +136,7 @@ const useLiquidateShort = () => {
     )[0];
 
     const instruction_data = serialise_basic_instruction(
-      AMMInstruction.liquidate,
+      AMMInstruction.liquidate_short,
     );
 
     var account_vector = [
