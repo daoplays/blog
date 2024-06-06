@@ -18,7 +18,7 @@ import {
 } from "../../components/blog/apps/shorts/App";
 import useResponsive from "../../hooks/useResponsive";
 import AMMTable from "../../components/bonkathon/table";
-import { HStack } from "@chakra-ui/react";
+import { HStack, VStack } from "@chakra-ui/react";
 import TradePage from "../../components/bonkathon/trade";
 
 const ViewAMMs = () => {
@@ -103,7 +103,7 @@ const ViewAMMs = () => {
           amm_seed_keys[1].toBytes(),
           Buffer.from("AMM"),
         ],
-        PROGRAM,
+        PROGRAM
       )[0];
 
       amm_launches.set(amm_data_account.toString(), launch);
@@ -135,7 +135,7 @@ const ViewAMMs = () => {
     <main
       style={{
         background: "linear-gradient(180deg, #292929 10%, #0B0B0B 100%)",
-        height: "100vh",
+        height: "100%",
       }}
     >
       <HStack
@@ -150,7 +150,7 @@ const ViewAMMs = () => {
           <div
             style={{
               background: "linear-gradient(180deg, #292929 10%, #0B0B0B 100%)",
-              height: "100vh",
+              height: "100%",
               width: "100%",
               marginTop: "-12px",
             }}
@@ -160,11 +160,13 @@ const ViewAMMs = () => {
         )}
 
         {screen === Screen.table && (
-          <AMMTable
-            ammList={amm_launches}
-            setCurrentLaunch={setCurrentLaunch}
-            setSelected={setSelected}
-          />
+          <VStack h="100vh" w="full">
+            <AMMTable
+              ammList={amm_launches}
+              setCurrentLaunch={setCurrentLaunch}
+              setSelected={setSelected}
+            />
+          </VStack>
         )}
       </HStack>
     </main>

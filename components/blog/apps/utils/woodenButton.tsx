@@ -22,7 +22,7 @@ const WoodenButton = ({
       bg="url(/images/Wood\ Panel.png)"
       backgroundSize="cover"
       borderRadius={10}
-      px={2}
+      px={4}
       onClick={action}
       style={{
         cursor: "pointer",
