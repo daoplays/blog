@@ -169,7 +169,7 @@ const OptionsTable = ({
 
   return (
     <>
-      <TableContainer>
+      <TableContainer w="100%">
         <table width="100%" className="custom-centered-table font-face-rk">
           <thead>
             <tr
@@ -323,7 +323,7 @@ const LaunchCard = ({
                 PurchaseOption(
                   new PublicKey(option.publicKey.toString()),
                   collection,
-                  attributes.seller,
+                  attributes.seller
                 )
               }
               style={{ textDecoration: "none" }}
@@ -341,7 +341,7 @@ const LaunchCard = ({
                     new PublicKey(option.publicKey.toString()),
                     collection,
                     attributes.creator,
-                    attributes.token_mint,
+                    attributes.token_mint
                   )
                 }
                 style={{ textDecoration: "none" }}
@@ -363,7 +363,7 @@ const LaunchCard = ({
                   collection,
                   new PublicKey(option.owner.toString()),
                   attributes.creator,
-                  attributes.token_mint,
+                  attributes.token_mint
                 )
               }
               style={{ textDecoration: "none" }}
@@ -386,7 +386,7 @@ const LaunchCard = ({
                   collection,
                   new PublicKey(option.owner.toString()),
                   attributes.creator,
-                  attributes.token_mint,
+                  attributes.token_mint
                 )
               }
               style={{ textDecoration: "none" }}
@@ -448,7 +448,7 @@ const LaunchCard = ({
                     RelistOption(
                       new PublicKey(option.publicKey.toString()),
                       collection,
-                      price,
+                      price
                     );
                   }}
                   className={`${styles.nextBtn} font-face-kg`}
