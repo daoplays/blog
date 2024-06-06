@@ -114,7 +114,7 @@ const ShortsTable = ({
 
   return (
     <>
-      <TableContainer>
+      <TableContainer w="100%">
         <table width="100%" className="custom-centered-table font-face-rk">
           <thead>
             <tr
@@ -226,7 +226,7 @@ const LaunchCard = ({
   let time_delta_years = (current_time - start_time) / 60 / 60 / 24 / 365;
   let borrow_fee =
     Math.floor(
-      time_delta_years * quote_input * (amm.borrow_cost / 100 / 100) + 1,
+      time_delta_years * quote_input * (amm.borrow_cost / 100 / 100) + 1
     ) / Math.pow(10, quote_mint.decimals);
   let profit =
     (quote_input - quote_post_fees) / Math.pow(10, quote_mint.decimals) -
