@@ -2045,7 +2045,7 @@ let quote_amount = quote_input_pre_fees / ( 1 - amm.fee/100/100)
 
 console.log(quote_amount, base_amount)
 
-let liquidation_price = (quote_input_pre_fees + deposit_amount) / long_amount;
+let liquidation_price = Math.max((quote_input_pre_fees - deposit_amount) / long_amount, 0);
 
 let liquidation_price_string =
   formatPrice(liquidation_price, 5)
@@ -2521,7 +2521,7 @@ const BuyAndSell = ({
               fontSize={"medium"}
               opacity={0.5}
             >
-              Available Balance:
+              User Balance:
             </Text>
             <Text
               m={0}
@@ -2529,7 +2529,7 @@ const BuyAndSell = ({
               fontFamily="ReemKufiRegular"
               fontSize={"medium"}
             >
-              {selected === "Buy"
+              {selected === "Buy" ||  selected === "Short" || selected === "Long"
                 ? (
                     user_quote_balance / Math.pow(10, quote_data.mint.decimals)
                   ).toLocaleString("en-US", {
@@ -2546,13 +2546,46 @@ const BuyAndSell = ({
                     ).toLocaleString("en-US", {
                       minimumFractionDigits: 2,
                     })}{" "}
-              {selected === "Buy"
+              {selected === "Buy" ||  selected === "Short" || selected === "Long"
                 ? quote_data.symbol
                 : selected === "LP-"
                   ? "LP"
                   : base_data.symbol}
             </Text>
           </HStack>
+
+          {(selected === "Long" || selected === "Short") &&
+          <>
+          <HStack justify="space-between" w="100%" mt={2}>
+            <Text
+              m={0}
+              color={"white"}
+              fontFamily="ReemKufiRegular"
+              fontSize={"medium"}
+              opacity={0.5}
+            >
+              AMM Balance:
+            </Text>
+            <Text
+              m={0}
+              color={"white"}
+              fontFamily="ReemKufiRegular"
+              fontSize={"medium"}
+            >
+              {selected === "Short" &&
+              bignum_to_num(amm.short_base_amount)/Math.pow(10, base_data.mint.decimals)
+              }
+              {selected === "Long" &&
+              bignum_to_num(amm.long_quote_amount)/Math.pow(10, quote_data.mint.decimals) 
+              }
+              {" "}
+              {selected === "Long" && quote_data.symbol}
+              {selected === "Short" && base_data.symbol}
+
+            </Text>
+          </HStack>
+          </>
+          }
 
           <HStack justify="space-between" w="100%" mt={2}>
             <Text
@@ -2573,7 +2606,8 @@ const BuyAndSell = ({
               {amm.fee}
             </Text>
           </HStack>
-
+          {selected !== "Long" && selected !== "Short" && 
+          <>
           <HStack justify="space-between" w="100%" mt={2}>
             <Text
               m={0}
@@ -2613,7 +2647,32 @@ const BuyAndSell = ({
               {max_transfer_fee}
             </Text>
           </HStack>
+          </>
+          }
 
+          {(selected === "Long" || selected === "Short") &&
+          <>
+          <HStack justify="space-between" w="100%" mt={2}>
+            <Text
+              m={0}
+              color={"white"}
+              fontFamily="ReemKufiRegular"
+              fontSize={"medium"}
+              opacity={0.5}
+            >
+              Borrow Fee (bps):
+            </Text>
+            <Text
+              m={0}
+              color={"white"}
+              fontFamily="ReemKufiRegular"
+              fontSize={"medium"}
+            >
+              {amm.borrow_cost}
+            </Text>
+          </HStack>
+          </>
+          }
           {selected === "Buy" && (
             <BuyPanel
               selected={selected}
