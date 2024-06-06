@@ -11,7 +11,7 @@ import {
   setMintData,
   uInt32ToLEBytes,
 } from "../blog/apps/common";
-import { TimeSeriesData, AMMData, PROGRAM, AMMLaunch } from "./state";
+import { TimeSeriesData, AMMData, PROGRAM, AMMLaunch } from "../blog/apps/shorts/state";
 import {
   useCallback,
   useEffect,

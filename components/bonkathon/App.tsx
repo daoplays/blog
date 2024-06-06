@@ -19,7 +19,8 @@ import {
 import TradePage from "./trade";
 import { Flex, HStack, VStack, Text, Center, Box } from "@chakra-ui/react";
 import SideNav from "./sideNav";
-import { AMMData, AMMLaunch, PROGRAM, Screen } from "./state";
+import { AMMData, AMMLaunch, PROGRAM, Screen } from "../blog/apps/shorts/state";
+
 import LaunchAMM from "./launch";
 import {
   DEV_RPC_NODE,

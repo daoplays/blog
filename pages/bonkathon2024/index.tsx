@@ -4,7 +4,7 @@ import {
   AMMLaunch,
   PROGRAM,
   Screen,
-} from "../../components/bonkathon/state";
+} from "../../components/blog/apps/shorts/state";
 import { ConnectionConfig, PublicKey } from "@solana/web3.js";
 import {
   DEV_RPC_NODE,
