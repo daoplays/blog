@@ -72,14 +72,14 @@ export const OptionsPanel = ({
   const [option_price, setOptionPrice] = useState<number>(0);
 
   const [localExpiryDate, setLocalExpiryDate] = useState<Date>(
-    new Date(new Date().setHours(0, 0, 0, 0))
+    new Date(new Date().setHours(0, 0, 0, 0)),
   );
   const [expiryDateAndTime, setExpiryDateAndTime] = useState("-- --");
 
   const { CreateOption, isLoading: isOptionLoading } = useCreateOption(
     symbol,
     uri,
-    mint_data.address.toString()
+    mint_data.address.toString(),
   );
 
   const local_date = useMemo(() => new Date(), []);
@@ -265,7 +265,7 @@ export const OptionsPanel = ({
               setTokenAmount(
                 !isNaN(parseFloat(e.target.value)) || e.target.value === ""
                   ? parseFloat(e.target.value)
-                  : token_amount
+                  : token_amount,
               );
             }}
             type="number"
@@ -304,7 +304,7 @@ export const OptionsPanel = ({
               setStrikePrice(
                 !isNaN(parseFloat(e.target.value)) || e.target.value === ""
                   ? parseFloat(e.target.value)
-                  : strike_price
+                  : strike_price,
               );
             }}
             type="number"
@@ -341,7 +341,7 @@ export const OptionsPanel = ({
               setOptionPrice(
                 !isNaN(parseFloat(e.target.value)) || e.target.value === ""
                   ? parseFloat(e.target.value)
-                  : option_price
+                  : option_price,
               );
             }}
             type="number"
@@ -409,7 +409,7 @@ export const OptionsPanel = ({
               m="0"
               color="white"
               className="font-face-kg"
-              fontSize={sm ? "small" : "large"}
+              fontSize={sm ? "small" : "small"}
             >
               {expiryDateAndTime}
             </Text>
@@ -434,7 +434,7 @@ export const OptionsPanel = ({
             token_amount,
             strike_price,
             option_price,
-            localExpiryDate.getTime()
+            localExpiryDate.getTime(),
           );
         }}
       >

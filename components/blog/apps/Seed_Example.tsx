@@ -24,10 +24,5 @@ function RandomApp() {
 }
 
 export function SeedExample() {
-
-  return (
-
-          <RandomApp />
-
-  );
+  return <RandomApp />;
 }

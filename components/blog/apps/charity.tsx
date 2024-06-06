@@ -1233,11 +1233,5 @@ export function AirDropApp() {
 }
 
 export function CharityDapp() {
-  
-
-  return (
-
-          <AirDropApp />
-
-  );
+  return <AirDropApp />;
 }

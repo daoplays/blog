@@ -1366,11 +1366,5 @@ function Tokens2022App() {
 }
 
 export function Tokens2022() {
-
-
-  return (
-
-          <Tokens2022App />
-
-  );
+  return <Tokens2022App />;
 }

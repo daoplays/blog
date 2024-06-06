@@ -1071,11 +1071,5 @@ export function IceCreamApp() {
 }
 
 export function IceCream() {
-
-
-  return (
-
-            <IceCreamApp />
-
-  );
+  return <IceCreamApp />;
 }

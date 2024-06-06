@@ -470,7 +470,7 @@ const LaunchAMM = () => {
                   parseFloat(quote_amount),
                   parseInt(swap_fee),
                   parseInt(short_fraction),
-                  parseInt(borrow_cost)
+                  parseInt(borrow_cost),
                 );
               }}
             >

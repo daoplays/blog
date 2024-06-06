@@ -19,7 +19,7 @@ import { publicKey } from "@metaplex-foundation/beet-solana";
 import { MintData } from "../blog/apps/common";
 
 export const PROGRAM = new PublicKey(
-  "DQ8rUMXqfvD6HYVt15ci9xLETZZuz49z5Q1i8tXNWSdq"
+  "DQ8rUMXqfvD6HYVt15ci9xLETZZuz49z5Q1i8tXNWSdq",
 );
 
 export const enum Screen {
@@ -61,7 +61,7 @@ export class AMMData {
     readonly borrow_cost: number,
     readonly amm_base_amount: bignum,
     readonly amm_quote_amount: bignum,
-    readonly short_base_amount: bignum
+    readonly short_base_amount: bignum,
   ) {}
 
   static readonly struct = new FixableBeetStruct<AMMData>(
@@ -96,9 +96,9 @@ export class AMMData {
         args.borrow_cost!,
         args.amm_base_amount!,
         args.amm_quote_amount!,
-        args.short_base_amount!
+        args.short_base_amount!,
       ),
-    "AMMData"
+    "AMMData",
   );
 }
 
@@ -109,7 +109,7 @@ export class OHLCV {
     readonly high: number[],
     readonly low: number[],
     readonly close: number[],
-    readonly volume: number[]
+    readonly volume: number[],
   ) {}
 
   static readonly struct = new FixableBeetStruct<OHLCV>(
@@ -128,16 +128,16 @@ export class OHLCV {
         args.high!,
         args.low!,
         args.close!,
-        args.volume!
+        args.volume!,
       ),
-    "OHLCV"
+    "OHLCV",
   );
 }
 
 export class TimeSeriesData {
   constructor(
     readonly account_type: number,
-    readonly data: OHLCV[]
+    readonly data: OHLCV[],
   ) {}
 
   static readonly struct = new FixableBeetStruct<TimeSeriesData>(
@@ -146,6 +146,6 @@ export class TimeSeriesData {
       ["data", array(OHLCV.struct)],
     ],
     (args) => new TimeSeriesData(args.account_type!, args.data!),
-    "TimeSeriesData"
+    "TimeSeriesData",
   );
 }

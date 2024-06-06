@@ -64,12 +64,17 @@ function PostContent() {
         simply by burning them.
         <br />
         <br />
-        You'll find the app below, just enter a token mint address that
-        exists on devnet (for example,
-        BJLX7W73vmUu83uYNW6YLxXwKG5Li4F76pFegHDFGMfb, which you can buy from
-        Lets Cook on devnet <a style={{ textDecoration: "underline" }} href="https://devnet.letscook.wtf/trade/SPL2">here</a>) and
-        you'll be able to create, trade and execute options with that token as
-        an underlying asset.
+        You'll find the app below, just enter a token mint address that exists
+        on devnet (for example, BJLX7W73vmUu83uYNW6YLxXwKG5Li4F76pFegHDFGMfb,
+        which you can buy from Lets Cook on devnet{" "}
+        <a
+          style={{ textDecoration: "underline" }}
+          href="https://devnet.letscook.wtf/trade/SPL2"
+        >
+          here
+        </a>
+        ) and you'll be able to create, trade and execute options with that
+        token as an underlying asset.
         <br />
         <br />
         <OptionsApp />
@@ -82,9 +87,14 @@ function PostContent() {
         to group all the options for that token, so that front ends can simply
         retrieve all the assets in that collection to display all the options
         that currently exist (this is exactly what the app does above). As an
-        example you can check out  {" "}
-        <a style={{ textDecoration: "underline" }} href="https://core.metaplex.com/explorer/collection/yjUqZ9zsswj354SDDmEcUTqHRcjMjt5jM7h85fjYDbX?env=devnet">this one</a>.
-         The core explorer shows all the members of the collection, and the
+        example you can check out{" "}
+        <a
+          style={{ textDecoration: "underline" }}
+          href="https://core.metaplex.com/explorer/collection/yjUqZ9zsswj354SDDmEcUTqHRcjMjt5jM7h85fjYDbX?env=devnet"
+        >
+          this one
+        </a>
+        . The core explorer shows all the members of the collection, and the
         attributes metadata for the collection tells you the token mint address
         that will be the underlying for the collection.
         <h2 id="collections" className="mt-5" style={{ fontSize: "22px" }}>
@@ -93,15 +103,15 @@ function PostContent() {
         <br />
         Ultimately core assets are just accounts on chain that can contain
         arbitrary data, where the standard makes it easy to interact with those
-        accounts, transferring ownership between users, or updating the data. When you create an option is uses the core standard to store all
-        of the details for the option in the attributes plugin for the asset.
-        This means that the program can access and update that metadata on
-        chain. Below you'll see the metadata we store for each option. This
-        includes things like the side (Call or Put), the strike price, the
-        creator and so on. When you relist an option that you bought previously
-        the program will just update the fields for the option price and the
-        seller, and this will be displayed in any explorer that supports core
-        assets.
+        accounts, transferring ownership between users, or updating the data.
+        When you create an option is uses the core standard to store all of the
+        details for the option in the attributes plugin for the asset. This
+        means that the program can access and update that metadata on chain.
+        Below you'll see the metadata we store for each option. This includes
+        things like the side (Call or Put), the strike price, the creator and so
+        on. When you relist an option that you bought previously the program
+        will just update the fields for the option price and the seller, and
+        this will be displayed in any explorer that supports core assets.
         <br />
         <br />
         <Image src={attributes.src} alt="Attributes" />
@@ -116,8 +126,8 @@ function PostContent() {
           Final Comments
         </h2>
         Using the Core standard as a way to package up data that you want to be
-        easily viewed in explorers that will work out of the box with wallets is an
-        exciting prospect. Although not all wallets and explorers support the
+        easily viewed in explorers that will work out of the box with wallets is
+        an exciting prospect. Although not all wallets and explorers support the
         standard fully just yet, i'm hopeful it will only be a matter of time.
         When user created plugins are available that can act in a similar way to
         the token-2022 transfer hook, but on any life cycle event, that will

@@ -225,10 +225,5 @@ export function AirDropApp() {
 }
 
 export function AirDrop() {
-
-  return (
-
-          <AirDropApp />
-       
-  );
+  return <AirDropApp />;
 }

@@ -66,6 +66,34 @@ import { publicKey } from "@metaplex-foundation/umi";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
+export const checkOptionsCollection = async (
+  token: Mint,
+  setCollectionAssets: Dispatch<SetStateAction<AssetV1[]>>,
+  setCollection: Dispatch<SetStateAction<PublicKey>>,
+) => {
+  if (token === null) return;
+
+  const umi = createUmi(DEV_RPC_NODE, "confirmed");
+
+  let collection_account = PublicKey.findProgramAddressSync(
+    [token.address.toBytes(), Buffer.from("Collection")],
+    PROGRAM,
+  )[0];
+
+  let collection_umiKey = publicKey(collection_account.toString());
+
+  const assets = await getAssetV1GpaBuilder(umi)
+    .whereField("key", Key.AssetV1)
+    .whereField(
+      "updateAuthority",
+      updateAuthority("Collection", [collection_umiKey]),
+    )
+    .getDeserialized();
+
+  setCollectionAssets(assets);
+  setCollection(collection_account);
+};
+
 function App() {
   const wallet = useWallet();
   const [token, setToken] = useState<Mint | null>(null);
@@ -83,25 +111,7 @@ function App() {
   const checkCollection = useCallback(async () => {
     if (token === null) return;
 
-    const umi = createUmi(DEV_RPC_NODE, "confirmed");
-
-    let collection_account = PublicKey.findProgramAddressSync(
-      [token.address.toBytes(), Buffer.from("Collection")],
-      PROGRAM
-    )[0];
-
-    let collection_umiKey = publicKey(collection_account.toString());
-
-    const assets = await getAssetV1GpaBuilder(umi)
-      .whereField("key", Key.AssetV1)
-      .whereField(
-        "updateAuthority",
-        updateAuthority("Collection", [collection_umiKey])
-      )
-      .getDeserialized();
-
-    setCollectionAssets(assets);
-    setCollection(collection_account);
+    await checkOptionsCollection(token, setCollectionAssets, setCollection);
 
     const connection = new Connection(DEV_RPC_NODE, {
       wsEndpoint: DEV_WSS_NODE,
@@ -111,18 +121,18 @@ function App() {
       token.address, // mint
       wallet.publicKey, // owner
       true, // allow owner off curve
-      is_token_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID
+      is_token_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID,
     );
 
     let user_balance = await connection.getBalance(
       wallet.publicKey,
-      "confirmed"
+      "confirmed",
     );
     let token_balance = 0;
     try {
       let response = await connection.getTokenAccountBalance(
         user_token_account,
-        "confirmed"
+        "confirmed",
       );
       token_balance =
         parseFloat(response.value.amount) /
@@ -294,7 +304,6 @@ function App() {
               collection={collection}
               optionsList={collection_assets}
               mode={0}
-              update={checkCollection}
             />
           )}
 
@@ -305,7 +314,6 @@ function App() {
               collection={collection}
               optionsList={collection_assets}
               mode={1}
-              update={checkCollection}
             />
           )}
 
@@ -316,7 +324,6 @@ function App() {
               collection={collection}
               optionsList={collection_assets}
               mode={2}
-              update={checkCollection}
             />
           )}
         </VStack>
@@ -328,11 +335,5 @@ function App() {
 export function OptionsApp() {
   const wallets = useMemo(() => [], []);
 
-  return (
-    <WalletProvider wallets={wallets} autoConnect>
-      <WalletModalProvider>
-        <App />
-      </WalletModalProvider>
-    </WalletProvider>
-  );
+  return <App />;
 }

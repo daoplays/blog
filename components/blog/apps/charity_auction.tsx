@@ -1396,10 +1396,5 @@ export function AirDropApp() {
 }
 
 export function CharityAuctionDapp() {
-
-  return (
-  
-          <AirDropApp />
-       
-  );
+  return <AirDropApp />;
 }

@@ -35,16 +35,12 @@ import {
   unpackMint,
 } from "@solana/spl-token";
 import { FixableBeetStruct, bignum, u64, u8 } from "@metaplex-foundation/beet";
-import useCreateCollection from "./useCreateCollection";
 import { AssetV1 } from "@metaplex-foundation/mpl-core";
-
 
 const useExitShort = () => {
   const wallet = useWallet();
 
   const [isLoading, setIsLoading] = useState(false);
-  const { GetCreateCollectionInstruction} =
-    useCreateCollection();
 
   const signature_ws_id = useRef<number | null>(null);
 
@@ -64,7 +60,7 @@ const useExitShort = () => {
       return;
     }
 
-    toast.success("Short order placed!", {
+    toast.success("Exited Short Position!", {
       type: "success",
       isLoading: false,
       autoClose: 3000,
@@ -84,10 +80,7 @@ const useExitShort = () => {
     });
   }, []);
 
-  const ExitShort = async (
-    amm_data: AMMData,
-    asset : AssetV1
-  ) => {
+  const ExitShort = async (amm_data: AMMData, asset: AssetV1) => {
     const connection = new Connection(DEV_RPC_NODE, {
       wsEndpoint: DEV_WSS_NODE,
     });
@@ -152,8 +145,7 @@ const useExitShort = () => {
       PROGRAM,
     )[0];
 
-    let asset_address = new PublicKey(asset.publicKey.toString())
-
+    let asset_address = new PublicKey(asset.publicKey.toString());
 
     let collection_account = PublicKey.findProgramAddressSync(
       [amm_data_account.toBytes(), Buffer.from("Collection")],
@@ -166,7 +158,7 @@ const useExitShort = () => {
     )[0];
 
     const instruction_data = serialise_basic_instruction(
-      AMMInstruction.exit_short
+      AMMInstruction.exit_short,
     );
 
     var account_vector = [
@@ -216,7 +208,6 @@ const useExitShort = () => {
     transaction.add(instruction);
 
     console.log("sending transaction");
-
 
     try {
       let signed_transaction = await wallet.signTransaction(transaction);

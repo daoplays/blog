@@ -7,13 +7,8 @@ import React, {
   Dispatch,
 } from "react";
 import { SetStateAction } from "react";
-import {
-
-  useWallet,
-} from "@solana/wallet-adapter-react";
-import {
-  useWalletModal,
-} from "@solana/wallet-adapter-react-ui";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import TradePage from "./trade";
 import { Flex, HStack, VStack, Text, Center, Box } from "@chakra-ui/react";
 import SideNav from "./sideNav";
@@ -137,7 +132,7 @@ function App() {
           amm_seed_keys[1].toBytes(),
           Buffer.from("AMM"),
         ],
-        PROGRAM
+        PROGRAM,
       )[0];
 
       amm_launches.set(amm_data_account.toString(), launch);
@@ -308,9 +303,5 @@ export function ShortsApp() {
     commitment: "confirmed",
   };
 
-  return (
-
-          <App />
-
-  );
+  return <App />;
 }

@@ -33,7 +33,7 @@ function NavigationBonk() {
           className="font-face-kg"
           style={{ cursor: "pointer", margin: "auto 0" }}
         >
-          LET&apos;S COOK
+          Bonkathon 2024
         </Text>
       </Link>
 

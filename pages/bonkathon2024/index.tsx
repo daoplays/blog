@@ -6,7 +6,12 @@ import {
   Screen,
 } from "../../components/bonkathon/state";
 import { ConnectionConfig, PublicKey } from "@solana/web3.js";
-import { DEV_RPC_NODE, DEV_WSS_NODE, GPAccount, MintData } from "../../components/blog/apps/common";
+import {
+  DEV_RPC_NODE,
+  DEV_WSS_NODE,
+  GPAccount,
+  MintData,
+} from "../../components/blog/apps/common";
 import {
   GetProgramData,
   GetTradeMintData,
@@ -98,7 +103,7 @@ const ViewAMMs = () => {
           amm_seed_keys[1].toBytes(),
           Buffer.from("AMM"),
         ],
-        PROGRAM
+        PROGRAM,
       )[0];
 
       amm_launches.set(amm_data_account.toString(), launch);
@@ -167,13 +172,7 @@ const ViewAMMs = () => {
 };
 
 function BonkAThon() {
-  
-
-  return (
-   
-          <ViewAMMs />
-   );
+  return <ViewAMMs />;
 }
-
 
 export default BonkAThon;

@@ -141,7 +141,7 @@ function App() {
           amm_seed_keys[1].toBytes(),
           Buffer.from("AMM"),
         ],
-        PROGRAM
+        PROGRAM,
       )[0];
 
       amm_launches.set(amm_data_account.toString(), launch);
@@ -306,9 +306,5 @@ function App() {
   );
 }
 export function ShortsApp() {
-
-  return (
-    
-          <App />
-  );
+  return <App />;
 }

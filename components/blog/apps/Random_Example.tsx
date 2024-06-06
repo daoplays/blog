@@ -24,10 +24,5 @@ function RandomApp() {
 }
 
 export function RandomExample() {
-  
-  return (
-
-          <RandomApp />
-
-  );
+  return <RandomApp />;
 }
