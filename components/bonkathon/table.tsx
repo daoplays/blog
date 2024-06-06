@@ -17,11 +17,7 @@ import {
 } from "@chakra-ui/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { MintData, bignum_to_num } from "../blog/apps/common";
-import { AMMData, AMMLaunch, Screen } from "./state";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { TfiReload } from "react-icons/tfi";
-import { Mint } from "@solana/spl-token";
+import { AMMLaunch } from "../blog/apps/shorts/state";
 import useResponsive from "../../hooks/useResponsive";
 import ShowExtensions from "../blog/apps/utils/extensions";
 interface Header {

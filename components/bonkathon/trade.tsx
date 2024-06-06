@@ -220,7 +220,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     if (launch === null) return;
 
     checkShortsCollection(launch, setShortAssets, setShortCollection);
-  }, [launch, checkShortsCollection]);
+  }, [launch]);
 
   const check_price_update = useCallback(async (result: any) => {
     //console.log(result);
