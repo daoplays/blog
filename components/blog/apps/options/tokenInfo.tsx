@@ -127,7 +127,7 @@ const HybridInfo = ({
         connection,
         token_key,
         "confirmed",
-        TOKEN_2022_PROGRAM_ID,
+        TOKEN_2022_PROGRAM_ID
       );
       console.log(metadata);
       uri = metadata.uri;
@@ -143,7 +143,7 @@ const HybridInfo = ({
           METAPLEX_META.toBuffer(),
           token_key.toBuffer(),
         ],
-        METAPLEX_META,
+        METAPLEX_META
       )[0];
       let raw_meta_data = await connection.getAccountInfo(token_meta_key);
 
