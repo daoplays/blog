@@ -703,9 +703,9 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
 
                     <WoodenButton
                       action={() => {
-                        setLeftPanel("Shorts");
+                        setLeftPanel("Borrow");
                       }}
-                      label={"Shorts"}
+                      label={"Borrow"}
                       size={15}
                       width="100%"
                     />
@@ -735,7 +735,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
 
             {(leftPanel === "Trade" ||
               leftPanel === "LP" ||
-              leftPanel === "Shorts" ||
+              leftPanel === "Borrow" ||
               leftPanel === "Options") && (
               <BuyAndSell
                 default_selected={leftPanel === "Trade" ? "Buy" : "LP+"}
@@ -804,7 +804,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
               }}
             >
               <HStack spacing={3}>
-                {["Options", "Shorts"].map((name, i) => {
+                {["Options", "Shorts", "Longs"].map((name, i) => {
                   const isActive = selectedTab === name;
 
                   const baseStyle = {
@@ -1304,8 +1304,8 @@ const BuyAndSell = ({
   if (left_panel === "LP") {
     options = ["LP+", "LP-"];
   }
-  if (left_panel === "Shorts") {
-    options = ["Enter"];
+  if (left_panel === "Borrow") {
+    options = ["Long", "Short"];
   }
 
   useEffect(() => {
@@ -1541,7 +1541,7 @@ const BuyAndSell = ({
                 >
                   Remove:
                 </Text>
-              ) : selected == "Enter" ? (
+              ) : selected == "Short" ? (
                 <>
                   <Text
                     m={0}
@@ -1553,7 +1553,7 @@ const BuyAndSell = ({
                     Short:
                   </Text>
                 </>
-              ) : selected !== "Exit" ? (
+              ) : selected !== "Long" ? (
                 <Text
                   m={0}
                   color={"white"}
@@ -1567,7 +1567,7 @@ const BuyAndSell = ({
                 <></>
               )}
 
-              {selected !== "Enter" && selected !== "Exit" && (
+              {selected !== "Short" && selected !== "Long" && (
                 <HStack spacing={2}>
                   <Text
                     m={0}
@@ -1656,7 +1656,7 @@ const BuyAndSell = ({
                   />
                 </InputRightElement>
               </InputGroup>
-            ) : selected === "Enter" ? (
+            ) : selected === "Short" ? (
               <>
                 <InputGroup size="md">
                   <Input
@@ -1731,7 +1731,7 @@ const BuyAndSell = ({
             )}
           </VStack>
 
-          {selected === "Enter" && (
+          {selected === "Short" && (
             <>
               <VStack align="start" w="100%">
                 <Text
@@ -1996,7 +1996,7 @@ const BuyAndSell = ({
                 {!wallet.connected ? "Connect Wallet" : "Remove Liquidity"}
               </Text>
             </Button>
-          ) : selected === "Enter" ? (
+          ) : selected === "Short" ? (
             <>
               <Button
                 mt={2}
@@ -2004,7 +2004,7 @@ const BuyAndSell = ({
                 w="100%"
                 px={4}
                 py={2}
-                bg={"#83FF81"}
+                bg={"#FF6E6E"}
                 isLoading={placingOrder}
                 onClick={() => {
                   !wallet.connected
