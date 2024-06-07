@@ -254,8 +254,6 @@ const LaunchCard = ({
 
   let attributes = getAttributes(option);
 
-  console.log(attributes);
-
   let splitLaunchDate = attributes.expiry.toUTCString().split(" ");
   let launchDateString =
     splitLaunchDate[1] + " " + splitLaunchDate[2] + " " + splitLaunchDate[3];
@@ -274,7 +272,6 @@ const LaunchCard = ({
     time_string = time_left.toFixed(1) + " min";
   }
 
-  console.log(option);
   //console.log(launch);
   return (
     <>

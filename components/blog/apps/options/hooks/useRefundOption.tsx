@@ -27,12 +27,11 @@ import {
   PROGRAM,
   CORE,
   SYSTEM_KEY,
-  DEV_RPC_NODE,
-  DEV_WSS_NODE,
   serialise_CreateCollection_instruction,
   serialise_basic_instruction,
   OptionsInstruction,
 } from "../state";
+import { DEV_RPC_NODE, DEV_WSS_NODE } from "../../common";
 
 const useRefundOption = () => {
   const wallet = useWallet();

@@ -43,14 +43,8 @@ import { PublicKey, Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import styles from "../../../../styles/Core.module.css";
 import HybridInfo from "./tokenInfo";
 import OptionsTable from "./table";
-import {
-  DEV_RPC_NODE,
-  OptionData,
-  default_option_data,
-  PROGRAM,
-  Asset,
-  DEV_WSS_NODE,
-} from "./state";
+import { OptionData, default_option_data, PROGRAM, Asset } from "./state";
+import { DEV_RPC_NODE, DEV_WSS_NODE } from "../common";
 import { Mint } from "@solana/spl-token";
 import { CallPut } from "./CallPut";
 import {

@@ -15,10 +15,10 @@ import {
   PROGRAM,
   CORE,
   SYSTEM_KEY,
-  DEV_RPC_NODE,
-  DEV_WSS_NODE,
   serialise_CreateCollection_instruction,
 } from "../state";
+import { DEV_RPC_NODE, DEV_WSS_NODE } from "../../common";
+
 const useCreateCollection = (name: string, uri: string, token_mint: string) => {
   const wallet = useWallet();
 

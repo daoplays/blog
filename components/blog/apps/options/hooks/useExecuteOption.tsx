@@ -27,12 +27,12 @@ import {
   PROGRAM,
   CORE,
   SYSTEM_KEY,
-  DEV_RPC_NODE,
-  DEV_WSS_NODE,
   serialise_CreateCollection_instruction,
   serialise_basic_instruction,
   OptionsInstruction,
 } from "../state";
+import { DEV_RPC_NODE, DEV_WSS_NODE } from "../../common";
+
 const useExecuteOption = () => {
   const wallet = useWallet();
 
@@ -56,7 +56,7 @@ const useExecuteOption = () => {
       return;
     }
 
-    toast.success("Successfuly Purchased Option!", {
+    toast.success("Successfuly Executed Option!", {
       type: "success",
       isLoading: false,
       autoClose: 3000,

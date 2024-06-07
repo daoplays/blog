@@ -49,7 +49,6 @@ const ViewAMMs = () => {
 
     let amm_data: AMMData[] = [];
 
-    console.log("program_data", program_data.length);
     for (let i = 0; i < program_data.length; i++) {
       let data = program_data[i].data;
 
@@ -108,8 +107,6 @@ const ViewAMMs = () => {
 
       amm_launches.set(amm_data_account.toString(), launch);
     }
-
-    console.log(amm_launches);
 
     setAMMLaunches(amm_launches);
   }, [amm_data, mintData]);

@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import {
   DEV_RPC_NODE,
+  DEV_WSS_NODE,
   MintData,
   RunCollectionDAS,
   bignum_to_num,
@@ -93,16 +94,14 @@ import UseWalletConnection from "../blog/apps/commonHooks/useWallet";
 import useEnterShort from "../blog/apps/shorts/hooks/useEnterShort";
 import usePlaceMarketOrder from "../blog/apps/shorts/hooks/usePlaceMarketOrder";
 import useUpdateLiquidity from "../blog/apps/shorts/hooks/useUpdateCookLiquidity";
-import {
-  DEV_WSS_NODE,
-  OptionData,
-  default_option_data,
-} from "../blog/apps/options/state";
+import { OptionData, default_option_data } from "../blog/apps/options/state";
+
 import { OptionsPanel } from "./optionsPanel";
 import OptionsTable from "../blog/apps/options/table";
 import { checkOptionsCollection } from "../blog/apps/options/App";
 import ShortsTable from "../blog/apps/shorts/shorts_table";
 import useEnterLong from "../blog/apps/shorts/hooks/useEnterLong";
+import Loader from "./loader";
 interface MarketData {
   time: UTCTimestamp;
   open: number;
@@ -119,7 +118,7 @@ export const checkBorrowCollection = async (
 ) => {
   if (amm === null) return;
 
-  console.log("CHECKING NFT BALANCE");
+  console.log("Checking borrow collection");
 
   const umi = createUmi(DEV_RPC_NODE, "confirmed");
 
@@ -158,8 +157,6 @@ export const checkBorrowCollection = async (
 
   setShortCollection(collection_account);
   setShortAssets(assets);
-
-  console.log("have assets", assets)
 };
 
 const TradePage = ({ launch }: { launch: AMMLaunch }) => {
@@ -184,6 +181,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
 
   const [last_day_volume, setLastDayVolume] = useState<number>(0);
 
+  const [amm_address, setAMMAddress] = useState<PublicKey | null>(null);
   const [base_address, setBaseAddress] = useState<PublicKey | null>(null);
   const [quote_address, setQuoteAddress] = useState<PublicKey | null>(null);
   const [price_address, setPriceAddress] = useState<PublicKey | null>(null);
@@ -196,7 +194,6 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
   const [user_lp_address, setUserLPAddress] = useState<PublicKey | null>(null);
   const [amm_lp_amount, setLPAmount] = useState<number | null>(null);
 
-  const [user_sol_amount, setUserSOLAmount] = useState<number>(0);
   const [user_base_amount, setUserBaseAmount] = useState<number>(0);
   const [user_quote_amount, setUserQuoteAmount] = useState<number>(0);
   const [user_lp_amount, setUserLPAmount] = useState<number>(0);
@@ -220,11 +217,12 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
   );
 
   const price_ws_id = useRef<number | null>(null);
-  const user_sol_token_ws_id = useRef<number | null>(null);
+  const amm_ws_id = useRef<number | null>(null);
   const user_base_token_ws_id = useRef<number | null>(null);
   const user_quote_token_ws_id = useRef<number | null>(null);
   const user_lp_token_ws_id = useRef<number | null>(null);
-  const collction_ws_id = useRef<number | null>(null);
+  const collection_ws_id = useRef<number | null>(null);
+  const options_ws_id = useRef<number | null>(null);
 
   const check_market_data = useRef<boolean>(true);
 
@@ -309,26 +307,62 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     setUserLPAmount(amount);
   }, []);
 
-  const check_collection_update = useCallback(async (result: any) => {
-    console.log("collection update", result);
+  const check_collection_update = useCallback(
+    async (result: any) => {
+      let collection_umiKey = publicKey(borrow_collection.toString());
+      const umi = createUmi(DEV_RPC_NODE, "confirmed");
 
-    let collection_umiKey = publicKey(borrow_collection.toString());
-    const umi = createUmi(DEV_RPC_NODE, "confirmed");
+      // if we have a subscription field check against ws_id
+      const assets = await getAssetV1GpaBuilder(umi)
+        .whereField("key", Key.AssetV1)
+        .whereField(
+          "updateAuthority",
+          updateAuthority("Collection", [collection_umiKey]),
+        )
+        .getDeserialized();
 
-    // if we have a subscription field check against ws_id
-    const assets = await getAssetV1GpaBuilder(umi)
-    .whereField("key", Key.AssetV1)
-    .whereField(
-      "updateAuthority",
-      updateAuthority("Collection", [collection_umiKey]),
-    )
-    .getDeserialized();
+      setBorrowAssets(assets);
 
-    setBorrowAssets(assets);
+      //await RunCollectionDAS(borrow_collection)
+    },
+    [borrow_collection],
+  );
 
-    //await RunCollectionDAS(borrow_collection)
-    
-  }, [borrow_collection]);
+  const check_options_update = useCallback(
+    async (result: any) => {
+      let collection_umiKey = publicKey(option_collection.toString());
+      const umi = createUmi(DEV_RPC_NODE, "confirmed");
+
+      // if we have a subscription field check against ws_id
+      const assets = await getAssetV1GpaBuilder(umi)
+        .whereField("key", Key.AssetV1)
+        .whereField(
+          "updateAuthority",
+          updateAuthority("Collection", [collection_umiKey]),
+        )
+        .getDeserialized();
+
+      setOptionAssets(assets);
+
+      //await RunCollectionDAS(borrow_collection)
+    },
+    [option_collection],
+  );
+
+  const check_amm_update = useCallback(
+    async (result: any) => {
+      const [updated_amm] = AMMData.struct.deserialize(result.data);
+      let updated_launch_amm: AMMLaunch = {
+        amm_data: updated_amm,
+        base: amm.base,
+        quote: amm.quote,
+      };
+      setAMM(updated_launch_amm);
+
+      //await RunCollectionDAS(borrow_collection)
+    },
+    [amm],
+  );
 
   // launch account subscription handler
   useEffect(() => {
@@ -365,27 +399,45 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
       );
     }
 
-    if (collction_ws_id.current === null && borrow_collection !== null) {
-      collction_ws_id.current = connection.onAccountChange(
+    if (collection_ws_id.current === null && borrow_collection !== null) {
+      collection_ws_id.current = connection.onAccountChange(
         borrow_collection,
         check_collection_update,
         "confirmed",
       );
     }
+
+    if (options_ws_id.current === null && option_collection !== null) {
+      options_ws_id.current = connection.onAccountChange(
+        option_collection,
+        check_options_update,
+        "confirmed",
+      );
+    }
+
+    if (amm_ws_id.current === null && amm_address !== null) {
+      options_ws_id.current = connection.onAccountChange(
+        amm_address,
+        check_amm_update,
+        "confirmed",
+      );
+    }
   }, [
     connection,
-    base_address,
-    quote_address,
     price_address,
     user_base_address,
     user_quote_address,
     user_lp_address,
+    amm_address,
     borrow_collection,
+    option_collection,
     check_price_update,
     check_user_base_update,
     check_user_quote_update,
     check_user_lp_update,
-    check_collection_update
+    check_collection_update,
+    check_options_update,
+    check_amm_update,
   ]);
 
   const CheckMarketData = useCallback(async () => {
@@ -432,14 +484,11 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     let quote_amm_account = amm.amm_data.quote_key;
     let lp_mint = amm.amm_data.lp_mint;
 
-    console.log(amm);
     let baseMintData = amm.base;
     let quoteMintData = amm.quote;
 
     setBaseData(baseMintData);
     setQuoteData(quoteMintData);
-
-    console.log("base key", base_amm_account.toString());
 
     let user_base_token_account_key = await getAssociatedTokenAddress(
       base_mint, // mint
@@ -468,6 +517,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     setUserBaseAddress(user_base_token_account_key);
     setUserQuoteAddress(user_quote_token_account_key);
     setUserLPAddress(user_lp_token_account_key);
+    setAMMAddress(amm_data_account);
 
     let base_amount = amm.amm_data.amm_base_amount;
     let quote_amount = amm.amm_data.amm_quote_amount;
@@ -479,13 +529,6 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     );
     let user_lp_amount = await request_token_amount(user_lp_token_account_key);
 
-    console.log(
-      "user amounts",
-      user_base_amount,
-      user_lp_amount,
-      base_amount,
-      quote_amount,
-    );
     setUserBaseAmount(user_base_amount);
     setUserLPAmount(user_lp_amount);
     setUserQuoteAmount(user_quote_amount);
@@ -506,7 +549,6 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     let price_data_buffer = await request_raw_account_data(price_data_account);
     const [price_data] = TimeSeriesData.struct.deserialize(price_data_buffer);
 
-    console.log(price_data.data);
     let data: MarketData[] = [];
     let daily_data: MarketData[] = [];
 
@@ -529,8 +571,6 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
       let low = Buffer.from(item.low).readFloatLE(0);
       let close = Buffer.from(item.close).readFloatLE(0);
       let volume = Buffer.from(item.volume).readFloatLE(0);
-
-      console.log(time, new Date(time * 1000), close);
 
       if (now - time < 24 * 60 * 60) {
         last_volume += volume;
@@ -680,6 +720,9 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
       </HStack>
     );
   };
+
+  if (amm_address === null) return <Loader />;
+
 
   return (
     <>
@@ -1102,7 +1145,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
                 />
               )}
 
-          {selectedTab === "Longs" &&
+            {selectedTab === "Longs" &&
               selectedShortsTab === "Exit" &&
               wallet.connected && (
                 <ShortsTable
@@ -1409,11 +1452,7 @@ const BuyPanel = ({
         }}
       >
         <Text m={"0 auto"} fontSize="large" fontWeight="semibold">
-          {!connected
-            ? "Connect Wallet"
-           
-               : "Buy"
-             }
+          {!connected ? "Connect Wallet" : "Buy"}
         </Text>
       </Button>
     </>
@@ -1969,153 +2008,146 @@ const ShortPanel = ({
 }) => {
   return (
     <>
-     <VStack align="start" w="100%">
-            <HStack w="100%" justify="space-between">
-                <>
-                  <Text
-                    m={0}
-                    color={"white"}
-                    fontFamily="ReemKufiRegular"
-                    fontSize={"medium"}
-                    opacity={0.5}
-                  >
-                    Short:
-                  </Text>
-                </>
-             
-            </HStack>
+      <VStack align="start" w="100%">
+        <HStack w="100%" justify="space-between">
+          <>
+            <Text
+              m={0}
+              color={"white"}
+              fontFamily="ReemKufiRegular"
+              fontSize={"medium"}
+              opacity={0.5}
+            >
+              Short:
+            </Text>
+          </>
+        </HStack>
 
-              <>
-                <InputGroup size="md">
-                  <Input
-                    color="white"
-                    size="lg"
-                    borderColor="rgba(134, 142, 150, 0.5)"
-                    value={short_amount}
-                    onChange={(e) => {
-                      setShortAmount(
-                        !isNaN(parseFloat(e.target.value)) ||
-                          e.target.value === ""
-                          ? parseFloat(e.target.value)
-                          : short_amount,
-                      );
-                    }}
-                    type="number"
-                    min="0"
-                  />
-                  <InputRightElement h="100%" w={50}>
-                    <Image
-                      src={base_data.icon}
-                      width={30}
-                      height={30}
-                      alt="SOL Icon"
-                      style={{ borderRadius: "100%" }}
-                    />
-                  </InputRightElement>
-                </InputGroup>
-              </>
-            
-          </VStack>
+        <>
+          <InputGroup size="md">
+            <Input
+              color="white"
+              size="lg"
+              borderColor="rgba(134, 142, 150, 0.5)"
+              value={short_amount}
+              onChange={(e) => {
+                setShortAmount(
+                  !isNaN(parseFloat(e.target.value)) || e.target.value === ""
+                    ? parseFloat(e.target.value)
+                    : short_amount,
+                );
+              }}
+              type="number"
+              min="0"
+            />
+            <InputRightElement h="100%" w={50}>
+              <Image
+                src={base_data.icon}
+                width={30}
+                height={30}
+                alt="SOL Icon"
+                style={{ borderRadius: "100%" }}
+              />
+            </InputRightElement>
+          </InputGroup>
+        </>
+      </VStack>
 
-            <>
-              <VStack align="start" w="100%">
-                <Text
-                  m={0}
-                  color={"white"}
-                  fontFamily="ReemKufiRegular"
-                  fontSize={"medium"}
-                  opacity={0.5}
-                >
-                  Deposit:
-                </Text>
-                <InputGroup size="md">
-                  <Input
-                    color="white"
-                    size="lg"
-                    borderColor="rgba(134, 142, 150, 0.5)"
-                    value={deposit_amount}
-                    onChange={(e) => {
-                      setDepositAmount(
-                        !isNaN(parseFloat(e.target.value)) ||
-                          e.target.value === ""
-                          ? parseFloat(e.target.value)
-                          : deposit_amount,
-                      );
-                    }}
-                    type="number"
-                    min="0"
-                  />
-                  <InputRightElement h="100%" w={50}>
-                    <Image
-                      src={quote_data.icon}
-                      width={30}
-                      height={30}
-                      alt=""
-                      style={{ borderRadius: "100%" }}
-                    />
-                  </InputRightElement>
-                </InputGroup>
-                <Text
-                  m={0}
-                  color={"white"}
-                  fontFamily="ReemKufiRegular"
-                  fontSize={"medium"}
-                  opacity={0.5}
-                >
-                  Liquidation Price:
-                </Text>
-                <InputGroup size="md">
-                  <Input
-                    readOnly={true}
-                    color="white"
-                    size="lg"
-                    borderColor="rgba(134, 142, 150, 0.5)"
-                    value={
-                      liquidation_price_string === "NaN"
-                        ? "0"
-                        : liquidation_price_string
-                    }
-                    disabled
-                  />
-                  <InputRightElement h="100%" w={50}>
-                    <Image
-                      src={quote_data.icon}
-                      width={30}
-                      height={30}
-                      alt=""
-                      style={{ borderRadius: "100%" }}
-                    />
-                  </InputRightElement>
-                </InputGroup>
-              </VStack>
-            </>
-          
+      <>
+        <VStack align="start" w="100%">
+          <Text
+            m={0}
+            color={"white"}
+            fontFamily="ReemKufiRegular"
+            fontSize={"medium"}
+            opacity={0.5}
+          >
+            Deposit:
+          </Text>
+          <InputGroup size="md">
+            <Input
+              color="white"
+              size="lg"
+              borderColor="rgba(134, 142, 150, 0.5)"
+              value={deposit_amount}
+              onChange={(e) => {
+                setDepositAmount(
+                  !isNaN(parseFloat(e.target.value)) || e.target.value === ""
+                    ? parseFloat(e.target.value)
+                    : deposit_amount,
+                );
+              }}
+              type="number"
+              min="0"
+            />
+            <InputRightElement h="100%" w={50}>
+              <Image
+                src={quote_data.icon}
+                width={30}
+                height={30}
+                alt=""
+                style={{ borderRadius: "100%" }}
+              />
+            </InputRightElement>
+          </InputGroup>
+          <Text
+            m={0}
+            color={"white"}
+            fontFamily="ReemKufiRegular"
+            fontSize={"medium"}
+            opacity={0.5}
+          >
+            Liquidation Price:
+          </Text>
+          <InputGroup size="md">
+            <Input
+              readOnly={true}
+              color="white"
+              size="lg"
+              borderColor="rgba(134, 142, 150, 0.5)"
+              value={
+                liquidation_price_string === "NaN"
+                  ? "0"
+                  : liquidation_price_string
+              }
+              disabled
+            />
+            <InputRightElement h="100%" w={50}>
+              <Image
+                src={quote_data.icon}
+                width={30}
+                height={30}
+                alt=""
+                style={{ borderRadius: "100%" }}
+              />
+            </InputRightElement>
+          </InputGroup>
+        </VStack>
+      </>
 
-            <>
-              <Button
-                mt={2}
-                size="lg"
-                w="100%"
-                px={4}
-                py={2}
-                bg={"#FF6E6E"}
-                isLoading={placingOrder}
-                onClick={() => {
-                  !connected
-                    ? handleConnectWallet()
-                    : EnterShort(amm, short_amount, deposit_amount);
-                }}
-              >
-                <Text m={"0 auto"} fontSize="large" fontWeight="semibold">
-                  {!connected ? "Connect Wallet" : "Enter"}
-                </Text>
-              </Button>
-            </>
-         
+      <>
+        <Button
+          mt={2}
+          size="lg"
+          w="100%"
+          px={4}
+          py={2}
+          bg={"#FF6E6E"}
+          isLoading={placingOrder}
+          onClick={() => {
+            !connected
+              ? handleConnectWallet()
+              : EnterShort(amm, short_amount, deposit_amount);
+          }}
+        >
+          <Text m={"0 auto"} fontSize="large" fontWeight="semibold">
+            {!connected ? "Connect Wallet" : "Enter"}
+          </Text>
+        </Button>
+      </>
     </>
   );
 };
-
 
 const LongPanel = ({
   base_data,
@@ -2142,186 +2174,178 @@ const LongPanel = ({
   EnterShort: any;
   handleConnectWallet: any;
 }) => {
-
   let base_balance = bignum_to_num(amm.amm_base_amount);
   let quote_balance = bignum_to_num(amm.amm_quote_amount);
 
-
-  let base_amount =
-  long_amount *
-  Math.pow(10, base_data.mint.decimals);
+  let base_amount = long_amount * Math.pow(10, base_data.mint.decimals);
 
   let quote_amount =
     (base_amount * quote_balance) /
     (base_balance - base_amount) /
     Math.pow(10, quote_data.mint.decimals);
 
-  let quote_input = quote_amount / ( 1 - amm.fee/100/100)
+  let quote_input = quote_amount / (1 - amm.fee / 100 / 100);
 
-
-  let raw_deposit_amount = deposit_amount * Math.pow(10, base_data.mint.decimals)
-
+  let raw_deposit_amount =
+    deposit_amount * Math.pow(10, base_data.mint.decimals);
 
   let total_base_fee = 0;
   let transfer_fee_config = getTransferFeeConfig(base_data.mint);
   if (transfer_fee_config !== null) {
     total_base_fee += Number(
-      calculateFee(transfer_fee_config.newerTransferFee, BigInt(raw_deposit_amount)),
+      calculateFee(
+        transfer_fee_config.newerTransferFee,
+        BigInt(raw_deposit_amount),
+      ),
     );
   }
 
-  let deposit = (raw_deposit_amount - total_base_fee) / Math.pow(10, base_data.mint.decimals);
+  let deposit =
+    (raw_deposit_amount - total_base_fee) /
+    Math.pow(10, base_data.mint.decimals);
   let liquidation_price = quote_amount / (deposit + long_amount);
-  console.log(quote_amount, deposit, long_amount)
 
-  let liquidation_price_string =
-    formatPrice(liquidation_price, 5)
+  let liquidation_price_string = formatPrice(liquidation_price, 5);
 
   return (
     <>
-     <VStack align="start" w="100%">
-            <HStack w="100%" justify="space-between">
-                <>
-                  <Text
-                    m={0}
-                    color={"white"}
-                    fontFamily="ReemKufiRegular"
-                    fontSize={"medium"}
-                    opacity={0.5}
-                  >
-                    Long:
-                  </Text>
-                </>
-             
-            </HStack>
+      <VStack align="start" w="100%">
+        <HStack w="100%" justify="space-between">
+          <>
+            <Text
+              m={0}
+              color={"white"}
+              fontFamily="ReemKufiRegular"
+              fontSize={"medium"}
+              opacity={0.5}
+            >
+              Long:
+            </Text>
+          </>
+        </HStack>
 
-              <>
-                <InputGroup size="md">
-                  <Input
-                    color="white"
-                    size="lg"
-                    borderColor="rgba(134, 142, 150, 0.5)"
-                    value={long_amount}
-                    onChange={(e) => {
-                      setShortAmount(
-                        !isNaN(parseFloat(e.target.value)) ||
-                          e.target.value === ""
-                          ? parseFloat(e.target.value)
-                          : long_amount,
-                      );
-                    }}
-                    type="number"
-                    min="0"
-                  />
-                  <InputRightElement h="100%" w={50}>
-                    <Image
-                      src={base_data.icon}
-                      width={30}
-                      height={30}
-                      alt="SOL Icon"
-                      style={{ borderRadius: "100%" }}
-                    />
-                  </InputRightElement>
-                </InputGroup>
-              </>
-            
-          </VStack>
+        <>
+          <InputGroup size="md">
+            <Input
+              color="white"
+              size="lg"
+              borderColor="rgba(134, 142, 150, 0.5)"
+              value={long_amount}
+              onChange={(e) => {
+                setShortAmount(
+                  !isNaN(parseFloat(e.target.value)) || e.target.value === ""
+                    ? parseFloat(e.target.value)
+                    : long_amount,
+                );
+              }}
+              type="number"
+              min="0"
+            />
+            <InputRightElement h="100%" w={50}>
+              <Image
+                src={base_data.icon}
+                width={30}
+                height={30}
+                alt="SOL Icon"
+                style={{ borderRadius: "100%" }}
+              />
+            </InputRightElement>
+          </InputGroup>
+        </>
+      </VStack>
 
-            <>
-              <VStack align="start" w="100%">
-                <Text
-                  m={0}
-                  color={"white"}
-                  fontFamily="ReemKufiRegular"
-                  fontSize={"medium"}
-                  opacity={0.5}
-                >
-                  Deposit:
-                </Text>
-                <InputGroup size="md">
-                  <Input
-                    color="white"
-                    size="lg"
-                    borderColor="rgba(134, 142, 150, 0.5)"
-                    value={deposit_amount}
-                    onChange={(e) => {
-                      setDepositAmount(
-                        !isNaN(parseFloat(e.target.value)) ||
-                          e.target.value === ""
-                          ? parseFloat(e.target.value)
-                          : deposit_amount,
-                      );
-                    }}
-                    type="number"
-                    min="0"
-                  />
-                  <InputRightElement h="100%" w={50}>
-                    <Image
-                      src={base_data.icon}
-                      width={30}
-                      height={30}
-                      alt=""
-                      style={{ borderRadius: "100%" }}
-                    />
-                  </InputRightElement>
-                </InputGroup>
-                <Text
-                  m={0}
-                  color={"white"}
-                  fontFamily="ReemKufiRegular"
-                  fontSize={"medium"}
-                  opacity={0.5}
-                >
-                  Liquidation Price:
-                </Text>
-                <InputGroup size="md">
-                  <Input
-                    readOnly={true}
-                    color="white"
-                    size="lg"
-                    borderColor="rgba(134, 142, 150, 0.5)"
-                    value={
-                      liquidation_price_string === "NaN"
-                        ? "0"
-                        : liquidation_price_string
-                    }
-                    disabled
-                  />
-                  <InputRightElement h="100%" w={50}>
-                    <Image
-                      src={quote_data.icon}
-                      width={30}
-                      height={30}
-                      alt=""
-                      style={{ borderRadius: "100%" }}
-                    />
-                  </InputRightElement>
-                </InputGroup>
-              </VStack>
-            </>
-          
+      <>
+        <VStack align="start" w="100%">
+          <Text
+            m={0}
+            color={"white"}
+            fontFamily="ReemKufiRegular"
+            fontSize={"medium"}
+            opacity={0.5}
+          >
+            Deposit:
+          </Text>
+          <InputGroup size="md">
+            <Input
+              color="white"
+              size="lg"
+              borderColor="rgba(134, 142, 150, 0.5)"
+              value={deposit_amount}
+              onChange={(e) => {
+                setDepositAmount(
+                  !isNaN(parseFloat(e.target.value)) || e.target.value === ""
+                    ? parseFloat(e.target.value)
+                    : deposit_amount,
+                );
+              }}
+              type="number"
+              min="0"
+            />
+            <InputRightElement h="100%" w={50}>
+              <Image
+                src={base_data.icon}
+                width={30}
+                height={30}
+                alt=""
+                style={{ borderRadius: "100%" }}
+              />
+            </InputRightElement>
+          </InputGroup>
+          <Text
+            m={0}
+            color={"white"}
+            fontFamily="ReemKufiRegular"
+            fontSize={"medium"}
+            opacity={0.5}
+          >
+            Liquidation Price:
+          </Text>
+          <InputGroup size="md">
+            <Input
+              readOnly={true}
+              color="white"
+              size="lg"
+              borderColor="rgba(134, 142, 150, 0.5)"
+              value={
+                liquidation_price_string === "NaN"
+                  ? "0"
+                  : liquidation_price_string
+              }
+              disabled
+            />
+            <InputRightElement h="100%" w={50}>
+              <Image
+                src={quote_data.icon}
+                width={30}
+                height={30}
+                alt=""
+                style={{ borderRadius: "100%" }}
+              />
+            </InputRightElement>
+          </InputGroup>
+        </VStack>
+      </>
 
-            <>
-              <Button
-                mt={2}
-                size="lg"
-                w="100%"
-                px={4}
-                py={2}
-                bg={"#FF6E6E"}
-                isLoading={placingOrder}
-                onClick={() => {
-                  !connected
-                    ? handleConnectWallet()
-                    : EnterShort(amm, long_amount, deposit_amount);
-                }}
-              >
-                <Text m={"0 auto"} fontSize="large" fontWeight="semibold">
-                  {!connected ? "Connect Wallet" : "Enter"}
-                </Text>
-              </Button>
-            </>
-         
+      <>
+        <Button
+          mt={2}
+          size="lg"
+          w="100%"
+          px={4}
+          py={2}
+          bg={"#FF6E6E"}
+          isLoading={placingOrder}
+          onClick={() => {
+            !connected
+              ? handleConnectWallet()
+              : EnterShort(amm, long_amount, deposit_amount);
+          }}
+        >
+          <Text m={"0 auto"} fontSize="large" fontWeight="semibold">
+            {!connected ? "Connect Wallet" : "Enter"}
+          </Text>
+        </Button>
+      </>
     </>
   );
 };
@@ -2366,7 +2390,6 @@ const BuyAndSell = ({
   const [long_amount, setLongAmount] = useState<number>(0);
   const [long_deposit_amount, setLongDepositAmount] = useState<number>(0);
 
-
   const { PlaceMarketOrder, isLoading: placingOrder } = usePlaceMarketOrder();
   const { EnterShort, isLoading: enterShortLoading } = useEnterShort();
   const { EnterLong, isLoading: enterLongLoading } = useEnterLong();
@@ -2407,20 +2430,12 @@ const BuyAndSell = ({
     (base_input_amount + base_balance) /
     Math.pow(10, quote_data.mint.decimals);
 
-  //console.log("base in/out", base_input_amount / Math.pow(10, launch.decimals), quote_output)
-
   let quote_raw = Math.floor(
     sol_amount * Math.pow(10, quote_data.mint.decimals),
   );
   let amm_quote_fee = Math.ceil((quote_raw * amm.fee) / 100 / 100);
   let quote_input_amount = quote_raw - amm_quote_fee;
 
-  console.log(
-    quote_input_amount,
-    base_balance,
-    quote_balance,
-    quote_input_amount,
-  );
   let base_output =
     (quote_input_amount * base_balance) /
     (quote_balance + quote_input_amount) /
@@ -2504,8 +2519,6 @@ const BuyAndSell = ({
       ? liquidation_price.toExponential(3)
       : liquidation_price.toFixed(quote_data.mint.decimals);
 
-  //console.log("quote: ", user_quote_balance);
-
   let options = useMemo(
     () => {
       return []; // replace this with your actual logic to generate options
@@ -2561,8 +2574,6 @@ const BuyAndSell = ({
       console.log(error);
     }
 
-    console.log("user balance", user_balance / LAMPORTS_PER_SOL, token_balance);
-
     setSOLBalance(user_balance / LAMPORTS_PER_SOL);
     setTokenBalance(token_balance);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2573,9 +2584,7 @@ const BuyAndSell = ({
     fetchData();
   }, [base_data.mint, fetchData]);
 
-  useEffect(() => {
-    console.log(left_panel);
-  }, [left_panel]);
+  useEffect(() => {}, [left_panel]);
 
   return (
     <VStack align="start" w="100%" h="100%" mt={-2} spacing={4}>
@@ -2650,7 +2659,7 @@ const BuyAndSell = ({
               fontFamily="ReemKufiRegular"
               fontSize={"medium"}
             >
-              {selected === "Buy" ||  selected === "Short" || selected === "Long"
+              {selected === "Buy" || selected === "Short" || selected === "Long"
                 ? (
                     user_quote_balance / Math.pow(10, quote_data.mint.decimals)
                   ).toLocaleString("en-US", {
@@ -2667,7 +2676,7 @@ const BuyAndSell = ({
                     ).toLocaleString("en-US", {
                       minimumFractionDigits: 2,
                     })}{" "}
-              {selected === "Buy" ||  selected === "Short" || selected === "Long"
+              {selected === "Buy" || selected === "Short" || selected === "Long"
                 ? quote_data.symbol
                 : selected === "LP-"
                   ? "LP"
@@ -2675,38 +2684,36 @@ const BuyAndSell = ({
             </Text>
           </HStack>
 
-          {(selected === "Long" || selected === "Short") &&
-          <>
-          <HStack justify="space-between" w="100%" mt={2}>
-            <Text
-              m={0}
-              color={"white"}
-              fontFamily="ReemKufiRegular"
-              fontSize={"medium"}
-              opacity={0.5}
-            >
-              AMM Balance:
-            </Text>
-            <Text
-              m={0}
-              color={"white"}
-              fontFamily="ReemKufiRegular"
-              fontSize={"medium"}
-            >
-              {selected === "Short" &&
-              bignum_to_num(amm.short_base_amount)/Math.pow(10, base_data.mint.decimals)
-              }
-              {selected === "Long" &&
-              bignum_to_num(amm.long_quote_amount)/Math.pow(10, quote_data.mint.decimals) 
-              }
-              {" "}
-              {selected === "Long" && quote_data.symbol}
-              {selected === "Short" && base_data.symbol}
-
-            </Text>
-          </HStack>
-          </>
-          }
+          {(selected === "Long" || selected === "Short") && (
+            <>
+              <HStack justify="space-between" w="100%" mt={2}>
+                <Text
+                  m={0}
+                  color={"white"}
+                  fontFamily="ReemKufiRegular"
+                  fontSize={"medium"}
+                  opacity={0.5}
+                >
+                  AMM Balance:
+                </Text>
+                <Text
+                  m={0}
+                  color={"white"}
+                  fontFamily="ReemKufiRegular"
+                  fontSize={"medium"}
+                >
+                  {selected === "Short" &&
+                    bignum_to_num(amm.short_base_amount) /
+                      Math.pow(10, base_data.mint.decimals)}
+                  {selected === "Long" &&
+                    bignum_to_num(amm.long_quote_amount) /
+                      Math.pow(10, quote_data.mint.decimals)}{" "}
+                  {selected === "Long" && quote_data.symbol}
+                  {selected === "Short" && base_data.symbol}
+                </Text>
+              </HStack>
+            </>
+          )}
 
           <HStack justify="space-between" w="100%" mt={2}>
             <Text
@@ -2727,31 +2734,30 @@ const BuyAndSell = ({
               {amm.fee}
             </Text>
           </HStack>
-          
 
-          {(selected === "Long" || selected === "Short") &&
-          <>
-          <HStack justify="space-between" w="100%" mt={2}>
-            <Text
-              m={0}
-              color={"white"}
-              fontFamily="ReemKufiRegular"
-              fontSize={"medium"}
-              opacity={0.5}
-            >
-              Borrow Fee (bps):
-            </Text>
-            <Text
-              m={0}
-              color={"white"}
-              fontFamily="ReemKufiRegular"
-              fontSize={"medium"}
-            >
-              {amm.borrow_cost}
-            </Text>
-          </HStack>
-          </>
-          }
+          {(selected === "Long" || selected === "Short") && (
+            <>
+              <HStack justify="space-between" w="100%" mt={2}>
+                <Text
+                  m={0}
+                  color={"white"}
+                  fontFamily="ReemKufiRegular"
+                  fontSize={"medium"}
+                  opacity={0.5}
+                >
+                  Borrow Fee (bps):
+                </Text>
+                <Text
+                  m={0}
+                  color={"white"}
+                  fontFamily="ReemKufiRegular"
+                  fontSize={"medium"}
+                >
+                  {amm.borrow_cost}
+                </Text>
+              </HStack>
+            </>
+          )}
           {selected === "Buy" && (
             <BuyPanel
               selected={selected}
@@ -2841,39 +2847,38 @@ const BuyAndSell = ({
             />
           )}
 
-        {selected === "Short" && (
-          <ShortPanel 
-          base_data={base_data}
-          quote_data={quote_data}
-          amm={amm}
-          short_amount={short_amount}
-          deposit_amount={deposit_amount}
-          liquidation_price_string={liquidation_price_string}
-          placingOrder={enterShortLoading}
-          connected={wallet.connected}
-          setShortAmount={setShortAmount}
-          setDepositAmount={setDepositAmount}
-          EnterShort={EnterShort}
-          handleConnectWallet={handleConnectWallet}
-          />
-        )}
+          {selected === "Short" && (
+            <ShortPanel
+              base_data={base_data}
+              quote_data={quote_data}
+              amm={amm}
+              short_amount={short_amount}
+              deposit_amount={deposit_amount}
+              liquidation_price_string={liquidation_price_string}
+              placingOrder={enterShortLoading}
+              connected={wallet.connected}
+              setShortAmount={setShortAmount}
+              setDepositAmount={setDepositAmount}
+              EnterShort={EnterShort}
+              handleConnectWallet={handleConnectWallet}
+            />
+          )}
 
-      {selected === "Long" && (
-          <LongPanel 
-          base_data={base_data}
-          quote_data={quote_data}
-          amm={amm}
-          long_amount={long_amount}
-          deposit_amount={long_deposit_amount}
-          placingOrder={enterLongLoading}
-          connected={wallet.connected}
-          setShortAmount={setLongAmount}
-          setDepositAmount={setLongDepositAmount}
-          EnterShort={EnterLong}
-          handleConnectWallet={handleConnectWallet}
-          />
-        )}
-
+          {selected === "Long" && (
+            <LongPanel
+              base_data={base_data}
+              quote_data={quote_data}
+              amm={amm}
+              long_amount={long_amount}
+              deposit_amount={long_deposit_amount}
+              placingOrder={enterLongLoading}
+              connected={wallet.connected}
+              setShortAmount={setLongAmount}
+              setDepositAmount={setLongDepositAmount}
+              EnterShort={EnterLong}
+              handleConnectWallet={handleConnectWallet}
+            />
+          )}
         </VStack>
       )}
     </VStack>
@@ -2897,7 +2902,6 @@ const InfoContent = ({
   volume: number;
   total_supply: number;
 }) => {
-  console.log(quote_amount, total_supply, quote_amount / total_supply);
   return (
     <VStack spacing={8} w="100%" mb={3}>
       <HStack mt={-2} px={5} justify="space-between" w="100%">

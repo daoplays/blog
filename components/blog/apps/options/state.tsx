@@ -22,11 +22,6 @@ export const METAPLEX_META = new PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s",
 );
 
-export const DEV_RPC_NODE =
-  "https://black-damp-river.solana-devnet.quiknode.pro/c5447e06dd58dec2f4568518d8fb2fd8625b1d95/";
-export const DEV_WSS_NODE =
-  "wss://black-damp-river.solana-devnet.quiknode.pro/c5447e06dd58dec2f4568518d8fb2fd8625b1d95/";
-
 export const Extensions = {
   None: 0,
   TransferFee: 1,

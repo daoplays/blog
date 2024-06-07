@@ -61,7 +61,7 @@ const ShortsTable = ({
   collection,
   shortsList,
   mode,
-  direction
+  direction,
 }: {
   is_2022: boolean;
   amm: AMMLaunch;
@@ -90,7 +90,7 @@ const ShortsTable = ({
   function filterTable(mode: number) {
     return shortsList.filter(function (item) {
       let attributes = getAttributes(item);
-      let asset_direction = attributes.get("direction")
+      let asset_direction = attributes.get("direction");
       if (asset_direction !== direction) {
         return false;
       }
@@ -116,8 +116,8 @@ const ShortsTable = ({
     { text: "ENTRY PRICE", field: "entry price" },
     { text: "LIQUIDATION PRICE", field: "liquidation price" },
     { text: "EXECUTION PRICE", field: "liquidation price" },
-    { text: "BORROW FEE ("+borrow_unit+")", field: "borrow fee" },
-    { text: "PROFIT ("+borrow_unit+")", field: "pnl" },
+    { text: "BORROW FEE (" + borrow_unit + ")", field: "borrow fee" },
+    { text: "PROFIT (" + borrow_unit + ")", field: "pnl" },
   ];
 
   if (collection === null || amm === null) {
@@ -192,7 +192,7 @@ const LaunchCard = ({
   collection,
   asset,
   mode,
-  direction
+  direction,
 }: {
   is_2022: boolean;
   amm: AMMData;
@@ -216,7 +216,8 @@ const LaunchCard = ({
   const { ExitShort, isLoading: isExitLoading } = useExitShort();
   const { LiquidateShort, isLoading: isLiquidateLoading } = useLiquidateShort();
   const { ExitLong, isLoading: isLongExitLoading } = useExitLong();
-  const { LiquidateLong, isLoading: isLongLiquidateLoading } = useLiquidateLong();
+  const { LiquidateLong, isLoading: isLongLiquidateLoading } =
+    useLiquidateLong();
 
   let amm_base_balance = bignum_to_num(amm.amm_base_amount);
   let amm_quote_balance = bignum_to_num(amm.amm_quote_amount);
@@ -229,7 +230,6 @@ const LaunchCard = ({
   let start_time = parseFloat(attributes.get("start_time"));
   let liquidation_price = parseFloat(attributes.get("liquidation_price"));
 
-
   let annual_borrow_fee;
   let fee_decimals;
   let liquidate;
@@ -239,19 +239,20 @@ const LaunchCard = ({
     annual_borrow_fee = borrowed_quote * (amm.borrow_cost / 100 / 100);
     fee_decimals = quote_mint.decimals;
     exit_trade_base = borrowed_base;
-    exit_trade_quote = (borrowed_base * amm_quote_balance) / (amm_base_balance - borrowed_base);
+    exit_trade_quote =
+      (borrowed_base * amm_quote_balance) / (amm_base_balance - borrowed_base);
     exit_trade_quote = Math.floor(exit_trade_quote / (1 - amm.fee / 100 / 100));
     liquidate = exit_trade_quote >= borrowed_quote + deposit;
-  }
-  else {
+  } else {
     annual_borrow_fee = borrowed_base * (amm.borrow_cost / 100 / 100);
     fee_decimals = base_mint.decimals;
-    exit_trade_base = (borrowed_quote * amm_base_balance) / (amm_quote_balance - borrowed_quote);
+    exit_trade_base =
+      (borrowed_quote * amm_base_balance) /
+      (amm_quote_balance - borrowed_quote);
     exit_trade_base = Math.floor(exit_trade_base / (1 - amm.fee / 100 / 100));
     exit_trade_quote = borrowed_quote;
     liquidate = exit_trade_base >= borrowed_base + deposit;
   }
-
 
   if (mode == 1 && !liquidate) {
     return <></>;
@@ -260,22 +261,24 @@ const LaunchCard = ({
   let current_time = new Date().getTime() / 1000;
   let time_delta_years = (current_time - start_time) / 60 / 60 / 24 / 365;
   let borrow_fee =
-    Math.floor(
-      time_delta_years * annual_borrow_fee + 1,
-    ) / Math.pow(10, fee_decimals);
+    Math.floor(time_delta_years * annual_borrow_fee + 1) /
+    Math.pow(10, fee_decimals);
 
-  let execution_price =  (exit_trade_quote / Math.pow(10, quote_mint.decimals)) / (exit_trade_base/ Math.pow(10, base_mint.decimals))
+  let execution_price =
+    exit_trade_quote /
+    Math.pow(10, quote_mint.decimals) /
+    (exit_trade_base / Math.pow(10, base_mint.decimals));
 
   let profit;
-  if (direction === "short") {  
-    profit = (borrowed_quote - exit_trade_quote)/Math.pow(10, quote_mint.decimals) - borrow_fee;
+  if (direction === "short") {
+    profit =
+      (borrowed_quote - exit_trade_quote) / Math.pow(10, quote_mint.decimals) -
+      borrow_fee;
+  } else {
+    profit =
+      (borrowed_base - exit_trade_base) / Math.pow(10, base_mint.decimals) -
+      borrow_fee;
   }
-  else {
-    console.log(borrowed_base, deposit, exit_trade_base, borrow_fee)
-    profit = (borrowed_base - exit_trade_base)/Math.pow(10, base_mint.decimals) - borrow_fee;
-  }
-  console.log(borrow_fee, profit);
-  //console.log(launch);
 
   let price_decimals = Math.min(5, quote_mint.decimals);
   return (
@@ -315,18 +318,22 @@ const LaunchCard = ({
         </td>
         <td style={{ minWidth: "170px" }}>
           <Text color="white" fontSize={"large"} m={0}>
-            {formatPrice(borrow_fee, fee_decimals)}
+            {formatPrice(borrow_fee, Math.min(5, fee_decimals))}
           </Text>
         </td>
         <td style={{ minWidth: "170px" }}>
           <Text color="white" fontSize={"large"} m={0}>
-            {formatPrice(profit, fee_decimals)}
+            {formatPrice(profit, Math.min(5, fee_decimals))}
           </Text>
         </td>
         <td style={{ minWidth: "150px" }}>
           {mode === 0 && (
             <Button
-              onClick={() => {direction === "short" ? ExitShort(amm, asset) : ExitLong(amm, asset)}}
+              onClick={() => {
+                direction === "short"
+                  ? ExitShort(amm, asset)
+                  : ExitLong(amm, asset);
+              }}
               style={{ textDecoration: "none" }}
             >
               Exit
@@ -334,7 +341,11 @@ const LaunchCard = ({
           )}
           {mode === 1 && (
             <Button
-              onClick={() => {direction === "short" ? LiquidateShort(amm, asset) : LiquidateLong(amm, asset)}}
+              onClick={() => {
+                direction === "short"
+                  ? LiquidateShort(amm, asset)
+                  : LiquidateLong(amm, asset);
+              }}
               style={{ textDecoration: "none" }}
             >
               Liquidate
