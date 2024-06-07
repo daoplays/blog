@@ -157,6 +157,8 @@ export const checkShortsCollection = async (
 
   setShortCollection(collection_account);
   setShortAssets(assets);
+
+  console.log("have assets", assets)
 };
 
 const TradePage = ({ launch }: { launch: AMMLaunch }) => {
@@ -171,7 +173,8 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
 
   const [selectedTab, setSelectedTab] = useState("Options");
   const [selectedOptionsTab, setSelectedOptionsTab] = useState("Trade");
-  const [selectedShortsTab, setSelectedShortsTab] = useState("Sell");
+  const [selectedShortsTab, setSelectedShortsTab] = useState("Exit");
+  const [selectedLongsTab, setSelectedLongsTab] = useState("Exit");
 
   const [mobilePageContent, setMobilePageContent] = useState("Chart");
 
@@ -223,10 +226,10 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
   const check_market_data = useRef<boolean>(true);
 
   useEffect(() => {
-    if (launch === null) return;
+    if (amm === null) return;
 
-    checkShortsCollection(launch, setShortAssets, setShortCollection);
-  }, [launch]);
+    checkShortsCollection(amm, setShortAssets, setShortCollection);
+  }, [amm]);
 
   const check_price_update = useCallback(async (result: any) => {
     //console.log(result);
@@ -907,7 +910,53 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
 
                 {selectedTab === "Shorts" && (
                   <HStack spacing={3}>
-                    {["Sell", "Liquidate"].map((name, i) => {
+                    {["Exit", "Liquidate"].map((name, i) => {
+                      const isActive = selectedShortsTab === name;
+
+                      const baseStyle = {
+                        display: "flex",
+                        alignItems: "center",
+                        cursor: "pointer",
+                      };
+
+                      const activeStyle = {
+                        color: "white",
+                        borderBottom: isActive ? "2px solid white" : "",
+                        opacity: isActive ? 1 : 0.5,
+                      };
+
+                      return (
+                        <HStack
+                          key={i}
+                          style={{
+                            ...baseStyle,
+                            ...activeStyle,
+                          }}
+                          onClick={() => {
+                            setSelectedShortsTab(name);
+                          }}
+                          px={4}
+                          py={2}
+                          mt={-2}
+                          w={"fit-content"}
+                          justify="center"
+                        >
+                          <Text
+                            m={"0 auto"}
+                            fontSize="medium"
+                            fontWeight="semibold"
+                          >
+                            {name}
+                          </Text>
+                        </HStack>
+                      );
+                    })}
+                  </HStack>
+                )}
+
+                {selectedTab === "Longs" && (
+                  <HStack spacing={3}>
+                    {["Exit", "Liquidate"].map((name, i) => {
                       const isActive = selectedShortsTab === name;
 
                       const baseStyle = {
@@ -990,16 +1039,17 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
               )}
 
             {selectedTab === "Shorts" &&
-              selectedShortsTab === "Sell" &&
+              selectedShortsTab === "Exit" &&
               wallet.connected && (
                 <ShortsTable
                   is_2022={amm.base.token_program === TOKEN_2022_PROGRAM_ID}
-                  amm={amm.amm_data}
+                  amm={amm}
                   base_mint={amm.base.mint}
                   quote_mint={amm.quote.mint}
                   collection={short_collection}
                   shortsList={short_assets}
                   mode={0}
+                  direction="short"
                 />
               )}
 
@@ -1008,12 +1058,43 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
               wallet.connected && (
                 <ShortsTable
                   is_2022={amm.base.token_program === TOKEN_2022_PROGRAM_ID}
-                  amm={amm.amm_data}
+                  amm={amm}
                   base_mint={amm.base.mint}
                   quote_mint={amm.quote.mint}
                   collection={short_collection}
                   shortsList={short_assets}
                   mode={1}
+                  direction="short"
+                />
+              )}
+
+          {selectedTab === "Longs" &&
+              selectedShortsTab === "Exit" &&
+              wallet.connected && (
+                <ShortsTable
+                  is_2022={amm.base.token_program === TOKEN_2022_PROGRAM_ID}
+                  amm={amm}
+                  base_mint={amm.base.mint}
+                  quote_mint={amm.quote.mint}
+                  collection={short_collection}
+                  shortsList={short_assets}
+                  mode={0}
+                  direction="long"
+                />
+              )}
+
+            {selectedTab === "Longs" &&
+              selectedShortsTab === "Liquidate" &&
+              wallet.connected && (
+                <ShortsTable
+                  is_2022={amm.base.token_program === TOKEN_2022_PROGRAM_ID}
+                  amm={amm}
+                  base_mint={amm.base.mint}
+                  quote_mint={amm.quote.mint}
+                  collection={short_collection}
+                  shortsList={short_assets}
+                  mode={1}
+                  direction="long"
                 />
               )}
           </VStack>
@@ -2036,19 +2117,31 @@ const LongPanel = ({
   long_amount *
   Math.pow(10, base_data.mint.decimals);
 
-let quote_input_pre_fees =
-  (base_amount * quote_balance) /
-  (base_balance - base_amount) /
-  Math.pow(10, quote_data.mint.decimals);
+  let quote_amount =
+    (base_amount * quote_balance) /
+    (base_balance - base_amount) /
+    Math.pow(10, quote_data.mint.decimals);
 
-let quote_amount = quote_input_pre_fees / ( 1 - amm.fee/100/100)
+  let quote_input = quote_amount / ( 1 - amm.fee/100/100)
 
-console.log(quote_amount, base_amount)
 
-let liquidation_price = Math.max((quote_input_pre_fees - deposit_amount) / long_amount, 0);
+  let raw_deposit_amount = deposit_amount * Math.pow(10, base_data.mint.decimals)
 
-let liquidation_price_string =
-  formatPrice(liquidation_price, 5)
+
+  let total_base_fee = 0;
+  let transfer_fee_config = getTransferFeeConfig(base_data.mint);
+  if (transfer_fee_config !== null) {
+    total_base_fee += Number(
+      calculateFee(transfer_fee_config.newerTransferFee, BigInt(raw_deposit_amount)),
+    );
+  }
+
+  let deposit = (raw_deposit_amount - total_base_fee) / Math.pow(10, base_data.mint.decimals);
+  let liquidation_price = quote_amount / (deposit + long_amount);
+  console.log(quote_amount, deposit, long_amount)
+
+  let liquidation_price_string =
+    formatPrice(liquidation_price, 5)
 
   return (
     <>
@@ -2130,7 +2223,7 @@ let liquidation_price_string =
                   />
                   <InputRightElement h="100%" w={50}>
                     <Image
-                      src={quote_data.icon}
+                      src={base_data.icon}
                       width={30}
                       height={30}
                       alt=""
@@ -2260,14 +2353,8 @@ const BuyAndSell = ({
     token_amount * Math.pow(10, base_data.mint.decimals),
   );
   let total_base_fee = 0;
-  let transfer_fee = 0;
-  let max_transfer_fee = 0;
   let transfer_fee_config = getTransferFeeConfig(base_data.mint);
   if (transfer_fee_config !== null) {
-    transfer_fee = transfer_fee_config.newerTransferFee.transferFeeBasisPoints;
-    max_transfer_fee =
-      Number(transfer_fee_config.newerTransferFee.maximumFee) /
-      Math.pow(10, base_data.mint.decimals);
     total_base_fee += Number(
       calculateFee(transfer_fee_config.newerTransferFee, BigInt(base_raw)),
     );
@@ -2606,49 +2693,7 @@ const BuyAndSell = ({
               {amm.fee}
             </Text>
           </HStack>
-          {selected !== "Long" && selected !== "Short" && 
-          <>
-          <HStack justify="space-between" w="100%" mt={2}>
-            <Text
-              m={0}
-              color={"white"}
-              fontFamily="ReemKufiRegular"
-              fontSize={"medium"}
-              opacity={0.5}
-            >
-              Transfer Fee (bps):
-            </Text>
-            <Text
-              m={0}
-              color={"white"}
-              fontFamily="ReemKufiRegular"
-              fontSize={"medium"}
-            >
-              {transfer_fee}
-            </Text>
-          </HStack>
-
-          <HStack justify="space-between" w="100%" mt={2}>
-            <Text
-              m={0}
-              color={"white"}
-              fontFamily="ReemKufiRegular"
-              fontSize={"medium"}
-              opacity={0.5}
-            >
-              Max Transfer Fee ({base_data.symbol}):
-            </Text>
-            <Text
-              m={0}
-              color={"white"}
-              fontFamily="ReemKufiRegular"
-              fontSize={"medium"}
-            >
-              {max_transfer_fee}
-            </Text>
-          </HStack>
-          </>
-          }
+          
 
           {(selected === "Long" || selected === "Short") &&
           <>

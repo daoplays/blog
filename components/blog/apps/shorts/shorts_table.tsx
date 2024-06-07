@@ -37,13 +37,16 @@ import {
 } from "@solana/web3.js";
 import { WalletProvider, useWallet } from "@solana/wallet-adapter-react";
 import styles from "../../../..//styles/Launch.module.css";
-import { AMMData } from "./state";
+import { AMMData, AMMLaunch } from "./state";
 import { AssetV1 } from "@metaplex-foundation/mpl-core";
 import useExitShort from "./hooks/useExitShort";
 import { Mint } from "@solana/spl-token";
 import { formatPrice, getAttributes } from "./trade";
 import { bignum_to_num } from "../common";
 import useLiquidateShort from "./hooks/useLiquidateShort";
+import useExitLong from "./hooks/useExitLong";
+import useLiquidateLong from "./hooks/useLiquidateLong";
+import { exit } from "process";
 
 interface Header {
   text: string;
@@ -58,14 +61,16 @@ const ShortsTable = ({
   collection,
   shortsList,
   mode,
+  direction
 }: {
   is_2022: boolean;
-  amm: AMMData;
+  amm: AMMLaunch;
   base_mint: Mint;
   quote_mint: Mint;
   collection: PublicKey;
   shortsList: AssetV1[];
   mode: number;
+  direction: string;
 }) => {
   const { xs, sm, lg } = useResponsive();
   const wallet = useWallet();
@@ -85,6 +90,10 @@ const ShortsTable = ({
   function filterTable(mode: number) {
     return shortsList.filter(function (item) {
       let attributes = getAttributes(item);
+      let asset_direction = attributes.get("direction")
+      if (asset_direction !== direction) {
+        return false;
+      }
       // sell table
       if (mode == 0) {
         return item.owner.toString() === wallet.publicKey.toString();
@@ -100,13 +109,15 @@ const ShortsTable = ({
     });
   }
 
+  let borrow_unit = direction === "short" ? amm.quote.symbol : amm.base.symbol;
+
   const tableHeaders: Header[] = [
     { text: "NUM TOKENS", field: "number tokens" },
-    { text: "SHORT PRICE", field: "short price" },
+    { text: "ENTRY PRICE", field: "entry price" },
     { text: "LIQUIDATION PRICE", field: "liquidation price" },
     { text: "EXECUTION PRICE", field: "liquidation price" },
-    { text: "BORROW FEE", field: "borrow fee" },
-    { text: "PNL", field: "pnl" },
+    { text: "BORROW FEE ("+borrow_unit+")", field: "borrow fee" },
+    { text: "PROFIT ("+borrow_unit+")", field: "pnl" },
   ];
 
   if (collection === null || amm === null) {
@@ -157,12 +168,13 @@ const ShortsTable = ({
                 <LaunchCard
                   key={index}
                   is_2022={is_2022}
-                  amm={amm}
+                  amm={amm.amm_data}
                   base_mint={base_mint}
                   quote_mint={quote_mint}
                   collection={collection}
                   asset={short}
                   mode={mode}
+                  direction={direction}
                 />
               ))}
           </tbody>
@@ -180,6 +192,7 @@ const LaunchCard = ({
   collection,
   asset,
   mode,
+  direction
 }: {
   is_2022: boolean;
   amm: AMMData;
@@ -188,6 +201,7 @@ const LaunchCard = ({
   collection: PublicKey;
   asset: AssetV1;
   mode: number;
+  direction: string;
 }) => {
   const router = useRouter();
   const { xs, sm, md, lg } = useResponsive();
@@ -201,23 +215,43 @@ const LaunchCard = ({
 
   const { ExitShort, isLoading: isExitLoading } = useExitShort();
   const { LiquidateShort, isLoading: isLiquidateLoading } = useLiquidateShort();
+  const { ExitLong, isLoading: isLongExitLoading } = useExitLong();
+  const { LiquidateLong, isLoading: isLongLiquidateLoading } = useLiquidateLong();
 
-  let base_balance = bignum_to_num(amm.amm_base_amount);
-  let quote_balance = bignum_to_num(amm.amm_quote_amount);
+  let amm_base_balance = bignum_to_num(amm.amm_base_amount);
+  let amm_quote_balance = bignum_to_num(amm.amm_quote_amount);
 
   let attributes = getAttributes(asset);
-  let base_input = parseFloat(attributes.get("short_base_amount"));
-  let quote_input = parseFloat(attributes.get("short_quote_amount"));
+  let borrowed_base = parseFloat(attributes.get("base_amount"));
+  let borrowed_quote = parseFloat(attributes.get("quote_amount"));
   let deposit = parseFloat(attributes.get("deposit_amount"));
-  let short_price = parseFloat(attributes.get("short_price"));
+  let entry_price = parseFloat(attributes.get("entry_price"));
   let start_time = parseFloat(attributes.get("start_time"));
   let liquidation_price = parseFloat(attributes.get("liquidation_price"));
 
-  let quote_output = (base_input * quote_balance) / (base_balance - base_input);
 
-  let quote_post_fees = Math.floor(quote_output / (1 - amm.fee / 100 / 100));
+  let annual_borrow_fee;
+  let fee_decimals;
+  let liquidate;
+  let exit_trade_base;
+  let exit_trade_quote;
+  if (direction === "short") {
+    annual_borrow_fee = borrowed_quote * (amm.borrow_cost / 100 / 100);
+    fee_decimals = quote_mint.decimals;
+    exit_trade_base = borrowed_base;
+    exit_trade_quote = (borrowed_base * amm_quote_balance) / (amm_base_balance - borrowed_base);
+    exit_trade_quote = Math.floor(exit_trade_quote / (1 - amm.fee / 100 / 100));
+    liquidate = exit_trade_quote >= borrowed_quote + deposit;
+  }
+  else {
+    annual_borrow_fee = borrowed_base * (amm.borrow_cost / 100 / 100);
+    fee_decimals = base_mint.decimals;
+    exit_trade_base = (borrowed_quote * amm_base_balance) / (amm_quote_balance - borrowed_quote);
+    exit_trade_base = Math.floor(exit_trade_base / (1 - amm.fee / 100 / 100));
+    exit_trade_quote = borrowed_quote;
+    liquidate = exit_trade_base >= borrowed_base + deposit;
+  }
 
-  let liquidate = quote_post_fees >= quote_input + deposit;
 
   if (mode == 1 && !liquidate) {
     return <></>;
@@ -227,13 +261,23 @@ const LaunchCard = ({
   let time_delta_years = (current_time - start_time) / 60 / 60 / 24 / 365;
   let borrow_fee =
     Math.floor(
-      time_delta_years * quote_input * (amm.borrow_cost / 100 / 100) + 1,
-    ) / Math.pow(10, quote_mint.decimals);
-  let profit =
-    (quote_input - quote_post_fees) / Math.pow(10, quote_mint.decimals) -
-    borrow_fee;
-  console.log(quote_input, quote_post_fees, borrow_fee, profit, deposit);
+      time_delta_years * annual_borrow_fee + 1,
+    ) / Math.pow(10, fee_decimals);
+
+  let execution_price =  (exit_trade_quote / Math.pow(10, quote_mint.decimals)) / (exit_trade_base/ Math.pow(10, base_mint.decimals))
+
+  let profit;
+  if (direction === "short") {  
+    profit = (borrowed_quote - exit_trade_quote)/Math.pow(10, quote_mint.decimals) - borrow_fee;
+  }
+  else {
+    console.log(borrowed_base, deposit, exit_trade_base, borrow_fee)
+    profit = (borrowed_base - exit_trade_base)/Math.pow(10, base_mint.decimals) - borrow_fee;
+  }
+  console.log(borrow_fee, profit);
   //console.log(launch);
+
+  let price_decimals = Math.min(5, quote_mint.decimals);
   return (
     <>
       <tr
@@ -251,49 +295,46 @@ const LaunchCard = ({
       >
         <td style={{ minWidth: "160px" }}>
           <Text color="white" fontSize={"large"} m={0}>
-            {base_input / Math.pow(10, base_mint.decimals)}
+            {borrowed_base / Math.pow(10, base_mint.decimals)}
           </Text>
         </td>
         <td style={{ minWidth: sm ? "170px" : "200px" }}>
           <Text color="white" fontSize={"large"} m={0}>
-            {formatPrice(short_price, quote_mint.decimals)}
+            {formatPrice(entry_price, price_decimals)}
           </Text>
         </td>
         <td style={{ minWidth: "150px" }}>
           <Text color="white" fontSize={"large"} m={0}>
-            {formatPrice(liquidation_price, quote_mint.decimals)}
+            {formatPrice(liquidation_price, price_decimals)}
           </Text>
         </td>
         <td style={{ minWidth: "170px" }}>
           <Text color="white" fontSize={"large"} m={0}>
-            {formatPrice(
-              quote_post_fees / Math.pow(10, quote_mint.decimals) / base_input,
-              5,
-            )}
+            {formatPrice(execution_price, price_decimals)}
           </Text>
         </td>
         <td style={{ minWidth: "170px" }}>
           <Text color="white" fontSize={"large"} m={0}>
-            {formatPrice(borrow_fee, quote_mint.decimals)}
+            {formatPrice(borrow_fee, fee_decimals)}
           </Text>
         </td>
         <td style={{ minWidth: "170px" }}>
           <Text color="white" fontSize={"large"} m={0}>
-            {formatPrice(profit, quote_mint.decimals)}
+            {formatPrice(profit, fee_decimals)}
           </Text>
         </td>
         <td style={{ minWidth: "150px" }}>
           {mode === 0 && (
             <Button
-              onClick={() => ExitShort(amm, asset)}
+              onClick={() => {direction === "short" ? ExitShort(amm, asset) : ExitLong(amm, asset)}}
               style={{ textDecoration: "none" }}
             >
-              Sell
+              Exit
             </Button>
           )}
           {mode === 1 && (
             <Button
-              onClick={() => LiquidateShort(amm, asset)}
+              onClick={() => {direction === "short" ? LiquidateShort(amm, asset) : LiquidateLong(amm, asset)}}
               style={{ textDecoration: "none" }}
             >
               Liquidate

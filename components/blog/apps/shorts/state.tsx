@@ -38,9 +38,9 @@ export const enum AMMInstruction {
   enter_short = 6,
   exit_short = 7,
   liquidate_short = 8,
-  enter_long = 6,
-  exit_long = 7,
-  liquidate_long = 8,
+  enter_long = 9,
+  exit_long = 10,
+  liquidate_long = 11,
 }
 
 export interface AMMLaunch {

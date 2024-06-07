@@ -15,6 +15,7 @@ import {
   DEV_WSS_NODE,
   uInt32ToLEBytes,
   CORE,
+  serialise_basic_instruction,
 } from "../../common";
 import { useCallback, useRef, useState } from "react";
 import bs58 from "bs58";
@@ -34,51 +35,12 @@ import {
   unpackMint,
 } from "@solana/spl-token";
 import { FixableBeetStruct, bignum, u64, u8 } from "@metaplex-foundation/beet";
-import useCreateCollection from "./useCreateCollection";
+import { AssetV1 } from "@metaplex-foundation/mpl-core";
 
-class Enter_Long_Instruction {
-  constructor(
-    readonly instruction: number,
-    readonly long_amount: bignum,
-    readonly deposit: bignum,
-  ) {}
-
-  static readonly struct = new FixableBeetStruct<Enter_Long_Instruction>(
-    [
-      ["instruction", u8],
-      ["long_amount", u64],
-      ["deposit", u64],
-    ],
-    (args) =>
-      new Enter_Long_Instruction(
-        args.instruction!,
-        args.long_amount!,
-        args.deposit!,
-      ),
-    "Enter_Long_Instruction",
-  );
-}
-
-function serialise_long_instruction(
-  long_amount: number,
-  deposit: number,
-): Buffer {
-  console.log(long_amount, deposit);
-  const data = new Enter_Long_Instruction(
-    AMMInstruction.enter_long,
-    long_amount,
-    deposit,
-  );
-  const [buf] = Enter_Long_Instruction.struct.serialize(data);
-
-  return buf;
-}
-
-const useEnterLong = () => {
+const useExitLong = () => {
   const wallet = useWallet();
 
   const [isLoading, setIsLoading] = useState(false);
-  const { GetCreateCollectionInstruction } = useCreateCollection();
 
   const signature_ws_id = useRef<number | null>(null);
 
@@ -98,7 +60,7 @@ const useEnterLong = () => {
       return;
     }
 
-    toast.success("Long order placed!", {
+    toast.success("Exited Long Position!", {
       type: "success",
       isLoading: false,
       autoClose: 3000,
@@ -118,11 +80,7 @@ const useEnterLong = () => {
     });
   }, []);
 
-  const EnterLong = async (
-    amm_data: AMMData,
-    short_amount: number,
-    deposit_amount: number,
-  ) => {
+  const ExitLong = async (amm_data: AMMData, asset: AssetV1) => {
     const connection = new Connection(DEV_RPC_NODE, {
       wsEndpoint: DEV_WSS_NODE,
     });
@@ -187,7 +145,7 @@ const useEnterLong = () => {
       PROGRAM,
     )[0];
 
-    let asset_keypair = new Keypair();
+    let asset_address = new PublicKey(asset.publicKey.toString());
 
     let collection_account = PublicKey.findProgramAddressSync(
       [amm_data_account.toBytes(), Buffer.from("Collection")],
@@ -199,14 +157,13 @@ const useEnterLong = () => {
       PROGRAM,
     )[0];
 
-    const instruction_data = serialise_long_instruction(
-      Math.floor(short_amount * Math.pow(10, base_mint_data.decimals)),
-      Math.floor(deposit_amount * Math.pow(10, base_mint_data.decimals)),
+    const instruction_data = serialise_basic_instruction(
+      AMMInstruction.exit_long,
     );
 
     var account_vector = [
       { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
-      { pubkey: asset_keypair.publicKey, isSigner: true, isWritable: true },
+      { pubkey: asset_address, isSigner: false, isWritable: true },
       { pubkey: collection_account, isSigner: false, isWritable: true },
       { pubkey: pda, isSigner: false, isWritable: true },
       { pubkey: amm_data_account, isSigner: false, isWritable: true },
@@ -248,21 +205,9 @@ const useEnterLong = () => {
       }),
     );
 
-    let collection_balance = await connection.getBalance(collection_account);
-    let create_collection = null;
-    if (collection_balance == 0) {
-      create_collection = await GetCreateCollectionInstruction(
-        base_mint.toString(),
-        quote_mint.toString(),
-      );
-      transaction.add(create_collection);
-    }
-
     transaction.add(instruction);
 
     console.log("sending transaction");
-
-    transaction.partialSign(asset_keypair);
 
     try {
       let signed_transaction = await wallet.signTransaction(transaction);
@@ -288,7 +233,7 @@ const useEnterLong = () => {
     }
   };
 
-  return { EnterLong, isLoading };
+  return { ExitLong, isLoading };
 };
 
-export default useEnterLong;
+export default useExitLong;

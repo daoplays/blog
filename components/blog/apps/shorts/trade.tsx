@@ -834,7 +834,7 @@ export function getAttributes(option: AssetV1) {
 
 export function formatPrice(price: number, decimals: number) {
   let priceString =
-    price <= 1e-3 ? price.toExponential(3) : price.toFixed(decimals);
+    Math.abs(price) <= 1e-3 ? price.toExponential(3) : price.toFixed(decimals);
 
   return priceString;
 }
