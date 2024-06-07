@@ -4,6 +4,7 @@ import Head from "next/head";
 import {
   DEV_RPC_NODE,
   MintData,
+  RunCollectionDAS,
   bignum_to_num,
   request_raw_account_data,
   request_token_amount,
@@ -111,7 +112,7 @@ interface MarketData {
   volume: number;
 }
 
-export const checkShortsCollection = async (
+export const checkBorrowCollection = async (
   amm: AMMLaunch,
   setShortAssets: Dispatch<SetStateAction<AssetV1[]>>,
   setShortCollection: Dispatch<SetStateAction<PublicKey>>,
@@ -207,8 +208,8 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
   const [quote_data, setQuoteData] = useState<MintData | null>(null);
 
   // shorts state
-  const [short_assets, setShortAssets] = useState<AssetV1[]>([]);
-  const [short_collection, setShortCollection] = useState<PublicKey | null>(
+  const [borrow_assets, setBorrowAssets] = useState<AssetV1[]>([]);
+  const [borrow_collection, setBorrowCollection] = useState<PublicKey | null>(
     null,
   );
 
@@ -223,12 +224,14 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
   const user_base_token_ws_id = useRef<number | null>(null);
   const user_quote_token_ws_id = useRef<number | null>(null);
   const user_lp_token_ws_id = useRef<number | null>(null);
+  const collction_ws_id = useRef<number | null>(null);
+
   const check_market_data = useRef<boolean>(true);
 
   useEffect(() => {
     if (amm === null) return;
 
-    checkShortsCollection(amm, setShortAssets, setShortCollection);
+    checkBorrowCollection(amm, setBorrowAssets, setBorrowCollection);
   }, [amm]);
 
   const check_price_update = useCallback(async (result: any) => {
@@ -306,6 +309,27 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     setUserLPAmount(amount);
   }, []);
 
+  const check_collection_update = useCallback(async (result: any) => {
+    console.log("collection update", result);
+
+    let collection_umiKey = publicKey(borrow_collection.toString());
+    const umi = createUmi(DEV_RPC_NODE, "confirmed");
+
+    // if we have a subscription field check against ws_id
+    const assets = await getAssetV1GpaBuilder(umi)
+    .whereField("key", Key.AssetV1)
+    .whereField(
+      "updateAuthority",
+      updateAuthority("Collection", [collection_umiKey]),
+    )
+    .getDeserialized();
+
+    setBorrowAssets(assets);
+
+    //await RunCollectionDAS(borrow_collection)
+    
+  }, [borrow_collection]);
+
   // launch account subscription handler
   useEffect(() => {
     if (price_ws_id.current === null && price_address !== null) {
@@ -340,6 +364,14 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
         "confirmed",
       );
     }
+
+    if (collction_ws_id.current === null && borrow_collection !== null) {
+      collction_ws_id.current = connection.onAccountChange(
+        borrow_collection,
+        check_collection_update,
+        "confirmed",
+      );
+    }
   }, [
     connection,
     base_address,
@@ -348,10 +380,12 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
     user_base_address,
     user_quote_address,
     user_lp_address,
+    borrow_collection,
     check_price_update,
     check_user_base_update,
     check_user_quote_update,
     check_user_lp_update,
+    check_collection_update
   ]);
 
   const CheckMarketData = useCallback(async () => {
@@ -371,7 +405,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
       setOptionAssets,
       setOptionCollection,
     );
-    await checkShortsCollection(amm, setShortAssets, setShortCollection);
+    await checkBorrowCollection(amm, setBorrowAssets, setBorrowCollection);
 
     const base_mint = amm.amm_data.base_mint;
     const quote_mint = amm.amm_data.quote_mint;
@@ -756,7 +790,7 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
                 user_base_balance={user_base_amount}
                 user_quote_balance={user_quote_amount}
                 user_lp_balance={user_lp_amount}
-                owned_assets={short_assets}
+                owned_assets={borrow_assets}
               />
             )}
           </VStack>
@@ -1046,8 +1080,8 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
                   amm={amm}
                   base_mint={amm.base.mint}
                   quote_mint={amm.quote.mint}
-                  collection={short_collection}
-                  shortsList={short_assets}
+                  collection={borrow_collection}
+                  shortsList={borrow_assets}
                   mode={0}
                   direction="short"
                 />
@@ -1061,8 +1095,8 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
                   amm={amm}
                   base_mint={amm.base.mint}
                   quote_mint={amm.quote.mint}
-                  collection={short_collection}
-                  shortsList={short_assets}
+                  collection={borrow_collection}
+                  shortsList={borrow_assets}
                   mode={1}
                   direction="short"
                 />
@@ -1076,8 +1110,8 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
                   amm={amm}
                   base_mint={amm.base.mint}
                   quote_mint={amm.quote.mint}
-                  collection={short_collection}
-                  shortsList={short_assets}
+                  collection={borrow_collection}
+                  shortsList={borrow_assets}
                   mode={0}
                   direction="long"
                 />
@@ -1091,8 +1125,8 @@ const TradePage = ({ launch }: { launch: AMMLaunch }) => {
                   amm={amm}
                   base_mint={amm.base.mint}
                   quote_mint={amm.quote.mint}
-                  collection={short_collection}
-                  shortsList={short_assets}
+                  collection={borrow_collection}
+                  shortsList={borrow_assets}
                   mode={1}
                   direction="long"
                 />

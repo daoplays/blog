@@ -321,6 +321,36 @@ export async function request_raw_account_data(
 
   return account_data;
 }
+
+export async function RunCollectionDAS(collection: PublicKey) : Promise<void> {
+
+  const response = await fetch(DEV_RPC_NODE, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 'my-id',
+      method: 'getAssetsByGroup',
+      params: {
+        groupKey: 'collection',
+        groupValue: collection.toString(),
+        page: 1, // Starts at 1
+        limit: 1000,
+        options: {
+          showZeroBalance: false
+        }
+      },
+    }),
+  });
+  const { result } = await response.json();
+  console.log("Assets by Group: ", result.items);
+  console.log(result.items[0]["burnt"])
+  const filtered = result.items.filter((asset) => asset.burnt === false);
+  console.log("filtered:", filtered)
+}
+
 export interface GPAccount {
   pubkey: PublicKey;
   data: Buffer;
