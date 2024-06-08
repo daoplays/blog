@@ -50,7 +50,11 @@ class Enter_Short_Instruction {
       ["deposit", u64],
     ],
     (args) =>
-      new Enter_Short_Instruction(args.instruction!, args.short_amount!, args.deposit!),
+      new Enter_Short_Instruction(
+        args.instruction!,
+        args.short_amount!,
+        args.deposit!,
+      ),
     "Enter_Short_Instruction",
   );
 }
@@ -60,7 +64,11 @@ function serialise_short_instruction(
   deposit: number,
 ): Buffer {
   console.log(short_amount, deposit);
-  const data = new Enter_Short_Instruction(AMMInstruction.enter_short, short_amount, deposit);
+  const data = new Enter_Short_Instruction(
+    AMMInstruction.enter_short,
+    short_amount,
+    deposit,
+  );
   const [buf] = Enter_Short_Instruction.struct.serialize(data);
 
   return buf;
@@ -70,8 +78,7 @@ const useEnterShort = () => {
   const wallet = useWallet();
 
   const [isLoading, setIsLoading] = useState(false);
-  const { GetCreateCollectionInstruction} =
-    useCreateCollection();
+  const { GetCreateCollectionInstruction } = useCreateCollection();
 
   const signature_ws_id = useRef<number | null>(null);
 
@@ -113,7 +120,7 @@ const useEnterShort = () => {
 
   const EnterShort = async (
     amm_data: AMMData,
-    short_amount : number,
+    short_amount: number,
     deposit_amount: number,
   ) => {
     const connection = new Connection(DEV_RPC_NODE, {
@@ -182,7 +189,6 @@ const useEnterShort = () => {
 
     let asset_keypair = new Keypair();
 
-
     let collection_account = PublicKey.findProgramAddressSync(
       [amm_data_account.toBytes(), Buffer.from("Collection")],
       PROGRAM,
@@ -195,7 +201,7 @@ const useEnterShort = () => {
 
     const instruction_data = serialise_short_instruction(
       Math.floor(short_amount * Math.pow(10, base_mint_data.decimals)),
-      Math.floor(deposit_amount * Math.pow(10, quote_mint_data.decimals))
+      Math.floor(deposit_amount * Math.pow(10, quote_mint_data.decimals)),
     );
 
     var account_vector = [
@@ -242,11 +248,13 @@ const useEnterShort = () => {
       }),
     );
 
-
     let collection_balance = await connection.getBalance(collection_account);
     let create_collection = null;
     if (collection_balance == 0) {
-      create_collection = await GetCreateCollectionInstruction(base_mint.toString(), quote_mint.toString());
+      create_collection = await GetCreateCollectionInstruction(
+        base_mint.toString(),
+        quote_mint.toString(),
+      );
       transaction.add(create_collection);
     }
 

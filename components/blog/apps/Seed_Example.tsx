@@ -24,20 +24,5 @@ function RandomApp() {
 }
 
 export function SeedExample() {
-  const network = "devnet";
-  const endpoint = web3.clusterApiUrl(network);
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    [],
-  );
-
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <RandomApp />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  return <RandomApp />;
 }

@@ -35,16 +35,12 @@ import {
   unpackMint,
 } from "@solana/spl-token";
 import { FixableBeetStruct, bignum, u64, u8 } from "@metaplex-foundation/beet";
-import useCreateCollection from "./useCreateCollection";
 import { AssetV1 } from "@metaplex-foundation/mpl-core";
 
-
-const useExitShort = () => {
+const useExitLong = () => {
   const wallet = useWallet();
 
   const [isLoading, setIsLoading] = useState(false);
-  const { GetCreateCollectionInstruction} =
-    useCreateCollection();
 
   const signature_ws_id = useRef<number | null>(null);
 
@@ -64,7 +60,7 @@ const useExitShort = () => {
       return;
     }
 
-    toast.success("Short order placed!", {
+    toast.success("Exited Long Position!", {
       type: "success",
       isLoading: false,
       autoClose: 3000,
@@ -84,10 +80,7 @@ const useExitShort = () => {
     });
   }, []);
 
-  const ExitShort = async (
-    amm_data: AMMData,
-    asset : AssetV1
-  ) => {
+  const ExitLong = async (amm_data: AMMData, asset: AssetV1) => {
     const connection = new Connection(DEV_RPC_NODE, {
       wsEndpoint: DEV_WSS_NODE,
     });
@@ -132,18 +125,18 @@ const useExitShort = () => {
       PROGRAM,
     )[0];
 
-    let user_quote = await getAssociatedTokenAddress(
-      quote_mint, // mint
+    let user_base = await getAssociatedTokenAddress(
+      base_mint, // mint
       wallet.publicKey, // owner
       true, // allow owner off curve
-      quote_mint_account.owner,
+      base_mint_account.owner,
     );
 
-    let amm_quote = await getAssociatedTokenAddress(
-      quote_mint, // mint
+    let amm_base = await getAssociatedTokenAddress(
+      base_mint, // mint
       amm_data_account, // owner
       true, // allow owner off curve
-      quote_mint_account.owner,
+      base_mint_account.owner,
     );
 
     let index_buffer = uInt32ToLEBytes(0);
@@ -152,8 +145,7 @@ const useExitShort = () => {
       PROGRAM,
     )[0];
 
-    let asset_address = new PublicKey(asset.publicKey.toString())
-
+    let asset_address = new PublicKey(asset.publicKey.toString());
 
     let collection_account = PublicKey.findProgramAddressSync(
       [amm_data_account.toBytes(), Buffer.from("Collection")],
@@ -166,7 +158,7 @@ const useExitShort = () => {
     )[0];
 
     const instruction_data = serialise_basic_instruction(
-      AMMInstruction.exit_short
+      AMMInstruction.exit_long,
     );
 
     var account_vector = [
@@ -177,8 +169,8 @@ const useExitShort = () => {
       { pubkey: amm_data_account, isSigner: false, isWritable: true },
       { pubkey: base_mint, isSigner: false, isWritable: true },
       { pubkey: quote_mint, isSigner: false, isWritable: true },
-      { pubkey: user_quote, isSigner: false, isWritable: true },
-      { pubkey: amm_quote, isSigner: false, isWritable: true },
+      { pubkey: user_base, isSigner: false, isWritable: true },
+      { pubkey: amm_base, isSigner: false, isWritable: true },
       { pubkey: price_data_account, isSigner: false, isWritable: true },
       { pubkey: CORE, isSigner: false, isWritable: false },
       { pubkey: quote_mint_account.owner, isSigner: false, isWritable: false },
@@ -217,7 +209,6 @@ const useExitShort = () => {
 
     console.log("sending transaction");
 
-
     try {
       let signed_transaction = await wallet.signTransaction(transaction);
 
@@ -242,7 +233,7 @@ const useExitShort = () => {
     }
   };
 
-  return { ExitShort, isLoading };
+  return { ExitLong, isLoading };
 };
 
-export default useExitShort;
+export default useExitLong;

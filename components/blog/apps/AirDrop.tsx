@@ -151,20 +151,5 @@ export function AirDropApp() {
 }
 
 export function AirDrop() {
-  const network = "devnet";
-  const endpoint = web3.clusterApiUrl(network);
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    [],
-  );
-
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets}>
-        <WalletModalProvider>
-          <AirDropApp />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  return <AirDropApp />;
 }

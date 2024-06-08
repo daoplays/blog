@@ -281,6 +281,9 @@ const useInitAMM = () => {
     let transaction = new Transaction(txArgs);
     transaction.feePayer = wallet.publicKey;
 
+    transaction.add(
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }),
+    );
     let feeMicroLamports = 100000;
     transaction.add(
       ComputeBudgetProgram.setComputeUnitPrice({

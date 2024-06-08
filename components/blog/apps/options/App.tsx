@@ -43,14 +43,8 @@ import { PublicKey, Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import styles from "../../../../styles/Core.module.css";
 import HybridInfo from "./tokenInfo";
 import OptionsTable from "./table";
-import {
-  DEV_RPC_NODE,
-  OptionData,
-  default_option_data,
-  PROGRAM,
-  Asset,
-  DEV_WSS_NODE,
-} from "./state";
+import { OptionData, default_option_data, PROGRAM, Asset } from "./state";
+import { DEV_RPC_NODE, DEV_WSS_NODE } from "../common";
 import { Mint } from "@solana/spl-token";
 import { CallPut } from "./CallPut";
 import {
@@ -65,6 +59,34 @@ import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { publicKey } from "@metaplex-foundation/umi";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
+
+export const checkOptionsCollection = async (
+  token: Mint,
+  setCollectionAssets: Dispatch<SetStateAction<AssetV1[]>>,
+  setCollection: Dispatch<SetStateAction<PublicKey>>,
+) => {
+  if (token === null) return;
+
+  const umi = createUmi(DEV_RPC_NODE, "confirmed");
+
+  let collection_account = PublicKey.findProgramAddressSync(
+    [token.address.toBytes(), Buffer.from("Collection")],
+    PROGRAM,
+  )[0];
+
+  let collection_umiKey = publicKey(collection_account.toString());
+
+  const assets = await getAssetV1GpaBuilder(umi)
+    .whereField("key", Key.AssetV1)
+    .whereField(
+      "updateAuthority",
+      updateAuthority("Collection", [collection_umiKey]),
+    )
+    .getDeserialized();
+
+  setCollectionAssets(assets);
+  setCollection(collection_account);
+};
 
 function App() {
   const wallet = useWallet();
@@ -83,25 +105,7 @@ function App() {
   const checkCollection = useCallback(async () => {
     if (token === null) return;
 
-    const umi = createUmi(DEV_RPC_NODE, "confirmed");
-
-    let collection_account = PublicKey.findProgramAddressSync(
-      [token.address.toBytes(), Buffer.from("Collection")],
-      PROGRAM,
-    )[0];
-
-    let collection_umiKey = publicKey(collection_account.toString());
-
-    const assets = await getAssetV1GpaBuilder(umi)
-      .whereField("key", Key.AssetV1)
-      .whereField(
-        "updateAuthority",
-        updateAuthority("Collection", [collection_umiKey]),
-      )
-      .getDeserialized();
-
-    setCollectionAssets(assets);
-    setCollection(collection_account);
+    await checkOptionsCollection(token, setCollectionAssets, setCollection);
 
     const connection = new Connection(DEV_RPC_NODE, {
       wsEndpoint: DEV_WSS_NODE,
@@ -294,7 +298,6 @@ function App() {
               collection={collection}
               optionsList={collection_assets}
               mode={0}
-              update={checkCollection}
             />
           )}
 
@@ -305,7 +308,6 @@ function App() {
               collection={collection}
               optionsList={collection_assets}
               mode={1}
-              update={checkCollection}
             />
           )}
 
@@ -316,7 +318,6 @@ function App() {
               collection={collection}
               optionsList={collection_assets}
               mode={2}
-              update={checkCollection}
             />
           )}
         </VStack>
@@ -328,11 +329,5 @@ function App() {
 export function OptionsApp() {
   const wallets = useMemo(() => [], []);
 
-  return (
-    <WalletProvider wallets={wallets} autoConnect>
-      <WalletModalProvider>
-        <App />
-      </WalletModalProvider>
-    </WalletProvider>
-  );
+  return <App />;
 }

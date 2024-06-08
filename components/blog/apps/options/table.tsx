@@ -1,4 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import {
   Badge,
@@ -102,14 +108,12 @@ const OptionsTable = ({
   collection,
   optionsList,
   mode,
-  update,
 }: {
   is_2022: boolean;
   mint: Mint;
   collection: PublicKey;
   optionsList: AssetV1[];
   mode: number;
-  update: () => Promise<void>;
 }) => {
   const { xs, sm, lg } = useResponsive();
   const wallet = useWallet();
@@ -165,7 +169,7 @@ const OptionsTable = ({
 
   return (
     <>
-      <TableContainer>
+      <TableContainer w="100%">
         <table width="100%" className="custom-centered-table font-face-rk">
           <thead>
             <tr
@@ -197,12 +201,6 @@ const OptionsTable = ({
                   </HStack>
                 </th>
               ))}
-
-              <th>
-                <Box mt={1} as="button">
-                  <TfiReload size={sm ? 18 : 20} onClick={update} />
-                </Box>
-              </th>
             </tr>
           </thead>
 
@@ -256,8 +254,6 @@ const LaunchCard = ({
 
   let attributes = getAttributes(option);
 
-  console.log(attributes);
-
   let splitLaunchDate = attributes.expiry.toUTCString().split(" ");
   let launchDateString =
     splitLaunchDate[1] + " " + splitLaunchDate[2] + " " + splitLaunchDate[3];
@@ -276,7 +272,6 @@ const LaunchCard = ({
     time_string = time_left.toFixed(1) + " min";
   }
 
-  console.log(option);
   //console.log(launch);
   return (
     <>

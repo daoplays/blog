@@ -16,7 +16,7 @@ import {
   SYSTEM_KEY,
   DEV_RPC_NODE,
   DEV_WSS_NODE,
-  serialise_basic_instruction
+  serialise_basic_instruction,
 } from "../../common";
 import { AMMData, AMMInstruction, PROGRAM } from "../state";
 import { unpackMint } from "@solana/spl-token";
@@ -24,14 +24,14 @@ import { unpackMint } from "@solana/spl-token";
 const useCreateCollection = () => {
   const wallet = useWallet();
 
-  const GetCreateCollectionInstruction = async (base_mint_string: string,
-    quote_mint_string: string) => {
+  const GetCreateCollectionInstruction = async (
+    base_mint_string: string,
+    quote_mint_string: string,
+  ) => {
     //console.log("in mint nft");
 
-    
     let base_mint = new PublicKey(base_mint_string);
     let quote_mint = new PublicKey(quote_mint_string);
-
 
     let amm_seed_keys = [];
     if (base_mint.toString() < quote_mint.toString()) {
@@ -50,7 +50,6 @@ const useCreateCollection = () => {
       ],
       PROGRAM,
     )[0];
-
 
     //console.log("no lookup data found");
     let collection_account = PublicKey.findProgramAddressSync(
@@ -84,7 +83,6 @@ const useCreateCollection = () => {
 
     return list_instruction;
   };
-
 
   return { GetCreateCollectionInstruction };
 };

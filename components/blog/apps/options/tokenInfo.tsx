@@ -16,13 +16,9 @@ import useResponsive from "./hooks/useResponsive";
 import styles2 from "../../styles/LaunchDetails.module.css";
 import { Keypair, PublicKey, Connection } from "@solana/web3.js";
 import { toast } from "react-toastify";
-import {
-  METAPLEX_META,
-  Extensions,
-  DEV_RPC_NODE,
-  DEV_WSS_NODE,
-  OptionData,
-} from "./state";
+import { METAPLEX_META, Extensions, OptionData } from "./state";
+import { DEV_RPC_NODE, DEV_WSS_NODE } from "../common";
+
 import {
   unpackMint,
   Mint,

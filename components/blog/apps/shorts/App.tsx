@@ -7,15 +7,8 @@ import React, {
   Dispatch,
 } from "react";
 import { SetStateAction } from "react";
-import {
-  ConnectionProvider,
-  WalletProvider,
-  useWallet,
-} from "@solana/wallet-adapter-react";
-import {
-  WalletModalProvider,
-  useWalletModal,
-} from "@solana/wallet-adapter-react-ui";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import TradePage from "./trade";
 import { Flex, HStack, VStack, Text, Center, Box } from "@chakra-ui/react";
 import SideNav from "./sideNav";
@@ -35,7 +28,7 @@ import AMMTable from "./table";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
-const GetProgramData = async (check_program_data, setProgramData) => {
+export const GetProgramData = async (check_program_data, setProgramData) => {
   if (!check_program_data.current) return;
 
   let list = await RunGPA(PROGRAM);
@@ -45,7 +38,7 @@ const GetProgramData = async (check_program_data, setProgramData) => {
   check_program_data.current = false;
 };
 
-const GetTradeMintData = async (trade_keys: PublicKey[], setMintMap) => {
+export const GetTradeMintData = async (trade_keys: PublicKey[], setMintMap) => {
   let mint_map = new Map<String, MintData>();
   for (let i = 0; i < trade_keys.length; i++) {
     if (mint_map.has(trade_keys[i].toString())) {
@@ -60,8 +53,6 @@ const GetTradeMintData = async (trade_keys: PublicKey[], setMintMap) => {
 
 function App() {
   const wallet = useWallet();
-
-  const [sidePanelCollapsed, setSidePanelCollapsed] = useState(true);
   const [screen, setScreen] = useState<Screen>(Screen.table);
   const [selected, setSelected] = useState<string>("View");
   const [program_data, setProgramData] = useState<GPAccount[] | null>(null);
@@ -312,13 +303,5 @@ export function ShortsApp() {
     commitment: "confirmed",
   };
 
-  return (
-    <ConnectionProvider endpoint={DEV_RPC_NODE} config={connectionConfig}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <App />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  return <App />;
 }

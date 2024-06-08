@@ -70,7 +70,7 @@ import {
 } from "@solana/spl-token";
 import bs58 from "bs58";
 import BN from "bn.js";
-
+import { DEV_RPC_NODE } from "./common";
 import loading from "./loading-gif.gif";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -125,9 +125,6 @@ async function send_transaction(
     method: "sendTransaction",
     params: [encoded_transaction, { skipPreflight: true }],
   };
-
-  const DEV_RPC_NODE =
-    "https://black-damp-river.solana-devnet.quiknode.pro/c5447e06dd58dec2f4568518d8fb2fd8625b1d95/";
 
   var response_json = await postData(DEV_RPC_NODE, bearer, body);
   console.log(response_json);
@@ -1366,20 +1363,5 @@ function Tokens2022App() {
 }
 
 export function Tokens2022() {
-  const network = "devnet";
-  const endpoint = clusterApiUrl(network);
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    [],
-  );
-
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <Tokens2022App />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  return <Tokens2022App />;
 }

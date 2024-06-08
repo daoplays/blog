@@ -1396,20 +1396,5 @@ export function AirDropApp() {
 }
 
 export function CharityAuctionDapp() {
-  const network = "devnet";
-  const endpoint = web3.clusterApiUrl(network);
-  const wallets = useMemo(
-    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    [],
-  );
-
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <AirDropApp />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  return <AirDropApp />;
 }

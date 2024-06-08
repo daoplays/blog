@@ -15,10 +15,10 @@ import {
   PROGRAM,
   CORE,
   SYSTEM_KEY,
-  DEV_RPC_NODE,
-  DEV_WSS_NODE,
   serialise_CreateAsset_instruction,
 } from "../state";
+import { DEV_RPC_NODE, DEV_WSS_NODE } from "../../common";
+
 const useCreateCollection = (
   name: string,
   uri: string,
