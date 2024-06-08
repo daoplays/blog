@@ -1851,30 +1851,6 @@ const InfoContent = ({
           fontSize={"medium"}
           opacity={0.5}
         >
-          FDMC:
-        </Text>
-        <Text
-          m={0}
-          color={"white"}
-          fontFamily="ReemKufiRegular"
-          fontSize={"large"}
-        >
-          {(total_supply * price).toLocaleString("en-US", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}{" "}
-          {quote_data.symbol}
-        </Text>
-      </HStack>
-
-      <HStack px={5} justify="space-between" w="100%">
-        <Text
-          m={0}
-          color={"white"}
-          fontFamily="ReemKufiRegular"
-          fontSize={"medium"}
-          opacity={0.5}
-        >
           TVL:
         </Text>
         <Text
