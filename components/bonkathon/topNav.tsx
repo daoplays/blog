@@ -52,13 +52,32 @@ function NavigationBonk() {
         hidden={sm}
       >
         <Link href="/bonkathon2024/create" style={{ textDecoration: "none" }}>
-          <Text m={0} fontSize="2xl" color="#683309" fontWeight={500}>
-            [Create]
+          <Text m={0} p={0} fontSize="2xl" color="#683309" fontWeight={500}
+           style={{
+            backgroundColor: "#683309",
+            borderRadius: 20,
+            padding: "1px 10px 2px 10px",
+            color: "white",
+            marginTop: 4,
+            position: "relative",
+            top: 2,
+          }}
+          >
+            Create
           </Text>
         </Link>
         <Link href="/bonkathon2024" style={{ textDecoration: "none" }}>
-          <Text m={0} fontSize="2xl" color="#683309" fontWeight={500}>
-            [View]
+          <Text m={0} fontSize="2xl" color="#683309" fontWeight={500}
+          style={{
+            backgroundColor: "#683309",
+            borderRadius: 20,
+            padding: "1px 10px 2px 10px",
+            color: "white",
+            marginTop: 4,
+            position: "relative",
+            top: 2,
+          }}>
+            View
           </Text>
         </Link>
       </HStack>

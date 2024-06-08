@@ -53,7 +53,8 @@ const ViewAMMs = () => {
     for (let i = 0; i < program_data.length; i++) {
       let data = program_data[i].data;
 
-      if (data[0] === 6) {
+      if (data[0] === 6 && data.length === 215) {
+
         try {
           const [amm] = AMMData.struct.deserialize(data);
           amm_data.push(amm);

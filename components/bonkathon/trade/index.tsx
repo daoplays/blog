@@ -739,7 +739,7 @@ const TradePage = ({
     );
   };
 
-  if (!launch || launch === null)
+  if (!amm_address)
     return (
       <VStack h="100vh" w="full" pt={4}>
         <Text color="white" fontSize="xl" mx="auto">

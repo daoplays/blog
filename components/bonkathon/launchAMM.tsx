@@ -391,13 +391,13 @@ const LaunchAMM = () => {
                   className={`${styles.textLabel} font-face-kg`}
                   style={{ minWidth: lg ? "100px" : "180px" }}
                 >
-                  Short Frac:
+                  Borrow Frac:
                 </div>
 
                 <div className={styles.textLabelInput}>
                   <Input
                     bg="#494949"
-                    placeholder="Enter Short Pool Fraction (10 = 10% of base amount)"
+                    placeholder="Enter fraction for short/leverage pools (10 = 10% of base amount)"
                     size={lg ? "md" : "lg"}
                     maxLength={8}
                     className={styles.inputBox}
@@ -443,7 +443,7 @@ const LaunchAMM = () => {
                 <div className={styles.textLabelInput}>
                   <Input
                     bg="#494949"
-                    placeholder="Enter Short Borrow Fee (Bps - 100 = 1%)"
+                    placeholder="Enter Annualised Borrow Fee (Bps - 100 = 1%)"
                     size={lg ? "md" : "lg"}
                     maxLength={8}
                     className={styles.inputBox}
