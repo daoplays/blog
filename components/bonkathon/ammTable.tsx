@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { AMMLaunch } from "../blog/apps/shorts/state";
+import { AMMLaunch, Screen } from "../blog/apps/shorts/state";
 import useResponsive from "../../hooks/useResponsive";
 import ShowExtensions from "../blog/apps/utils/extensions";
 interface Header {
@@ -26,11 +26,13 @@ interface Header {
 }
 
 const AMMTable = ({
+  setScreen,
   ammList,
   setCurrentLaunch,
   setSelected,
 }: {
   ammList: Map<String, AMMLaunch>;
+  setScreen?: Dispatch<SetStateAction<number>>;
   setCurrentLaunch: Dispatch<SetStateAction<AMMLaunch>>;
   setSelected?: Dispatch<SetStateAction<String>>;
 }) => {
@@ -107,6 +109,7 @@ const AMMTable = ({
           {amm_array.map((launch, i) => (
             <LaunchCard
               key={i}
+              setScreen={setScreen}
               amm_launch={launch.value}
               setCurrentLaunch={setCurrentLaunch}
               setSelected={setSelected}
@@ -120,10 +123,12 @@ const AMMTable = ({
 
 const LaunchCard = ({
   amm_launch,
+  setScreen,
   setCurrentLaunch,
   setSelected,
 }: {
   amm_launch: AMMLaunch;
+  setScreen?: Dispatch<SetStateAction<number>>;
   setCurrentLaunch: Dispatch<SetStateAction<AMMLaunch>>;
   setSelected?: Dispatch<SetStateAction<String>>;
 }) => {
@@ -153,6 +158,7 @@ const LaunchCard = ({
       onClick={() => {
         setCurrentLaunch(amm_launch);
         setSelected("Trade");
+        setScreen(Screen.trade);
       }}
     >
       <td style={{ minWidth: "160px" }}>

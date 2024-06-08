@@ -1,4 +1,4 @@
-import LaunchAMM from "../../components/bonkathon/launch";
+import LaunchAMM from "../../components/bonkathon/launchAMM";
 
 const Create = () => {
   return (

@@ -17,12 +17,13 @@ import {
   GetTradeMintData,
 } from "../../components/blog/apps/shorts/App";
 import useResponsive from "../../hooks/useResponsive";
-import AMMTable from "../../components/bonkathon/table";
 import { HStack, VStack } from "@chakra-ui/react";
 import TradePage from "../../components/bonkathon/trade";
+import AMMTable from "../../components/bonkathon/ammTable";
+import Footer from "../../components/bonkathon/footer";
 
 const ViewAMMs = () => {
-  const { lg, xl } = useResponsive();
+  const { sm, lg, xl } = useResponsive();
 
   const [program_data, setProgramData] = useState<GPAccount[] | null>(null);
   const [amm_data, setAMMData] = useState<AMMData[]>([]);
@@ -102,7 +103,7 @@ const ViewAMMs = () => {
           amm_seed_keys[1].toBytes(),
           Buffer.from("AMM"),
         ],
-        PROGRAM,
+        PROGRAM
       )[0];
 
       amm_launches.set(amm_data_account.toString(), launch);
@@ -137,28 +138,29 @@ const ViewAMMs = () => {
     >
       <HStack
         align="start"
-        h="100%"
+        height="100%"
         style={{
           width: screen === Screen.trade ? "100%" : lg ? "100%" : "1200px",
         }}
         px={screen === Screen.trade ? 0 : lg ? 0 : 12}
       >
         {screen === Screen.trade && (
-          <div
+          <VStack
             style={{
               background: "linear-gradient(180deg, #292929 10%, #0B0B0B 100%)",
-              height: "100%",
+              minHeight: "100vh",
               width: "100%",
               marginTop: "-12px",
             }}
           >
-            <TradePage launch={current_launch} />
-          </div>
+            <TradePage launch={current_launch} setScreen={setScreen} />
+          </VStack>
         )}
 
         {screen === Screen.table && (
           <VStack h="100vh" w="full">
             <AMMTable
+              setScreen={setScreen}
               ammList={amm_launches}
               setCurrentLaunch={setCurrentLaunch}
               setSelected={setSelected}
@@ -166,6 +168,10 @@ const ViewAMMs = () => {
           </VStack>
         )}
       </HStack>
+
+      {sm && screen !== Screen.trade && (
+        <Footer isTradePage={false} setScreen={setScreen} />
+      )}
     </main>
   );
 };

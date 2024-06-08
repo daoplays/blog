@@ -17,22 +17,6 @@ body {
     sans-serif;
 }
 
-::-webkit-scrollbar {
-  width: 0.5rem;
-  height: 0.375;
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-  background: #2b2c3d;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background: #99a5bf;
-  border-radius: 5px;
-}
-
 a {
   color: inherit;
   text-decoration: none;

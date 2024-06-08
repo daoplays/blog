@@ -7,7 +7,7 @@ import useResponsive from "../../hooks/useResponsive";
 function NavigationBonk() {
   const router = useRouter();
   const wallet = useWallet();
-  const { md } = useResponsive();
+  const { sm, md } = useResponsive();
 
   return (
     <HStack
@@ -49,6 +49,7 @@ function NavigationBonk() {
           right: 0,
           width: "fit-content",
         }}
+        hidden={sm}
       >
         <Link href="/bonkathon2024/create" style={{ textDecoration: "none" }}>
           <Text m={0} fontSize="2xl" color="#683309" fontWeight={500}>
