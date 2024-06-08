@@ -94,17 +94,13 @@ const ShortsTable = ({
       if (asset_direction !== direction) {
         return false;
       }
-      // sell table
+      // sell table - only the owner can do this
       if (mode == 0) {
         return item.owner.toString() === wallet.publicKey.toString();
       }
-      //liquidate
+      //liquidate - anyone can do this
       if (mode == 1) {
-        return (
-          wallet !== null &&
-          wallet.publicKey !== null &&
-          item.owner.toString() === wallet.publicKey.toString()
-        );
+        return (true);
       }
     });
   }
