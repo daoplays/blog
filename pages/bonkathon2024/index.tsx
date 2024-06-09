@@ -22,6 +22,13 @@ import TradePage from "../../components/bonkathon/trade";
 import AMMTable from "../../components/bonkathon/ammTable";
 import Footer from "../../components/bonkathon/footer";
 
+export const bonkathonLinks = [
+  "/bonkathon2024",
+  "/bonkathon2024/create",
+  "/bonkathon2024/view",
+  "/bonkathon2024/demo",
+];
+
 const ViewAMMs = () => {
   const { sm, lg, xl } = useResponsive();
 

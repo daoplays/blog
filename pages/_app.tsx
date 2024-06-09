@@ -11,12 +11,6 @@ import "../styles/global.css";
 
 import NoSSR from "../utils/NoSSR";
 
-const bonkathonLinks = [
-  "/bonkathon2024",
-  "/bonkathon2024/create",
-  "/bonkathon2024/view",
-];
-
 import { usePathname } from "next/navigation";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
@@ -27,6 +21,7 @@ import { DEV_RPC_NODE, DEV_WSS_NODE } from "../components/blog/apps/common";
 import { useMemo } from "react";
 import { ConnectionConfig } from "@solana/web3.js";
 import NavigationBonk from "../components/bonkathon/topNav";
+import { bonkathonLinks } from "./bonkathon2024";
 function MyApp({ Component, pageProps }) {
   const pathname = usePathname();
 

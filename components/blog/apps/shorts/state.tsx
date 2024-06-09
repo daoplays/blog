@@ -26,6 +26,7 @@ export const enum Screen {
   create = 0,
   trade = 1,
   table = 2,
+  demo = 3,
 }
 
 export const enum AMMInstruction {
