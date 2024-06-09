@@ -80,8 +80,10 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
   }, []);
 
   const CreateOption = async (
-    mint: Mint,
-    is_2022: boolean,
+    base_mint: Mint,
+    quote_mint: Mint,
+    base_2022: boolean,
+    quote_2022: boolean,
     side: number,
     token_amount: number,
     strike_price: number,
@@ -104,12 +106,12 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
       return;
     }
 
-    let token_program = is_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
+    let base_token_program = base_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
+    let quote_token_program = quote_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
 
-    let token_mint_key = new PublicKey(token_mint);
     //console.log("no lookup data found");
     let collection_account = PublicKey.findProgramAddressSync(
-      [token_mint_key.toBytes(), Buffer.from("Collection")],
+      [base_mint.address.toBytes(), Buffer.from("Collection")],
       PROGRAM,
     )[0];
 
@@ -120,18 +122,32 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
       PROGRAM,
     )[0];
 
-    let user_token_account = getAssociatedTokenAddressSync(
-      token_mint_key, // mint
+    let user_base = getAssociatedTokenAddressSync(
+      base_mint.address, // mint
       wallet.publicKey, // owner
       true, // allow owner off curve
-      token_program,
+      base_token_program,
     );
 
-    let program_token_account = getAssociatedTokenAddressSync(
-      token_mint_key, // mint
+    let program_base = getAssociatedTokenAddressSync(
+      base_mint.address, // mint
       program_pda, // owner
       true, // allow owner off curve
-      token_program,
+      base_token_program,
+    );
+
+    let user_quote = getAssociatedTokenAddressSync(
+      quote_mint.address, // mint
+      wallet.publicKey, // owner
+      true, // allow owner off curve
+      quote_token_program,
+    );
+
+    let program_quote = getAssociatedTokenAddressSync(
+      quote_mint.address, // mint
+      program_pda, // owner
+      true, // allow owner off curve
+      quote_token_program,
     );
 
     let date = new Date(end_date);
@@ -155,8 +171,8 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
       launchTimeString +
       " UTC";
 
-    let total_tokens = Math.floor(token_amount * Math.pow(10, mint.decimals));
-    let strike_lamports = Math.floor(strike_price * Math.pow(10, 9));
+    let total_tokens = Math.floor(token_amount * Math.pow(10, base_mint.decimals));
+    let strike_lamports = Math.floor(strike_price * Math.pow(10, quote_mint.decimals));
     let price_lamports = Math.floor(option_premium * Math.pow(10, 9));
 
     const instruction_data = serialise_CreateOption_instruction(
@@ -169,7 +185,7 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
       price_lamports,
     );
 
-    let transfer_hook = getTransferHook(mint);
+    let transfer_hook = getTransferHook(base_mint);
 
     let transfer_hook_program_account: PublicKey | null = null;
     let transfer_hook_validation_account: PublicKey | null = null;
@@ -179,7 +195,7 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
 
       transfer_hook_program_account = transfer_hook.programId;
       transfer_hook_validation_account = PublicKey.findProgramAddressSync(
-        [Buffer.from("extra-account-metas"), mint.address.toBuffer()],
+        [Buffer.from("extra-account-metas"), base_mint.address.toBuffer()],
         transfer_hook_program_account,
       )[0];
 
@@ -212,16 +228,20 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
       { pubkey: option_keypair.publicKey, isSigner: true, isWritable: true },
       { pubkey: collection_account, isSigner: false, isWritable: true },
       { pubkey: program_pda, isSigner: false, isWritable: true },
-      { pubkey: token_mint_key, isSigner: false, isWritable: true },
-      { pubkey: user_token_account, isSigner: false, isWritable: true },
-      { pubkey: program_token_account, isSigner: false, isWritable: true },
+      { pubkey: base_mint.address, isSigner: false, isWritable: true },
+      { pubkey: quote_mint.address, isSigner: false, isWritable: true },
+      { pubkey: user_base, isSigner: false, isWritable: true },
+      { pubkey: user_quote, isSigner: false, isWritable: true },
+      { pubkey: program_base, isSigner: false, isWritable: true },
+      { pubkey: program_quote, isSigner: false, isWritable: true },
       { pubkey: CORE, isSigner: false, isWritable: false },
       {
         pubkey: ASSOCIATED_TOKEN_PROGRAM_ID,
         isSigner: false,
         isWritable: true,
       },
-      { pubkey: token_program, isSigner: false, isWritable: true },
+      { pubkey: base_token_program, isSigner: false, isWritable: true },
+      { pubkey: quote_token_program, isSigner: false, isWritable: true },
       { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
     ];
 

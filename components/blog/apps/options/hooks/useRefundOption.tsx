@@ -77,8 +77,10 @@ const useRefundOption = () => {
   }, []);
 
   const RefundOption = async (
-    is_2022: boolean,
-    mint: Mint,
+    base_2022: boolean,
+    base_mint: Mint,
+    quote_2022: boolean,
+    quote_mint: Mint,
     asset: PublicKey,
     collection: PublicKey,
     owner: PublicKey,
@@ -100,32 +102,41 @@ const useRefundOption = () => {
       return;
     }
 
-    let token_program = is_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
+    let base_token_program = base_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
+    let quote_token_program = quote_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
 
     let program_pda = PublicKey.findProgramAddressSync(
       [Buffer.from("pda")],
       PROGRAM,
     )[0];
 
-    let user_token_account = getAssociatedTokenAddressSync(
-      token, // mint
-      wallet.publicKey, // owner
-      true, // allow owner off curve
-      token_program,
-    );
-
-    let program_token_account = getAssociatedTokenAddressSync(
+    
+    let program_base = getAssociatedTokenAddressSync(
       token, // mint
       program_pda, // owner
       true, // allow owner off curve
-      token_program,
+      base_token_program,
     );
 
-    let creator_token_account = getAssociatedTokenAddressSync(
+    let creator_base = getAssociatedTokenAddressSync(
       token, // mint
       creator, // owner
       true, // allow owner off curve
-      token_program,
+      base_token_program,
+    );
+
+    let program_quote = getAssociatedTokenAddressSync(
+      quote_mint.address, // mint
+      program_pda, // owner
+      true, // allow owner off curve
+      quote_token_program,
+    );
+
+    let creator_quote = getAssociatedTokenAddressSync(
+      quote_mint.address, // mint
+      creator, // owner
+      true, // allow owner off curve
+      quote_token_program,
     );
 
     console.log("creator", creator.toString());
@@ -134,7 +145,7 @@ const useRefundOption = () => {
       OptionsInstruction.refund,
     );
 
-    let transfer_hook = getTransferHook(mint);
+    let transfer_hook = getTransferHook(base_mint);
 
     let transfer_hook_program_account: PublicKey | null = null;
     let transfer_hook_validation_account: PublicKey | null = null;
@@ -144,7 +155,7 @@ const useRefundOption = () => {
 
       transfer_hook_program_account = transfer_hook.programId;
       transfer_hook_validation_account = PublicKey.findProgramAddressSync(
-        [Buffer.from("extra-account-metas"), mint.address.toBuffer()],
+        [Buffer.from("extra-account-metas"), base_mint.address.toBuffer()],
         transfer_hook_program_account,
       )[0];
 
@@ -177,13 +188,14 @@ const useRefundOption = () => {
       { pubkey: asset, isSigner: false, isWritable: true },
       { pubkey: collection, isSigner: false, isWritable: true },
       { pubkey: program_pda, isSigner: false, isWritable: true },
-      { pubkey: token, isSigner: false, isWritable: true },
-      { pubkey: user_token_account, isSigner: false, isWritable: true },
-      { pubkey: program_token_account, isSigner: false, isWritable: true },
-
+      { pubkey: base_mint.address, isSigner: false, isWritable: true },
+      { pubkey: quote_mint.address, isSigner: false, isWritable: true },
+      { pubkey: program_base, isSigner: false, isWritable: true },
+      { pubkey: program_quote, isSigner: false, isWritable: true },
       { pubkey: owner, isSigner: false, isWritable: true },
       { pubkey: creator, isSigner: false, isWritable: true },
-      { pubkey: creator_token_account, isSigner: false, isWritable: true },
+      { pubkey: creator_base, isSigner: false, isWritable: true },
+      { pubkey: creator_quote, isSigner: false, isWritable: true },
 
       { pubkey: CORE, isSigner: false, isWritable: true },
       {
@@ -191,7 +203,8 @@ const useRefundOption = () => {
         isSigner: false,
         isWritable: true,
       },
-      { pubkey: token_program, isSigner: false, isWritable: true },
+      { pubkey: base_token_program, isSigner: false, isWritable: true },
+      { pubkey: quote_token_program, isSigner: false, isWritable: true },
       { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
     ];
 

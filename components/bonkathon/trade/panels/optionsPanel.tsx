@@ -48,16 +48,20 @@ import useResponsive from "../../../../hooks/useResponsive";
 import useCreateOption from "../../../blog/apps/options/hooks/useCreateOption";
 
 export const OptionsPanel = ({
-  mint_data,
-  is_2022,
+  base_mint,
+  quote_mint,
+  base_2022,
+  quote_2022,
   token_balance,
   sol_balance,
   icon,
   uri,
   symbol,
 }: {
-  mint_data: Mint;
-  is_2022: boolean;
+  base_mint: Mint;
+  quote_mint: Mint;
+  base_2022: boolean;
+  quote_2022: boolean;
   token_balance: number;
   sol_balance: number;
   icon: string;
@@ -80,7 +84,7 @@ export const OptionsPanel = ({
   const { CreateOption, isLoading: isOptionLoading } = useCreateOption(
     symbol,
     uri,
-    mint_data.address.toString()
+    base_mint.address.toString()
   );
 
   const local_date = useMemo(() => new Date(), []);
@@ -121,12 +125,12 @@ export const OptionsPanel = ({
   //console.log("Mint data", mint_data);
   let transfer_fee = 0;
   let max_transfer_fee = 0;
-  let transfer_fee_config = getTransferFeeConfig(mint_data);
+  let transfer_fee_config = getTransferFeeConfig(base_mint);
   if (transfer_fee_config !== null) {
     transfer_fee = transfer_fee_config.newerTransferFee.transferFeeBasisPoints;
     max_transfer_fee =
       Number(transfer_fee_config.newerTransferFee.maximumFee) /
-      Math.pow(10, mint_data.decimals);
+      Math.pow(10, base_mint.decimals);
   }
 
   return (
@@ -429,8 +433,10 @@ export const OptionsPanel = ({
         //isLoading={placingOrder}
         onClick={() => {
           CreateOption(
-            mint_data,
-            is_2022,
+            base_mint,
+            quote_mint,
+            base_2022,
+            quote_2022,
             order_type,
             token_amount,
             strike_price,

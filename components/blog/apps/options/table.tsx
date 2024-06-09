@@ -103,14 +103,18 @@ function getAttributes(option: AssetV1) {
 }
 
 const OptionsTable = ({
-  is_2022,
-  mint,
+  base_2022,
+  base_mint,
+  quote_2022,
+  quote_mint,
   collection,
   optionsList,
   mode,
 }: {
-  is_2022: boolean;
-  mint: Mint;
+  base_2022: boolean;
+  base_mint: Mint;
+  quote_2022: boolean;
+  quote_mint: Mint;
   collection: PublicKey;
   optionsList: AssetV1[];
   mode: number;
@@ -210,8 +214,10 @@ const OptionsTable = ({
               .map((option: AssetV1, index) => (
                 <LaunchCard
                   key={index}
-                  is_2022={is_2022}
-                  mint={mint}
+                  base_2022={base_2022}
+                  base_mint={base_mint}
+                  quote_2022={quote_2022}
+                  quote_mint={quote_mint}
                   collection={collection}
                   option={option}
                   mode={mode}
@@ -225,14 +231,18 @@ const OptionsTable = ({
 };
 
 const LaunchCard = ({
-  is_2022,
-  mint,
+  base_2022,
+  base_mint,
+  quote_2022,
+  quote_mint,
   collection,
   option,
   mode,
 }: {
-  is_2022: boolean;
-  mint: Mint;
+  base_2022: boolean;
+  base_mint: Mint;
+  quote_2022: boolean;
+  quote_mint: Mint;
   collection: PublicKey;
   option: AssetV1;
   mode: number;
@@ -333,8 +343,10 @@ const LaunchCard = ({
               <Button
                 onClick={() =>
                   ExecuteOption(
-                    is_2022,
-                    mint,
+                    base_2022,
+                    base_mint,
+                    quote_2022,
+                    quote_mint,
                     new PublicKey(option.publicKey.toString()),
                     collection,
                     attributes.creator,
@@ -354,8 +366,10 @@ const LaunchCard = ({
             <Button
               onClick={() =>
                 RefundOption(
-                  is_2022,
-                  mint,
+                  base_2022,
+                  base_mint,
+                  quote_2022,
+                  quote_mint,
                   new PublicKey(option.publicKey.toString()),
                   collection,
                   new PublicKey(option.owner.toString()),
@@ -377,8 +391,10 @@ const LaunchCard = ({
             <Button
               onClick={() =>
                 RefundOption(
-                  is_2022,
-                  mint,
+                  base_2022,
+                  base_mint,
+                  quote_2022,
+                  quote_mint,
                   new PublicKey(option.publicKey.toString()),
                   collection,
                   new PublicKey(option.owner.toString()),

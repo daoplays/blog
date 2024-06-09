@@ -47,7 +47,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import styles from "../../../../styles/Launch.module.css";
 import useCreateOption from "./hooks/useCreateOption";
 export const CallPut = ({
-  mint_data,
+  base_mint,
+  quote_mint,
   is_2022,
   token_balance,
   sol_balance,
@@ -55,7 +56,8 @@ export const CallPut = ({
   uri,
   symbol,
 }: {
-  mint_data: Mint;
+  base_mint: Mint;
+  quote_mint: Mint,
   is_2022: boolean;
   token_balance: number;
   sol_balance: number;
@@ -79,7 +81,7 @@ export const CallPut = ({
   const { CreateOption, isLoading: isOptionLoading } = useCreateOption(
     symbol,
     uri,
-    mint_data.address.toString(),
+    base_mint.address.toString(),
   );
 
   const local_date = useMemo(() => new Date(), []);
@@ -120,12 +122,12 @@ export const CallPut = ({
   //console.log("Mint data", mint_data);
   let transfer_fee = 0;
   let max_transfer_fee = 0;
-  let transfer_fee_config = getTransferFeeConfig(mint_data);
+  let transfer_fee_config = getTransferFeeConfig(base_mint);
   if (transfer_fee_config !== null) {
     transfer_fee = transfer_fee_config.newerTransferFee.transferFeeBasisPoints;
     max_transfer_fee =
       Number(transfer_fee_config.newerTransferFee.maximumFee) /
-      Math.pow(10, mint_data.decimals);
+      Math.pow(10, base_mint.decimals);
   }
 
   return (
@@ -431,8 +433,10 @@ export const CallPut = ({
           //isLoading={placingOrder}
           onClick={() => {
             CreateOption(
-              mint_data,
+              base_mint,
+              quote_mint,
               is_2022,
+              false,
               order_type,
               token_amount,
               strike_price,

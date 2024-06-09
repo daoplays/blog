@@ -36,6 +36,7 @@ import {
   getTransferHook,
   resolveExtraAccountMeta,
   ExtraAccountMetaAccountDataLayout,
+  unpackMint,
 } from "@solana/spl-token";
 import useResponsive from "./hooks/useResponsive";
 import useCreateCollection from "./hooks/useCreateCollection";
@@ -99,6 +100,7 @@ function App() {
   const [solBalance, setSOLBalance] = useState<number>(0);
   const [tokenBalance, setTokenBalance] = useState<number>(0);
   const [is_token_2022, setTokenOwner] = useState<boolean>(false);
+  const [quote_mint, setQuoteMint] = useState<Mint | null>(null);
 
   const check_collection = useRef<boolean>(true);
 
@@ -135,10 +137,15 @@ function App() {
       console.log(error);
     }
 
+    let wsol_key = new PublicKey("So11111111111111111111111111111111111111112");
+    let result = await connection.getAccountInfo(wsol_key, "confirmed");
+    let wsol_mint = unpackMint(wsol_key, result, TOKEN_PROGRAM_ID);
+
     console.log("user balance", user_balance / LAMPORTS_PER_SOL, token_balance);
 
     setSOLBalance(user_balance / LAMPORTS_PER_SOL);
     setTokenBalance(token_balance);
+    setQuoteMint(wsol_mint)
   }, [wallet, token, is_token_2022]);
 
   useEffect(() => {
@@ -281,7 +288,8 @@ function App() {
 
           {selected === "Create" && token !== null && (
             <CallPut
-              mint_data={token}
+              base_mint={token}
+              quote_mint={quote_mint}
               is_2022={is_token_2022}
               token_balance={tokenBalance}
               sol_balance={solBalance}
@@ -293,8 +301,10 @@ function App() {
 
           {selected === "Trade" && (
             <OptionsTable
-              is_2022={is_token_2022}
-              mint={token}
+              base_2022={is_token_2022}
+              base_mint={token}
+              quote_2022={false}
+              quote_mint={quote_mint}
               collection={collection}
               optionsList={collection_assets}
               mode={0}
@@ -303,8 +313,10 @@ function App() {
 
           {selected === "Execute" && (
             <OptionsTable
-              is_2022={is_token_2022}
-              mint={token}
+              base_2022={is_token_2022}
+              base_mint={token}
+              quote_2022={false}
+              quote_mint={quote_mint}
               collection={collection}
               optionsList={collection_assets}
               mode={1}
@@ -313,8 +325,10 @@ function App() {
 
           {selected === "Refund" && (
             <OptionsTable
-              is_2022={is_token_2022}
-              mint={token}
+              base_2022={is_token_2022}
+              base_mint={token}
+              quote_2022={false}
+              quote_mint={quote_mint}
               collection={collection}
               optionsList={collection_assets}
               mode={2}

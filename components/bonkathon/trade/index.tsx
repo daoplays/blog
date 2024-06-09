@@ -1095,8 +1095,10 @@ const TradePage = ({
               selectedOptionsTab === "Trade" &&
               wallet.connected && (
                 <OptionsTable
-                  is_2022={amm.base.token_program === TOKEN_2022_PROGRAM_ID}
-                  mint={amm.base.mint}
+                  base_2022={amm.base.token_program === TOKEN_2022_PROGRAM_ID}
+                  base_mint={amm.base.mint}
+                  quote_2022={amm.quote.token_program === TOKEN_2022_PROGRAM_ID}
+                  quote_mint={amm.quote.mint}
                   collection={option_collection}
                   optionsList={option_assets}
                   mode={0}
@@ -1107,8 +1109,10 @@ const TradePage = ({
               selectedOptionsTab === "Execute" &&
               wallet.connected && (
                 <OptionsTable
-                  is_2022={amm.base.token_program === TOKEN_2022_PROGRAM_ID}
-                  mint={amm.base.mint}
+                  base_2022={amm.base.token_program === TOKEN_2022_PROGRAM_ID}
+                  base_mint={amm.base.mint}
+                  quote_2022={amm.quote.token_program === TOKEN_2022_PROGRAM_ID}
+                  quote_mint={amm.quote.mint}
                   collection={option_collection}
                   optionsList={option_assets}
                   mode={1}
@@ -1119,8 +1123,10 @@ const TradePage = ({
               selectedOptionsTab === "Refund" &&
               wallet.connected && (
                 <OptionsTable
-                  is_2022={amm.base.token_program === TOKEN_2022_PROGRAM_ID}
-                  mint={amm.base.mint}
+                  base_2022={amm.base.token_program === TOKEN_2022_PROGRAM_ID}
+                  base_mint={amm.base.mint}
+                  quote_2022={amm.quote.token_program === TOKEN_2022_PROGRAM_ID}
+                  quote_mint={amm.quote.mint}
                   collection={option_collection}
                   optionsList={option_assets}
                   mode={2}
@@ -1454,8 +1460,10 @@ const BuyAndSell = ({
       {left_panel === "Options" ? (
         <VStack align="start" px={5} w="100%" mt={-2} spacing={4}>
           <OptionsPanel
-            mint_data={base_data.mint}
-            is_2022={is_token_2022}
+            base_mint={base_data.mint}
+            quote_mint={quote_data.mint}
+            base_2022={base_data.token_program === TOKEN_2022_PROGRAM_ID}
+            quote_2022={quote_data.token_program === TOKEN_2022_PROGRAM_ID}
             token_balance={tokenBalance}
             sol_balance={solBalance}
             icon={base_data.icon}
