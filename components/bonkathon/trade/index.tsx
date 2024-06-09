@@ -244,12 +244,6 @@ const TradePage = ({
 
   const check_market_data = useRef<boolean>(true);
 
-  useEffect(() => {
-    if (amm === null) return;
-
-    checkBorrowCollection(amm, setBorrowAssets, setBorrowCollection);
-  }, [amm]);
-
   const check_price_update = useCallback(async (result: any) => {
     //console.log(result);
     // if we have a subscription field check against ws_id
@@ -470,12 +464,12 @@ const TradePage = ({
     //("check market data");
     if (check_market_data.current === false) return;
 
-    await checkOptionsCollection(
+    checkOptionsCollection(
       amm.base.mint,
       setOptionAssets,
       setOptionCollection
     );
-    await checkBorrowCollection(amm, setBorrowAssets, setBorrowCollection);
+    checkBorrowCollection(amm, setBorrowAssets, setBorrowCollection);
 
     const base_mint = amm.amm_data.base_mint;
     const quote_mint = amm.amm_data.quote_mint;
@@ -746,7 +740,7 @@ const TradePage = ({
           Please Wait...
         </Text>
       </VStack>
-    );
+  );
 
   return (
     <>
