@@ -63,7 +63,7 @@ function NavigationBonk() {
             top: 2,
           }}
           >
-            Create
+            Create AMM
           </Text>
         </Link>
         <Link href="/bonkathon2024" style={{ textDecoration: "none" }}>
@@ -77,7 +77,22 @@ function NavigationBonk() {
             position: "relative",
             top: 2,
           }}>
-            View
+            Trade
+          </Text>
+        </Link>
+
+        <Link href="https://github.com/daoplays/blog/raw/main/components/bonkathon/Presentation.pdf" target="_blank"  style={{ textDecoration: "none" }}>
+          <Text m={0} fontSize="2xl" color="#683309" fontWeight={500}
+          style={{
+            backgroundColor: "#683309",
+            borderRadius: 20,
+            padding: "1px 10px 2px 10px",
+            color: "white",
+            marginTop: 4,
+            position: "relative",
+            top: 2,
+          }}>
+            Pitch Deck
           </Text>
         </Link>
       </HStack>
