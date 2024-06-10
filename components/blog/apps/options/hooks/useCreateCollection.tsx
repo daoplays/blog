@@ -62,7 +62,7 @@ const useCreateCollection = (name: string, uri: string, token_mint: string) => {
     });
   }, []);
 
-  const GetCreateCollectionInstruction = async () => {
+  const GetCreateCollectionInstruction = async (base_mint_string : string, quote_mint_string : string) => {
     //console.log("in mint nft");
 
     console.log(name, uri);
@@ -77,10 +77,26 @@ const useCreateCollection = (name: string, uri: string, token_mint: string) => {
       return;
     }
 
-    let token_mint_key = new PublicKey(token_mint);
-    //console.log("no lookup data found");
+
+    let base_mint = new PublicKey(base_mint_string);
+    let quote_mint = new PublicKey(quote_mint_string);
+
+
+    let seed_keys = [];
+    if (base_mint_string < quote_mint_string) {
+      seed_keys.push(base_mint);
+      seed_keys.push(quote_mint);
+    } else {
+      seed_keys.push(quote_mint);
+      seed_keys.push(base_mint);
+    }
+
     let collection_account = PublicKey.findProgramAddressSync(
-      [token_mint_key.toBytes(), Buffer.from("Collection")],
+      [
+        seed_keys[0].toBytes(),
+        seed_keys[1].toBytes(),
+        Buffer.from("Collection"),
+      ],
       PROGRAM,
     )[0];
 
@@ -97,7 +113,8 @@ const useCreateCollection = (name: string, uri: string, token_mint: string) => {
     var account_vector = [
       { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
       { pubkey: collection_account, isSigner: false, isWritable: true },
-      { pubkey: token_mint_key, isSigner: false, isWritable: true },
+      { pubkey: base_mint, isSigner: false, isWritable: true },
+      { pubkey: quote_mint, isSigner: false, isWritable: true },
       { pubkey: program_pda, isSigner: false, isWritable: true },
       { pubkey: CORE, isSigner: false, isWritable: false },
       { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
@@ -112,14 +129,14 @@ const useCreateCollection = (name: string, uri: string, token_mint: string) => {
     return list_instruction;
   };
 
-  const CreateCollection = async () => {
+  const CreateCollection = async (base_mint_string : string, quote_mint_string : string) => {
     const connection = new Connection(DEV_RPC_NODE, {
       wsEndpoint: DEV_WSS_NODE,
     });
 
     setIsLoading(true);
 
-    let list_instruction = await GetCreateCollectionInstruction();
+    let list_instruction = await GetCreateCollectionInstruction(base_mint_string, quote_mint_string);
 
     let blockhash_result = await connection.getLatestBlockhash();
     let txArgs = {

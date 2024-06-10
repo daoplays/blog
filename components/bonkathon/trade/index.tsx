@@ -345,6 +345,7 @@ const TradePage = ({
       let collection_umiKey = publicKey(option_collection.toString());
       const umi = createUmi(DEV_RPC_NODE, "confirmed");
 
+
       // if we have a subscription field check against ws_id
       const assets = await getAssetV1GpaBuilder(umi)
         .whereField("key", Key.AssetV1)
@@ -354,6 +355,7 @@ const TradePage = ({
         )
         .getDeserialized();
 
+      console.log("options update", assets)
       setOptionAssets(assets);
 
       //await RunCollectionDAS(borrow_collection)
@@ -428,7 +430,7 @@ const TradePage = ({
     }
 
     if (amm_ws_id.current === null && amm_address !== null) {
-      options_ws_id.current = connection.onAccountChange(
+      amm_ws_id.current = connection.onAccountChange(
         amm_address,
         check_amm_update,
         "confirmed"
@@ -466,6 +468,7 @@ const TradePage = ({
 
     checkOptionsCollection(
       amm.base.mint,
+      amm.quote.mint,
       setOptionAssets,
       setOptionCollection
     );
@@ -1252,8 +1255,6 @@ const BuyAndSell = ({
   const [short_amount, setShortAmount] = useState<number>(0);
   const [deposit_amount, setDepositAmount] = useState<number>(0);
   const option_data = useRef<OptionData>(default_option_data);
-  const [solBalance, setSOLBalance] = useState<number>(0);
-  const [tokenBalance, setTokenBalance] = useState<number>(0);
   const [is_token_2022, setTokenOwner] = useState<boolean>(false);
 
   const [long_amount, setLongAmount] = useState<number>(0);
@@ -1411,47 +1412,6 @@ const BuyAndSell = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [left_panel]);
 
-  const fetchData = useCallback(async () => {
-    if (base_data.mint === null) return;
-
-    const connection = new Connection(DEV_RPC_NODE, {
-      wsEndpoint: DEV_WSS_NODE,
-    });
-
-    let user_token_account = getAssociatedTokenAddressSync(
-      base_data.mint.address, // mint
-      wallet.publicKey, // owner
-      true, // allow owner off curve
-      is_token_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID
-    );
-
-    let user_balance = await connection.getBalance(
-      wallet.publicKey,
-      "confirmed"
-    );
-    let token_balance = 0;
-
-    try {
-      let response = await connection.getTokenAccountBalance(
-        user_token_account,
-        "confirmed"
-      );
-      token_balance =
-        parseFloat(response.value.amount) /
-        Math.pow(10, response.value.decimals);
-    } catch (error) {
-      console.log(error);
-    }
-
-    setSOLBalance(user_balance / LAMPORTS_PER_SOL);
-    setTokenBalance(token_balance);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wallet, base_data.mint, is_token_2022]);
-
-  useEffect(() => {
-    if (base_data.mint === null) return;
-    fetchData();
-  }, [base_data.mint, fetchData]);
 
   useEffect(() => {}, [left_panel]);
 
@@ -1460,12 +1420,12 @@ const BuyAndSell = ({
       {left_panel === "Options" ? (
         <VStack align="start" px={5} w="100%" mt={-2} spacing={4}>
           <OptionsPanel
-            base_mint={base_data.mint}
-            quote_mint={quote_data.mint}
+            base_mint={base_data}
+            quote_mint={quote_data}
             base_2022={base_data.token_program === TOKEN_2022_PROGRAM_ID}
             quote_2022={quote_data.token_program === TOKEN_2022_PROGRAM_ID}
-            token_balance={tokenBalance}
-            sol_balance={solBalance}
+            base_balance={user_base_balance / Math.pow(10, base_data.mint.decimals)}
+            quote_balance={user_quote_balance / Math.pow(10, quote_data.mint.decimals)}
             icon={base_data.icon}
             uri={base_data.uri}
             symbol={base_data.symbol}
@@ -1532,7 +1492,7 @@ const BuyAndSell = ({
             >
               {selected === "Buy" || selected === "Short" || selected === "Long"
                 ? (
-                    bignum_to_num(amm.long_quote_amount) /
+                    bignum_to_num(user_quote_balance) /
                     Math.pow(10, quote_data.mint.decimals)
                   ).toLocaleString("en-US", {
                     minimumFractionDigits: 2,

@@ -109,11 +109,26 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
     let base_token_program = base_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
     let quote_token_program = quote_2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
 
-    //console.log("no lookup data found");
+
+    let seed_keys : PublicKey[] = [];
+    if (base_mint.address.toString() < quote_mint.address.toString()) {
+      seed_keys.push(base_mint.address);
+      seed_keys.push(quote_mint.address);
+    } else {
+      seed_keys.push(quote_mint.address);
+      seed_keys.push(base_mint.address);
+    }
+
     let collection_account = PublicKey.findProgramAddressSync(
-      [base_mint.address.toBytes(), Buffer.from("Collection")],
+      [
+        seed_keys[0].toBytes(),
+        seed_keys[1].toBytes(),
+        Buffer.from("Collection"),
+      ],
       PROGRAM,
     )[0];
+
+    console.log("check collection key", seed_keys[0].toString(), seed_keys[1].toString(), collection_account.toString())
 
     let option_keypair = new Keypair();
 
@@ -277,7 +292,7 @@ const useCreateOption = (name: string, uri: string, token_mint: string) => {
     let collection_balance = await connection.getBalance(collection_account);
     let create_collection = null;
     if (collection_balance == 0) {
-      create_collection = await GetCreateCollectionInstruction();
+      create_collection = await GetCreateCollectionInstruction(base_mint.address.toString(), quote_mint.address.toString());
     }
 
     let blockhash_result = await connection.getLatestBlockhash();

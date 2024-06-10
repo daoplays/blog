@@ -46,24 +46,25 @@ import "react-datepicker/dist/react-datepicker.css";
 import styles from "/styles/Launch.module.css";
 import useResponsive from "../../../../hooks/useResponsive";
 import useCreateOption from "../../../blog/apps/options/hooks/useCreateOption";
+import { MintData } from "../../../blog/apps/common";
 
 export const OptionsPanel = ({
   base_mint,
   quote_mint,
   base_2022,
   quote_2022,
-  token_balance,
-  sol_balance,
+  base_balance,
+  quote_balance,
   icon,
   uri,
   symbol,
 }: {
-  base_mint: Mint;
-  quote_mint: Mint;
+  base_mint: MintData;
+  quote_mint: MintData;
   base_2022: boolean;
   quote_2022: boolean;
-  token_balance: number;
-  sol_balance: number;
+  base_balance: number;
+  quote_balance: number;
   icon: string;
   uri: string;
   symbol: string;
@@ -84,7 +85,7 @@ export const OptionsPanel = ({
   const { CreateOption, isLoading: isOptionLoading } = useCreateOption(
     symbol,
     uri,
-    base_mint.address.toString()
+    base_mint.mint.address.toString()
   );
 
   const local_date = useMemo(() => new Date(), []);
@@ -125,12 +126,12 @@ export const OptionsPanel = ({
   //console.log("Mint data", mint_data);
   let transfer_fee = 0;
   let max_transfer_fee = 0;
-  let transfer_fee_config = getTransferFeeConfig(base_mint);
+  let transfer_fee_config = getTransferFeeConfig(base_mint.mint);
   if (transfer_fee_config !== null) {
     transfer_fee = transfer_fee_config.newerTransferFee.transferFeeBasisPoints;
     max_transfer_fee =
       Number(transfer_fee_config.newerTransferFee.maximumFee) /
-      Math.pow(10, base_mint.decimals);
+      Math.pow(10, base_mint.mint.decimals);
   }
 
   return (
@@ -187,11 +188,11 @@ export const OptionsPanel = ({
           fontSize={"medium"}
         >
           {selected === "Put"
-            ? sol_balance.toFixed(5)
-            : token_balance.toLocaleString("en-US", {
+            ? quote_balance.toFixed(5)
+            : base_balance.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}{" "}
-          {selected === "Put" ? "SOL" : symbol}
+          {selected === "Put" ? quote_mint.symbol : base_mint.symbol}
         </Text>
       </HStack>
 
@@ -317,7 +318,7 @@ export const OptionsPanel = ({
           />
           <InputRightElement h="100%" w={50}>
             <Image
-              src="/images/sol.png"
+              src={quote_mint.icon}
               width={30}
               height={30}
               alt="SOL Icon"
@@ -433,8 +434,8 @@ export const OptionsPanel = ({
         //isLoading={placingOrder}
         onClick={() => {
           CreateOption(
-            base_mint,
-            quote_mint,
+            base_mint.mint,
+            quote_mint.mint,
             base_2022,
             quote_2022,
             order_type,

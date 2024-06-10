@@ -62,18 +62,33 @@ import { publicKey } from "@metaplex-foundation/umi";
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 export const checkOptionsCollection = async (
-  token: Mint,
+  base_mint: Mint,
+  quote_mint: Mint,
   setCollectionAssets: Dispatch<SetStateAction<AssetV1[]>>,
   setCollection: Dispatch<SetStateAction<PublicKey>>,
 ) => {
-  if (token === null) return;
+  if (base_mint === null || quote_mint === null) return;
 
   const umi = createUmi(DEV_RPC_NODE, "confirmed");
 
-  let collection_account = PublicKey.findProgramAddressSync(
-    [token.address.toBytes(), Buffer.from("Collection")],
-    PROGRAM,
-  )[0];
+  let seed_keys : PublicKey[] = [];
+    if (base_mint.address.toString() < quote_mint.address.toString()) {
+      seed_keys.push(base_mint.address);
+      seed_keys.push(quote_mint.address);
+    } else {
+      seed_keys.push(quote_mint.address);
+      seed_keys.push(base_mint.address);
+    }
+
+    let collection_account = PublicKey.findProgramAddressSync(
+      [
+        seed_keys[0].toBytes(),
+        seed_keys[1].toBytes(),
+        Buffer.from("Collection"),
+      ],
+      PROGRAM,
+    )[0];
+
 
   let collection_umiKey = publicKey(collection_account.toString());
 
@@ -84,6 +99,10 @@ export const checkOptionsCollection = async (
       updateAuthority("Collection", [collection_umiKey]),
     )
     .getDeserialized();
+
+  console.log("check collection key", seed_keys[0].toString(), seed_keys[1].toString(), collection_account.toString())
+
+  console.log("options", assets, collection_account.toString())
 
   setCollectionAssets(assets);
   setCollection(collection_account);
@@ -107,7 +126,6 @@ function App() {
   const checkCollection = useCallback(async () => {
     if (token === null) return;
 
-    await checkOptionsCollection(token, setCollectionAssets, setCollection);
 
     const connection = new Connection(DEV_RPC_NODE, {
       wsEndpoint: DEV_WSS_NODE,
@@ -146,7 +164,12 @@ function App() {
     setSOLBalance(user_balance / LAMPORTS_PER_SOL);
     setTokenBalance(token_balance);
     setQuoteMint(wsol_mint)
-  }, [wallet, token, is_token_2022]);
+
+
+    await checkOptionsCollection(token, quote_mint, setCollectionAssets, setCollection);
+
+
+  }, [wallet, token, quote_mint, is_token_2022]);
 
   useEffect(() => {
     if (token === null) return;
