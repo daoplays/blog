@@ -3,9 +3,12 @@ import admin from 'firebase-admin';
 
 exports.handler = async function(event, context) {
   // Only allow POST requests
-  if (event.httpMethod !== 'POST') {
+  if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
+
+  const { user_key } = event.queryStringParameters;
+
 
   const client = new TwitterApi({
     appKey: process.env.TWITTER_CONSUMER_KEY,
@@ -33,7 +36,7 @@ exports.handler = async function(event, context) {
       }
       }
 
-      let body = JSON.stringify({ url: authLink.url, oauth_token: authLink.oauth_token, oauth_token_secret: authLink.oauth_token_secret })
+    let body = JSON.stringify({ user_key: user_key, url: authLink.url, oauth_token: authLink.oauth_token, oauth_token_secret: authLink.oauth_token_secret })
     const db = admin.database();
     const database = db.ref("BlinkBash/twitter")
     await database.set(body);

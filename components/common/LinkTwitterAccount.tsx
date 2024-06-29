@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get } from "firebase/database";
+import { useWallet } from '@solana/wallet-adapter-react';
+import UseWalletConnection from '../blog/apps/commonHooks/useWallet';
 
 const firebaseConfig = {
   // ...
@@ -8,9 +10,18 @@ const firebaseConfig = {
   databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
 };
 
+interface TwitterUser {
+  name: string;
+  username: string;
+  profile_image_url: string;
+}
+
 
 const TwitterIntegration = () => {
-  const [user, setUser] = useState(null);
+  const wallet = useWallet();
+  const { handleConnectWallet } = UseWalletConnection();
+
+  const [user, setUser] = useState<TwitterUser>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState(null);
   const [tweetContent, setTweetContent] = useState('');
@@ -18,18 +29,35 @@ const TwitterIntegration = () => {
 
   const checkTwitterUser = useCallback(async () => {
 
-    
       if (check_twitter_user.current) {
         try {
-          
-          await fetchUserInfo();
+           // Initialize Firebase
+          const app = initializeApp(firebaseConfig);
+
+          // Initialize Realtime Database and get a reference to the service
+          const database = getDatabase(app);
+          const snapshot = await get(ref(database, "BlinkBash/twitter_"+wallet.publicKey.toString()));
+          let db_entry = JSON.parse(snapshot.val());
+          console.log("db_entry", db_entry)
+          if (db_entry.username) {
+            let twitter_user : TwitterUser = {
+              name: db_entry.name,
+              username: db_entry.username,
+              profile_image_url: db_entry.profile_image_url
+            }
+            setUser(twitter_user)
+            setIsAuthenticated(true);
+          }
+          else {
+            await fetchUserInfo();
+          }
           check_twitter_user.current = false;
         } catch (error) {
           console.log("check user failed", error)
         }
       
     }
-  }, []);
+  }, [wallet]);
 
 
   const handleTwitterRedirect = useCallback(async () => {
@@ -54,15 +82,17 @@ const TwitterIntegration = () => {
   }, []);
 
   useEffect(() => {
-
+      if (wallet === null || wallet.publicKey === null) {
+        return
+      }
       checkTwitterUser();
-  }, [isAuthenticated]);
+  }, [wallet, isAuthenticated]);
 
 
   const fetchUserInfo = async () => {
    
     try {
-      const response = await fetch('/.netlify/functions/fetchTwitterUser', {
+      const response = await fetch('/.netlify/functions/fetchTwitterUser?user_key='+wallet.publicKey.toString(), {
         method: 'GET',
       });
 
@@ -72,7 +102,12 @@ const TwitterIntegration = () => {
 
       const userData = await response.json();
       console.log("have user data", userData)
-      setUser(userData);
+      let twitter_user : TwitterUser = {
+        name: userData.name,
+        username: userData.username,
+        profile_image_url: userData.profile_image_url
+      }
+      setUser(twitter_user)
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Error fetching user info:', error);
@@ -82,7 +117,7 @@ const TwitterIntegration = () => {
 
   const initiateTwitterLogin = async () => {
     try {
-      const response = await fetch('/.netlify/functions/twitterAuth', { method: 'POST' });
+      const response = await fetch('/.netlify/functions/twitterAuth?user_key='+wallet.publicKey.toString(), { method: 'GET' });
       const data = await response.json();
       
       window.location.href = data.url;
@@ -97,7 +132,7 @@ const TwitterIntegration = () => {
     
 
     try {
-      const response = await fetch('/.netlify/functions/postTweet', {
+      const response = await fetch('/.netlify/functions/postTweet?user_key='+wallet.publicKey.toString(), {
         method: 'POST',
         body: JSON.stringify({tweetContent })
       });
@@ -116,7 +151,10 @@ const TwitterIntegration = () => {
 
   return (
     <div>
-      {!isAuthenticated ? (
+       {!wallet.connected ? 
+        <button onClick={() => handleConnectWallet()}>Connect Wallet</button>
+       :
+      !isAuthenticated ? (
         <button onClick={initiateTwitterLogin}>Login with Twitter</button>
       ) : (
         <>

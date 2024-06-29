@@ -6,6 +6,8 @@ exports.handler = async function(event, context) {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
+  const { user_key } = event.queryStringParameters;
+
   if (!admin.apps.length) {
     try {
         admin.initializeApp({
@@ -22,7 +24,7 @@ exports.handler = async function(event, context) {
     }
 
     const db = admin.database();
-    const database = db.ref("BlinkBash/twitter")
+    const database = db.ref("BlinkBash/twitter_"+user_key)
 
     const snapshot2 = await database.get();
     let twitterData = JSON.parse(snapshot2.val());

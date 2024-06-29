@@ -6,6 +6,9 @@ exports.handler = async function(event, context) {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
+  const { user_key } = event.queryStringParameters;
+
+
   if (!admin.apps.length) {
     try {
         admin.initializeApp({
@@ -22,11 +25,13 @@ exports.handler = async function(event, context) {
     }
 
     const db = admin.database();
-    const database = db.ref("BlinkBash/twitter")
+    const database = db.ref("BlinkBash/twitter_"+user_key)
 
     const snapshot2 = await database.get();
     let twitterData = JSON.parse(snapshot2.val());
     
+    let accessToken = twitterData.accessToken;
+    let accessSecret = twitterData.accessSecret;
 
   const client = new TwitterApi({
     appKey: process.env.TWITTER_CONSUMER_KEY,
@@ -40,6 +45,12 @@ exports.handler = async function(event, context) {
     const user = await client.v2.me({
       'user.fields': ['name', 'username', 'profile_image_url']
     });
+    let username = user.data.username;
+    let name = user.data.name;
+    let profile_image_url = user.data.profile_image_url;
+    
+    let body = JSON.stringify({ accessToken, accessSecret, name, username, profile_image_url})
+    await database.set(body);
 
     return {
       statusCode: 200,

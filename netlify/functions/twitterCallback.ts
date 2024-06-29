@@ -38,6 +38,8 @@ exports.handler = async function(event, context) {
     };
   }
 
+  console.log("twitterData", twitterData.oauth_token_secret)
+
   try {
     // Create a client with the OAuth tokens from the request
     const client = new TwitterApi({
@@ -50,8 +52,19 @@ exports.handler = async function(event, context) {
     // Exchange the request token for an access token
     const { client: loggedClient, accessToken, accessSecret } = await client.login(oauth_verifier);
 
-    let body = JSON.stringify({ accessToken, accessSecret })
-    await database.set(body);
+     // Fetch the user's information
+     const user = await client.v2.me({
+      'user.fields': ['name', 'username', 'profile_image_url']
+    });
+
+    let username = user.data.username;
+    let name = user.data.name;
+    let profile_image_url = user.data.profile_image_url;
+    
+    let body = JSON.stringify({ accessToken, accessSecret, name, username, profile_image_url})
+    const database2 = db.ref("BlinkBash/twitter_"+twitterData.user_key)
+    await database2.set(body);
+    await database.remove();
     // Here you would typically save these tokens securely for future use
     // For this example, we'll just return them
     return {

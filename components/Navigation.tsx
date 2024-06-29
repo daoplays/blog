@@ -1,8 +1,12 @@
 import React from "react";
 import Link from "next/link";
 import { FaDiscord, FaTwitter, FaGithub, FaTwitch } from "react-icons/fa";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { ConnectWalletButton, DisconnectWalletButton } from "./common/wallet";
 
 function Navigation() {
+  const wallet = useWallet();
+
   return (
     <div className="navigation" style={{ marginBottom: "10px" }}>
       <nav className="navbar navbar-expand navbar-dark bg-dark">
@@ -32,6 +36,10 @@ function Navigation() {
                   <FaGithub />
                 </a>
               </li>
+              <>
+                {wallet.publicKey && <DisconnectWalletButton />}
+                {wallet.publicKey === null && <ConnectWalletButton />}
+              </>
             </ul>
           </div>
         </div>
