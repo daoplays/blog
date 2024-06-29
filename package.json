@@ -31,6 +31,8 @@
     "better-react-mathjax": "^2.0.3",
     "bootstrap": "^5.3.2",
     "chart.js": "^4.4.0",
+    "firebase": "^10.12.2",
+    "firebase-admin": "^12.2.0",
     "font-awesome": "^4.7.0",
     "framer-motion": "^10.16.4",
     "lightweight-charts": "^4.1.4",
@@ -54,13 +56,14 @@
     "react-time-picker": "^7.0.0",
     "react-toastify": "^10.0.5",
     "react-twitch-embed": "^3.0.1",
-    "sharp": "^0.32.6"
+    "sharp": "^0.32.6",
+    "twitter-api-v2": "^1.17.1"
   },
   "engines": {
     "node": ">=18"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^4.40.1",
+    "@netlify/plugin-nextjs": "^5.4.0",
     "@types/node": "20.8.4",
     "@types/plotly.js": "^2.12.27",
     "@types/react": "18.2.28",

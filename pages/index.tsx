@@ -13,6 +13,7 @@ import pokemon from "components/images/daoplays_pokemon.png";
 import solana from "components/images/solana.jpg";
 import ML from "components/images/ML.png";
 import core from "components/images/core.jpeg";
+import TwitterIntegration from "../components/common/LinkTwitterAccount";
 
 const blog_post_one = {
   title: "DaoPlays is Live!",
@@ -170,12 +171,14 @@ function RowCard({ title, sub_title, post_text, image, display_image }) {
   );
 }
 
+
 export default function Home() {
   return (
     <>
       <br />
       <br />
       <br />
+      <TwitterIntegration />
       <Container>
         <Col>
           <Link href="/blog/options">

@@ -10,7 +10,6 @@ import "../styles/table.css";
 import "../styles/global.css";
 
 import NoSSR from "../utils/NoSSR";
-
 import { usePathname } from "next/navigation";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {

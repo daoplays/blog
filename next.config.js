@@ -11,6 +11,8 @@ const nextConfig = withBundleAnalyzer({
   images: {
     domains: [`www.arweave.net`, "gateway.irys.xyz", "snipboard.io"],
   },
+
+  
 });
 
 module.exports = nextConfig;
