@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get } from "firebase/database";
 
@@ -7,23 +7,36 @@ const firebaseConfig = {
   // The value of `databaseURL` depends on the location of the database
   databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
 };
+
+
 const TwitterIntegration = () => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState(null);
   const [tweetContent, setTweetContent] = useState('');
-  const [twitter_token, setTwitterToken] = useState<string | null>(null);
-  const [twitter_secret, setTwitterSecret] = useState<string | null>(null);
 
-  useEffect(() => {
-    const initializeAuth = async () => {
-      await handleTwitterRedirect();
-      await checkAuthStatus();
-    };
-    initializeAuth();
+  const checkAuthStatus = useCallback(async () => {
+    const app = initializeApp(firebaseConfig);
+
+    // Initialize Realtime Database and get a reference to the service
+    const database = getDatabase(app);
+    const snapshot = await get(ref(database, "BlinkBash/twitter"));
+    let twitter_credentials = JSON.parse(snapshot.val());
+    console.log("twitter creds:", twitter_credentials)
+   
+    if (twitter_credentials) {
+      try {
+        //await verifyTwitterCredentials(accessToken, accessSecret);
+        setIsAuthenticated(true);
+        fetchUserInfo();
+      } catch (error) {
+        setIsAuthenticated(false);
+      }
+    }
   }, []);
 
-  const handleTwitterRedirect = async () => {
+
+  const handleTwitterRedirect = useCallback(async () => {
 
     const app = initializeApp(firebaseConfig);
 
@@ -44,35 +57,26 @@ const TwitterIntegration = () => {
      
       console.log('Twitter authentication successful');
       setIsAuthenticated(true);
-      setTwitterToken(twitter_credentials.accessToken)
-      setTwitterSecret(twitter_credentials.accessSecret);
       window.history.replaceState({}, document.title, "/");
     } else if (error) {
       console.error('Twitter authentication failed:', error);
       setError(error);
     }
 
-  };
+  }, []);
 
-  const checkAuthStatus = async () => {
-    const app = initializeApp(firebaseConfig);
+  
+  const initializeAuth = useCallback(async () => {
+    await handleTwitterRedirect();
+    await checkAuthStatus();
+  }, [handleTwitterRedirect, checkAuthStatus]);
 
-    // Initialize Realtime Database and get a reference to the service
-    const database = getDatabase(app);
-    const snapshot = await get(ref(database, "BlinkBash/twitter"));
-    let twitter_credentials = JSON.parse(snapshot.val());
-    console.log("twitter creds:", twitter_credentials)
-   
-    if (twitter_credentials) {
-      try {
-        //await verifyTwitterCredentials(accessToken, accessSecret);
-        setIsAuthenticated(true);
-        fetchUserInfo();
-      } catch (error) {
-        setIsAuthenticated(false);
-      }
-    }
-  };
+  useEffect(() => {
+    
+    initializeAuth();
+  }, [initializeAuth]);
+
+
 
   const verifyTwitterCredentials = async (accessToken, accessSecret) => {
     const response = await fetch('/.netlify/functions/verifyTwitterCredentials', {
