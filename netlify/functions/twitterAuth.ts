@@ -38,7 +38,7 @@ exports.handler = async function(event, context) {
 
     let body = JSON.stringify({ user_key: user_key, url: authLink.url, oauth_token: authLink.oauth_token, oauth_token_secret: authLink.oauth_token_secret })
     const db = admin.database();
-    const database = db.ref("BlinkBash/twitter")
+    const database = db.ref("BlinkBash/twitter_"+authLink.oauth_token)
     await database.set(body);
 
     return {

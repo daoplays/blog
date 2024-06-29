@@ -25,7 +25,7 @@ exports.handler = async function(event, context) {
     }
 
     const db = admin.database();
-    const database = db.ref("BlinkBash/twitter")
+    const database = db.ref("BlinkBash/twitter_"+oauth_token)
 
     const snapshot2 = await database.get();
     let twitterData = JSON.parse(snapshot2.val());
@@ -52,8 +52,15 @@ exports.handler = async function(event, context) {
     // Exchange the request token for an access token
     const { client: loggedClient, accessToken, accessSecret } = await client.login(oauth_verifier);
 
+    const client2 = new TwitterApi({
+      appKey: process.env.TWITTER_CONSUMER_KEY,
+      appSecret: process.env.TWITTER_CONSUMER_SECRET,
+      accessToken: accessToken,
+      accessSecret: accessSecret,
+    });
+
      // Fetch the user's information
-     const user = await client.v2.me({
+     const user = await client2.v2.me({
       'user.fields': ['name', 'username', 'profile_image_url']
     });
 
