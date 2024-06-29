@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get } from "firebase/database";
 
@@ -14,45 +14,29 @@ const TwitterIntegration = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState(null);
   const [tweetContent, setTweetContent] = useState('');
+  const check_twitter_user = useRef<boolean>(true);
 
-  const checkAuthStatus = useCallback(async () => {
-    const app = initializeApp(firebaseConfig);
+  const checkTwitterUser = useCallback(async () => {
 
-    // Initialize Realtime Database and get a reference to the service
-    const database = getDatabase(app);
-    const snapshot = await get(ref(database, "BlinkBash/twitter"));
-    let twitter_credentials = JSON.parse(snapshot.val());
-    console.log("twitter creds:", twitter_credentials)
-   
-    if (twitter_credentials) {
-      try {
-        //await verifyTwitterCredentials(accessToken, accessSecret);
-        setIsAuthenticated(true);
-        fetchUserInfo();
-      } catch (error) {
-        setIsAuthenticated(false);
-      }
+    
+      if (check_twitter_user.current) {
+        try {
+          
+          await fetchUserInfo();
+          check_twitter_user.current = false;
+        } catch (error) {
+          console.log("check user failed", error)
+        }
+      
     }
   }, []);
 
 
   const handleTwitterRedirect = useCallback(async () => {
 
-    const app = initializeApp(firebaseConfig);
-
-    // Initialize Realtime Database and get a reference to the service
-    const database = getDatabase(app);
-    const snapshot = await get(ref(database, "BlinkBash/twitter"));
-    let twitter_credentials = JSON.parse(snapshot.val());
-    console.log("twitter creds:", twitter_credentials)
-   
     const urlParams = new URLSearchParams(window.location.search);
 
     const twitterResult = urlParams.get('twitter');
-    const accessSecret = urlParams.get('accessSecret');
-    const error = urlParams.get('error');
-    console.log(twitterResult, accessSecret, error)
-
     if (twitterResult === "success") {
      
       console.log('Twitter authentication successful');
@@ -65,34 +49,18 @@ const TwitterIntegration = () => {
 
   }, []);
 
-  
-  const initializeAuth = useCallback(async () => {
-    await handleTwitterRedirect();
-    await checkAuthStatus();
-  }, [handleTwitterRedirect, checkAuthStatus]);
+  useEffect(() => {
+    handleTwitterRedirect();
+  }, []);
 
   useEffect(() => {
-    
-    initializeAuth();
-  }, [initializeAuth]);
 
+      checkTwitterUser();
+  }, [isAuthenticated]);
 
-
-  const verifyTwitterCredentials = async (accessToken, accessSecret) => {
-    const response = await fetch('/.netlify/functions/verifyTwitterCredentials', {
-      method: 'POST',
-      body: JSON.stringify({ accessToken, accessSecret })
-    });
-    if (!response.ok) {
-      throw new Error('Failed to verify Twitter credentials');
-    }
-  };
 
   const fetchUserInfo = async () => {
-    const app = initializeApp(firebaseConfig);
-
-    
-
+   
     try {
       const response = await fetch('/.netlify/functions/fetchTwitterUser', {
         method: 'GET',
@@ -103,7 +71,9 @@ const TwitterIntegration = () => {
       }
 
       const userData = await response.json();
+      console.log("have user data", userData)
       setUser(userData);
+      setIsAuthenticated(true);
     } catch (error) {
       console.error('Error fetching user info:', error);
       setError('Failed to fetch user information');
