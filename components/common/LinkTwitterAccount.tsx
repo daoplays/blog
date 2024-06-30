@@ -28,6 +28,31 @@ const TwitterIntegration = () => {
     const [tweetContent, setTweetContent] = useState("");
     const check_twitter_user = useRef<boolean>(true);
 
+    const fetchUserInfo = useCallback(async () => {
+      try {
+          const response = await fetch("/.netlify/functions/fetchTwitterUser?user_key=" + wallet.publicKey.toString(), {
+              method: "GET",
+          });
+
+          if (!response.ok) {
+              throw new Error("Failed to fetch user information");
+          }
+
+          const userData = await response.json();
+          console.log("have user data", userData);
+          let twitter_user: TwitterUser = {
+              name: userData.name,
+              username: userData.username,
+              profile_image_url: userData.profile_image_url,
+          };
+          setUser(twitter_user);
+          setIsAuthenticated(true);
+      } catch (error) {
+          console.error("Error fetching user info:", error);
+          setError("Failed to fetch user information");
+      }
+    }, [wallet]);
+
     const checkTwitterUser = useCallback(async () => {
         if (check_twitter_user.current) {
             try {
@@ -55,39 +80,16 @@ const TwitterIntegration = () => {
                 console.log("check user failed", error);
             }
         }
-    }, [wallet]);
+    }, [wallet, fetchUserInfo]);
 
     useEffect(() => {
         if (wallet === null || wallet.publicKey === null) {
             return;
         }
         checkTwitterUser();
-    }, [wallet, isAuthenticated]);
+    }, [wallet, isAuthenticated, checkTwitterUser]);
 
-    const fetchUserInfo = async () => {
-        try {
-            const response = await fetch("/.netlify/functions/fetchTwitterUser?user_key=" + wallet.publicKey.toString(), {
-                method: "GET",
-            });
 
-            if (!response.ok) {
-                throw new Error("Failed to fetch user information");
-            }
-
-            const userData = await response.json();
-            console.log("have user data", userData);
-            let twitter_user: TwitterUser = {
-                name: userData.name,
-                username: userData.username,
-                profile_image_url: userData.profile_image_url,
-            };
-            setUser(twitter_user);
-            setIsAuthenticated(true);
-        } catch (error) {
-            console.error("Error fetching user info:", error);
-            setError("Failed to fetch user information");
-        }
-    };
 
     const initiateTwitterLogin = async () => {
         try {
