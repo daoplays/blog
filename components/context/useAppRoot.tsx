@@ -1,19 +1,24 @@
 "use client";
 
 import { PropsWithChildren, createContext, useContext, MutableRefObject, SetStateAction, Dispatch } from "react";
+import { UserData } from "../state/state";
 interface AppRootTypes {
-
+    currentUserData: UserData;
+    userBashBalance: number;
 }
 
 export const AppRootContext = createContext<AppRootTypes | null>(null);
 
 export const AppRootContextProvider = ({
-    children
+    children,
+    currentUserData,
+    userBashBalance
 }: PropsWithChildren<AppRootTypes>) => {
     return (
         <AppRootContext.Provider
             value={{
-                
+                currentUserData,
+                userBashBalance
             }}
         >
             {children}

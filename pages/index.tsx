@@ -32,6 +32,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { BiSolidLeftArrow } from "react-icons/bi";
 import useResponsive from "../components/blog/apps/commonHooks/useResponsive";
 import { Tooltip } from "@chakra-ui/react";
+import useAppRoot from "../components/context/useAppRoot";
 
 const montserrat = Montserrat({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -46,6 +47,7 @@ export default function Home() {
   const wallet = useWallet();
   const { handleConnectWallet, handleDisconnectWallet } = UseWalletConnection();
   const isConnected = wallet.publicKey !== null;
+  const { userBashBalance } = useAppRoot();
 
   const [startDate, setStartDate] = useState<Date>(new Date());
 
@@ -117,6 +119,12 @@ export default function Home() {
           </Tooltip>
         </HStack>
 
+        <div>
+            <Image height={20} width={20} src="/images/bash.png" alt="BASH" />
+            <Text m={0} fontSize={"medium"}>
+                {userBashBalance / 10}
+            </Text>
+        </div>
         <Button
           shadow="md"
           colorScheme="yellow"

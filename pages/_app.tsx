@@ -8,7 +8,7 @@ import { ToastContainer } from "react-toastify";
 import "../styles/fonts.css";
 import "../styles/table.css";
 import "../styles/global.css";
-
+import ContextProviders from "./_contexts";
 import NoSSR from "../utils/NoSSR";
 import { usePathname } from "next/navigation";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
@@ -50,13 +50,11 @@ function MyApp({ Component, pageProps }) {
         <ConnectionProvider endpoint={DEV_RPC_NODE} config={connectionConfig}>
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
-              {/* {bonkathonLinks.includes(pathname) ? (
-                <NavigationBonk />
-              ) : (
-                <Navigation />
-              )} */}
+            <ContextProviders>
+              
               <Component {...pageProps} />
-              {/* {!bonkathonLinks.includes(pathname) && <Footer />} */}
+              </ContextProviders>
+
             </WalletModalProvider>
           </WalletProvider>
         </ConnectionProvider>

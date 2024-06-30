@@ -88,8 +88,13 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         }
 
         let token_key = getAssociatedTokenAddressSync(BASH, wallet.publicKey, true, TOKEN_2022_PROGRAM_ID);
-        let balance = await connection.getTokenAccountBalance(token_key);
-        setUserBashBalance(parseInt(balance.value.amount));
+        try{
+            let balance = await connection.getTokenAccountBalance(token_key);
+            setUserBashBalance(parseInt(balance.value.amount));
+        }
+        catch (error) {
+            console.log(error);
+        }
     }, [wallet]);
 
     const check_user_balance = useCallback(async (result: any) => {
@@ -175,7 +180,8 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
     return (
         <AppRootContextProvider
-            
+            currentUserData={current_user_data}
+            userBashBalance={userBashBalance}
         >
             {children}
         </AppRootContextProvider>
