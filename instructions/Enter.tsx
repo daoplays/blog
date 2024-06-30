@@ -1,7 +1,7 @@
 import { useConnection } from "@solana/wallet-adapter-react";
 import { ComputeBudgetProgram, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { Config, DATA_ACCOUNT_SEED, PDA_ACCOUNT_SEED, PROGRAM, SYSTEM_KEY } from "../components/state/constants";
-import { uInt32ToLEBytes } from "../components/blog/apps/common";
+import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common";
 import { FixableBeetStruct, u8 } from "@metaplex-foundation/beet";
 import { BashInstruction } from "../components/state/state";
 import { getRecentPrioritizationFees } from "../components/state/rpc";
@@ -32,12 +32,13 @@ function serialise_Enter_instruction(game: number): Buffer {
 
 export const GetEnterInstruction = async (user: PublicKey, game : number) => {
 
-    
+    let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
+
     let user_data_account = PublicKey.findProgramAddressSync([user.toBytes(), Buffer.from("User")], PROGRAM)[0];
 
     let pda = PublicKey.findProgramAddressSync([uInt32ToLEBytes(PDA_ACCOUNT_SEED)], PROGRAM)[0];
     let stats = PublicKey.findProgramAddressSync([uInt32ToLEBytes(DATA_ACCOUNT_SEED)], PROGRAM)[0];
-    let entry = PublicKey.findProgramAddressSync([uInt32ToLEBytes(DATA_ACCOUNT_SEED)], PROGRAM)[0];
+    let entry = PublicKey.findProgramAddressSync([user.toBytes(), uInt8ToLEBytes(game), uInt32ToLEBytes(current_date)], PROGRAM)[0];
 
    
 
