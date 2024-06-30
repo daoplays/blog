@@ -25,6 +25,17 @@
                               'embedded-opentype', and 'svg' */
 }
 
+@font-face {
+  font-family: "Whocats";
+  src:
+    local("Whocats"),
+    url(/fonts/Whocats.ttf) format("woff");
+}
+
+.font-face-wc {
+  font-family: "Whocats";
+}
+
 .font-face-kg {
   font-family: "KGSummerSunshineBlackout";
 }
@@ -35,4 +46,8 @@
 
 .font-face-rk {
   font-family: "ReemKufiRegular";
+}
+
+.montserrat-font {
+  font-family: var(--font-montserrat), Arial, sans-serif;
 }

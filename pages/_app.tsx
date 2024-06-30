@@ -50,13 +50,13 @@ function MyApp({ Component, pageProps }) {
         <ConnectionProvider endpoint={DEV_RPC_NODE} config={connectionConfig}>
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
-              {bonkathonLinks.includes(pathname) ? (
+              {/* {bonkathonLinks.includes(pathname) ? (
                 <NavigationBonk />
               ) : (
                 <Navigation />
-              )}
+              )} */}
               <Component {...pageProps} />
-              {!bonkathonLinks.includes(pathname) && <Footer />}
+              {/* {!bonkathonLinks.includes(pathname) && <Footer />} */}
             </WalletModalProvider>
           </WalletProvider>
         </ConnectionProvider>
