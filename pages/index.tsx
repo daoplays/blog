@@ -47,7 +47,7 @@ export default function Home() {
     const wallet = useWallet();
     const { handleConnectWallet, handleDisconnectWallet } = UseWalletConnection();
     const isConnected = wallet.publicKey !== null;
-    const { userBashBalance } = useAppRoot();
+    const { userBashBalance, twitter } = useAppRoot();
 
     const [startDate, setStartDate] = useState<Date>(new Date());
 
@@ -191,6 +191,11 @@ export default function Home() {
                     />
 
                     <TwitterIntegration />
+                    {twitter && 
+                    <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg" w="full" onClick={() => {console.log("clicked")}}>
+                        Submit
+                    </Button>
+                    }
                 </VStack>
             </HStack>
 

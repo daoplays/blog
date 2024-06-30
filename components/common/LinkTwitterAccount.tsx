@@ -5,6 +5,8 @@ import { getDatabase, ref, get } from "firebase/database";
 import { useWallet } from "@solana/wallet-adapter-react";
 import UseWalletConnection from "../blog/apps/commonHooks/useWallet";
 import { Button } from "@chakra-ui/react";
+import { TwitterUser } from "../state/interfaces";
+import useAppRoot from "../context/useAppRoot";
 
 const firebaseConfig = {
     // ...
@@ -12,20 +14,11 @@ const firebaseConfig = {
     databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
 };
 
-interface TwitterUser {
-    name: string;
-    username: string;
-    profile_image_url: string;
-}
-
 const TwitterIntegration = () => {
     const wallet = useWallet();
     const { handleConnectWallet } = UseWalletConnection();
-
-    const [user, setUser] = useState<TwitterUser>(null);
+    const {twitter, setTwitter} = useAppRoot();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [error, setError] = useState(null);
-    const [tweetContent, setTweetContent] = useState("");
     const check_twitter_user = useRef<boolean>(true);
 
     const fetchUserInfo = useCallback(async () => {
@@ -45,13 +38,12 @@ const TwitterIntegration = () => {
               username: userData.username,
               profile_image_url: userData.profile_image_url,
           };
-          setUser(twitter_user);
+          setTwitter(twitter_user);
           setIsAuthenticated(true);
       } catch (error) {
-          console.error("Error fetching user info:", error);
-          setError("Failed to fetch user information");
+          console.log("Error fetching user info:", error);
       }
-    }, [wallet]);
+    }, [wallet, setTwitter]);
 
     const checkTwitterUser = useCallback(async () => {
         if (check_twitter_user.current) {
@@ -70,7 +62,7 @@ const TwitterIntegration = () => {
                         username: db_entry.username,
                         profile_image_url: db_entry.profile_image_url,
                     };
-                    setUser(twitter_user);
+                    setTwitter(twitter_user);
                     setIsAuthenticated(true);
                 } else {
                     await fetchUserInfo();
@@ -80,7 +72,7 @@ const TwitterIntegration = () => {
                 console.log("check user failed", error);
             }
         }
-    }, [wallet, fetchUserInfo]);
+    }, [wallet, fetchUserInfo, setTwitter]);
 
     useEffect(() => {
         if (wallet === null || wallet.publicKey === null) {
@@ -98,14 +90,10 @@ const TwitterIntegration = () => {
 
             window.location.href = data.url;
         } catch (error) {
-            console.error("Error initiating Twitter login:", error);
-            setError("Failed to initiate Twitter login");
+            console.log("Error initiating Twitter login:", error);
         }
     };
 
-    if (error) {
-        return <div>Error: {error}</div>;
-    }
 
     return (
         <div style={{ width: "100%" }}>
@@ -119,15 +107,15 @@ const TwitterIntegration = () => {
                 </Button>
             ) : (
                 <>
-                    {user && (
+                    {twitter && (
                         <div>
                             <img
-                                src={user.profile_image_url}
+                                src={twitter.profile_image_url}
                                 alt="User Avatar"
                                 style={{ width: 50, height: 50, borderRadius: "50%" }}
                             ></img>
-                            <h2>{user.name}</h2>
-                            <p>@{user.username}</p>
+                            <h2>{twitter.name}</h2>
+                            <p>@{twitter.username}</p>
                         </div>
                     )}
                 </>

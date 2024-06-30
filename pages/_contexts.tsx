@@ -10,6 +10,7 @@ import { AppRootContextProvider } from "../components/context/useAppRoot";
 import "bootstrap/dist/css/bootstrap.css";
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { bignum_to_num, TokenAccount } from "../components/blog/apps/common";
+import { TwitterUser } from "../components/state/interfaces";
 
 const GetProgramData = async (check_program_data, setProgramData) => {
     if (!check_program_data.current) return;
@@ -28,10 +29,13 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
     const [user_data, setUserData] = useState<Map<string, UserData> | null>(new Map());
     const [current_user_data, setCurrentUserData] = useState<UserData | null>(null);
+    const [twitter, setTwitter] = useState<TwitterUser | null>(null);
+
     const [userBashBalance, setUserBashBalance] = useState<number>(0);
     const [new_program_data, setNewProgramData] = useState<any>(null);
-    const update_program_data = useRef<number>(0);
 
+
+    const update_program_data = useRef<number>(0);
     const check_program_data = useRef<boolean>(true);
     const last_program_data_update = useRef<number>(0);
 
@@ -77,7 +81,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         } catch (error) {
             console.log(error);
         }
-    }, [wallet]);
+    }, [wallet, connection]);
 
     const check_user_balance = useCallback(async (result: any) => {
         //console.log(result);
@@ -152,7 +156,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     }, []);
 
     return (
-        <AppRootContextProvider currentUserData={current_user_data} userBashBalance={userBashBalance}>
+        <AppRootContextProvider currentUserData={current_user_data} userBashBalance={userBashBalance} twitter={twitter} setTwitter={setTwitter}> 
             {children}
         </AppRootContextProvider>
     );
