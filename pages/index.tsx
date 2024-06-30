@@ -202,8 +202,8 @@ export default function Home() {
               color="white"
               style={{ cursor: "pointer" }}
             />
-            {/* Image Container ??  */}
-            <Box
+                     
+               <Box
               position="relative"
               h="250px"
               w="250px"
@@ -211,6 +211,13 @@ export default function Home() {
               border="1px dashed white"
               rounded="xl"
             >
+              <Image
+                  src="/images/prompt.png"
+                  width={250}
+                  height={250}
+                  alt="Image Frame"
+                  style={{ backgroundSize: "cover", borderRadius: 12 }}
+              />  
               <HStack
                 bg="white"
                 rounded="lg"

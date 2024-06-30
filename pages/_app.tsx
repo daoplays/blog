@@ -32,7 +32,6 @@ function MyApp({ Component, pageProps }) {
     commitment: "confirmed",
   };
 
-  console.log({ theme });
   return (
     <NoSSR>
       <ToastContainer
