@@ -25,9 +25,8 @@ export enum BashInstruction {
     Init = 0,
     Enter = 1,
     Vote = 2,
-    ClaimPrize = 3
+    ClaimPrize = 3,
 }
-
 
 export class UserData {
     constructor(
@@ -54,7 +53,18 @@ export class UserData {
             ["total_positive_voted", u32],
             ["total_negative_voted", u32],
         ],
-        (args) => new UserData(args.account_type!, args.user_key!, args.user_id!, args.twitter!, args.total_wins!, args.total_positive_votes!, args.total_negative_votes!, args.total_positive_voted!, args.total_negative_voted!),
+        (args) =>
+            new UserData(
+                args.account_type!,
+                args.user_key!,
+                args.user_id!,
+                args.twitter!,
+                args.total_wins!,
+                args.total_positive_votes!,
+                args.total_negative_votes!,
+                args.total_positive_voted!,
+                args.total_negative_voted!,
+            ),
         "UserData",
     );
 }

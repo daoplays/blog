@@ -9,8 +9,6 @@ export interface NetworkConfig {
     IRYS_WALLET: string;
 }
 
-
-
 const MainNetConfig: NetworkConfig = {
     PROD: true,
     NETWORK: "mainnet",
@@ -32,7 +30,4 @@ export const DATA_ACCOUNT_SEED = 10399637;
 //timeout for transactions to be considered failed
 export const TIMEOUT = 30000;
 
-
 export let Config = MainNetConfig;
-
-

@@ -1,191 +1,163 @@
 import React, { useRef, useEffect, useState, useMemo } from "react";
-import {
-  AMMData,
-  AMMLaunch,
-  PROGRAM,
-  Screen,
-} from "../../components/blog/apps/shorts/state";
+import { AMMData, AMMLaunch, PROGRAM, Screen } from "../../components/blog/apps/shorts/state";
 import { ConnectionConfig, PublicKey } from "@solana/web3.js";
-import {
-  DEV_RPC_NODE,
-  DEV_WSS_NODE,
-  GPAccount,
-  MintData,
-} from "../../components/blog/apps/common";
-import {
-  GetProgramData,
-  GetTradeMintData,
-} from "../../components/blog/apps/shorts/App";
+import { DEV_RPC_NODE, DEV_WSS_NODE, GPAccount, MintData } from "../../components/blog/apps/common";
+import { GetProgramData, GetTradeMintData } from "../../components/blog/apps/shorts/App";
 import useResponsive from "../../hooks/useResponsive";
 import { HStack, VStack } from "@chakra-ui/react";
 import TradePage from "../../components/bonkathon/trade";
 import AMMTable from "../../components/bonkathon/ammTable";
 import Footer from "../../components/bonkathon/footer";
 
-export const bonkathonLinks = [
-  "/bonkathon2024",
-  "/bonkathon2024/create",
-  "/bonkathon2024/view",
-  "/bonkathon2024/demo",
-];
+export const bonkathonLinks = ["/bonkathon2024", "/bonkathon2024/create", "/bonkathon2024/view", "/bonkathon2024/demo"];
 
 const ViewAMMs = () => {
-  const { sm, lg, xl } = useResponsive();
+    const { sm, lg, xl } = useResponsive();
 
-  const [program_data, setProgramData] = useState<GPAccount[] | null>(null);
-  const [amm_data, setAMMData] = useState<AMMData[]>([]);
-  const [mintData, setMintData] = useState<Map<String, MintData> | null>(null);
-  const [amm_launches, setAMMLaunches] = useState<Map<
-    String,
-    AMMLaunch
-  > | null>(null);
+    const [program_data, setProgramData] = useState<GPAccount[] | null>(null);
+    const [amm_data, setAMMData] = useState<AMMData[]>([]);
+    const [mintData, setMintData] = useState<Map<String, MintData> | null>(null);
+    const [amm_launches, setAMMLaunches] = useState<Map<String, AMMLaunch> | null>(null);
 
-  const [selected, setSelected] = useState<string>("View");
-  const [current_launch, setCurrentLaunch] = useState<AMMLaunch | null>(null);
-  const [screen, setScreen] = useState<Screen>(Screen.table);
+    const [selected, setSelected] = useState<string>("View");
+    const [current_launch, setCurrentLaunch] = useState<AMMLaunch | null>(null);
+    const [screen, setScreen] = useState<Screen>(Screen.table);
 
-  const last_selected = useRef<string>("View");
+    const last_selected = useRef<string>("View");
 
-  const check_program_data = useRef<boolean>(true);
+    const check_program_data = useRef<boolean>(true);
 
-  useEffect(() => {
-    GetProgramData(check_program_data, setProgramData);
-  }, []);
+    useEffect(() => {
+        GetProgramData(check_program_data, setProgramData);
+    }, []);
 
-  useEffect(() => {
-    if (program_data === null) return;
+    useEffect(() => {
+        if (program_data === null) return;
 
-    let amm_data: AMMData[] = [];
+        let amm_data: AMMData[] = [];
 
-    for (let i = 0; i < program_data.length; i++) {
-      let data = program_data[i].data;
+        for (let i = 0; i < program_data.length; i++) {
+            let data = program_data[i].data;
 
-      if (data[0] === 6 && data.length === 215) {
-
-        try {
-          const [amm] = AMMData.struct.deserialize(data);
-          amm_data.push(amm);
-        } catch (error) {
-          console.log(error);
+            if (data[0] === 6 && data.length === 215) {
+                try {
+                    const [amm] = AMMData.struct.deserialize(data);
+                    amm_data.push(amm);
+                } catch (error) {
+                    console.log(error);
+                }
+            }
         }
-      }
-    }
-    setAMMData(amm_data);
+        setAMMData(amm_data);
 
-    let trade_mints: PublicKey[] = [];
-    for (let i = 0; i < amm_data.length; i++) {
-      trade_mints.push(amm_data[i].base_mint);
-      trade_mints.push(amm_data[i].quote_mint);
-    }
+        let trade_mints: PublicKey[] = [];
+        for (let i = 0; i < amm_data.length; i++) {
+            trade_mints.push(amm_data[i].base_mint);
+            trade_mints.push(amm_data[i].quote_mint);
+        }
 
-    GetTradeMintData(trade_mints, setMintData);
-  }, [program_data]);
+        GetTradeMintData(trade_mints, setMintData);
+    }, [program_data]);
 
-  useEffect(() => {
-    if (amm_data === null || mintData === null) return;
+    useEffect(() => {
+        if (amm_data === null || mintData === null) return;
 
-    let amm_launches = new Map<String, AMMLaunch>();
-    for (let i = 0; i < amm_data.length; i++) {
-      let amm = amm_data[i];
-      let base_mint_data = mintData.get(amm.base_mint.toString());
-      let quote_mint_data = mintData.get(amm.quote_mint.toString());
+        let amm_launches = new Map<String, AMMLaunch>();
+        for (let i = 0; i < amm_data.length; i++) {
+            let amm = amm_data[i];
+            let base_mint_data = mintData.get(amm.base_mint.toString());
+            let quote_mint_data = mintData.get(amm.quote_mint.toString());
 
-      let launch: AMMLaunch = {
-        amm_data: amm,
-        base: base_mint_data,
-        quote: quote_mint_data,
-      };
+            let launch: AMMLaunch = {
+                amm_data: amm,
+                base: base_mint_data,
+                quote: quote_mint_data,
+            };
 
-      let amm_seed_keys = [];
-      if (amm.base_mint.toString() < amm.quote_mint.toString()) {
-        amm_seed_keys.push(amm.base_mint);
-        amm_seed_keys.push(amm.quote_mint);
-      } else {
-        amm_seed_keys.push(amm.quote_mint);
-        amm_seed_keys.push(amm.base_mint);
-      }
+            let amm_seed_keys = [];
+            if (amm.base_mint.toString() < amm.quote_mint.toString()) {
+                amm_seed_keys.push(amm.base_mint);
+                amm_seed_keys.push(amm.quote_mint);
+            } else {
+                amm_seed_keys.push(amm.quote_mint);
+                amm_seed_keys.push(amm.base_mint);
+            }
 
-      let amm_data_account = PublicKey.findProgramAddressSync(
-        [
-          amm_seed_keys[0].toBytes(),
-          amm_seed_keys[1].toBytes(),
-          Buffer.from("AMM"),
-        ],
-        PROGRAM
-      )[0];
+            let amm_data_account = PublicKey.findProgramAddressSync(
+                [amm_seed_keys[0].toBytes(), amm_seed_keys[1].toBytes(), Buffer.from("AMM")],
+                PROGRAM,
+            )[0];
 
-      amm_launches.set(amm_data_account.toString(), launch);
-    }
+            amm_launches.set(amm_data_account.toString(), launch);
+        }
 
-    setAMMLaunches(amm_launches);
-  }, [amm_data, mintData]);
+        setAMMLaunches(amm_launches);
+    }, [amm_data, mintData]);
 
-  useEffect(() => {
-    if (selected == last_selected.current) {
-      return;
-    }
+    useEffect(() => {
+        if (selected == last_selected.current) {
+            return;
+        }
 
-    last_selected.current = selected;
-    if (selected === "Create") {
-      setScreen(Screen.create);
-    }
-    if (selected === "View") {
-      setScreen(Screen.table);
-    }
-    if (selected === "Trade") {
-      setScreen(Screen.trade);
-    }
-  }, [selected]);
+        last_selected.current = selected;
+        if (selected === "Create") {
+            setScreen(Screen.create);
+        }
+        if (selected === "View") {
+            setScreen(Screen.table);
+        }
+        if (selected === "Trade") {
+            setScreen(Screen.trade);
+        }
+    }, [selected]);
 
-  return (
-    <main
-      style={{
-        background: "linear-gradient(180deg, #292929 10%, #0B0B0B 100%)",
-        height: "100%",
-      }}
-    >
-      <HStack
-        align="start"
-        height="100%"
-        style={{
-          width: screen === Screen.trade ? "100%" : lg ? "100%" : "1200px",
-        }}
-        px={screen === Screen.trade ? 0 : lg ? 0 : 12}
-      >
-        {screen === Screen.trade && (
-          <VStack
+    return (
+        <main
             style={{
-              background: "linear-gradient(180deg, #292929 10%, #0B0B0B 100%)",
-              minHeight: "100vh",
-              width: "100%",
-              marginTop: "-12px",
+                background: "linear-gradient(180deg, #292929 10%, #0B0B0B 100%)",
+                height: "100%",
             }}
-          >
-            <TradePage launch={current_launch} setScreen={setScreen} />
-          </VStack>
-        )}
+        >
+            <HStack
+                align="start"
+                height="100%"
+                style={{
+                    width: screen === Screen.trade ? "100%" : lg ? "100%" : "1200px",
+                }}
+                px={screen === Screen.trade ? 0 : lg ? 0 : 12}
+            >
+                {screen === Screen.trade && (
+                    <VStack
+                        style={{
+                            background: "linear-gradient(180deg, #292929 10%, #0B0B0B 100%)",
+                            minHeight: "100vh",
+                            width: "100%",
+                            marginTop: "-12px",
+                        }}
+                    >
+                        <TradePage launch={current_launch} setScreen={setScreen} />
+                    </VStack>
+                )}
 
-        {screen === Screen.table && (
-          <VStack h="100vh" w="full">
-            <AMMTable
-              setScreen={setScreen}
-              ammList={amm_launches}
-              setCurrentLaunch={setCurrentLaunch}
-              setSelected={setSelected}
-            />
-          </VStack>
-        )}
-      </HStack>
+                {screen === Screen.table && (
+                    <VStack h="100vh" w="full">
+                        <AMMTable
+                            setScreen={setScreen}
+                            ammList={amm_launches}
+                            setCurrentLaunch={setCurrentLaunch}
+                            setSelected={setSelected}
+                        />
+                    </VStack>
+                )}
+            </HStack>
 
-      {sm && screen !== Screen.trade && (
-        <Footer isTradePage={false} setScreen={setScreen} />
-      )}
-    </main>
-  );
+            {sm && screen !== Screen.trade && <Footer isTradePage={false} setScreen={setScreen} />}
+        </main>
+    );
 };
 
 function BonkAThon() {
-  return <ViewAMMs />;
+    return <ViewAMMs />;
 }
 
 export default BonkAThon;

@@ -29,9 +29,7 @@ function serialise_Enter_instruction(game: number): Buffer {
     return buf;
 }
 
-
-export const GetEnterInstruction = async (user: PublicKey, game : number) => {
-
+export const GetEnterInstruction = async (user: PublicKey, game: number) => {
     let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
 
     let user_data_account = PublicKey.findProgramAddressSync([user.toBytes(), Buffer.from("User")], PROGRAM)[0];
@@ -39,8 +37,6 @@ export const GetEnterInstruction = async (user: PublicKey, game : number) => {
     let pda = PublicKey.findProgramAddressSync([uInt32ToLEBytes(PDA_ACCOUNT_SEED)], PROGRAM)[0];
     let stats = PublicKey.findProgramAddressSync([uInt32ToLEBytes(DATA_ACCOUNT_SEED)], PROGRAM)[0];
     let entry = PublicKey.findProgramAddressSync([user.toBytes(), uInt8ToLEBytes(game), uInt32ToLEBytes(current_date)], PROGRAM)[0];
-
-   
 
     const instruction_data = serialise_Enter_instruction(game);
 
@@ -56,20 +52,19 @@ export const GetEnterInstruction = async (user: PublicKey, game : number) => {
         { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
     ];
 
-
     const list_instruction = new TransactionInstruction({
         keys: account_vector,
         programId: PROGRAM,
         data: instruction_data,
     });
 
-    let instructions : TransactionInstruction[] = []
+    let instructions: TransactionInstruction[] = [];
 
     let feeMicroLamports = await getRecentPrioritizationFees(Config.PROD);
-    
+
     instructions.push(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: feeMicroLamports }));
     instructions.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }));
     instructions.push(list_instruction);
 
-    return instructions
-}
+    return instructions;
+};

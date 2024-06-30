@@ -9,16 +9,12 @@ interface AppRootTypes {
 
 export const AppRootContext = createContext<AppRootTypes | null>(null);
 
-export const AppRootContextProvider = ({
-    children,
-    currentUserData,
-    userBashBalance
-}: PropsWithChildren<AppRootTypes>) => {
+export const AppRootContextProvider = ({ children, currentUserData, userBashBalance }: PropsWithChildren<AppRootTypes>) => {
     return (
         <AppRootContext.Provider
             value={{
                 currentUserData,
-                userBashBalance
+                userBashBalance,
             }}
         >
             {children}

@@ -1,7 +1,5 @@
-import { PublicKey} from "@solana/web3.js";
-import {  Config, PROGRAM } from "./constants";
-
-
+import { PublicKey } from "@solana/web3.js";
+import { Config, PROGRAM } from "./constants";
 
 // Example POST method implementation:
 export async function postData(url = "", bearer = "", data = {}) {
@@ -89,7 +87,6 @@ export async function getRecentPrioritizationFees(PROD: boolean): Promise<number
 
     return feeMicroLamports;
 }
-
 
 interface BlockHash {
     blockhash: string;

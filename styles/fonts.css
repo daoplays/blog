@@ -1,53 +1,53 @@
 @font-face {
-  font-family: "ChalkBoard";
-  src:
-    local("ChalkBoard"),
-    url(/fonts/ChalkBoard.woff2) format("woff2");
-  /* other formats include: 'woff2', 'truetype, 'opentype',
+    font-family: "ChalkBoard";
+    src:
+        local("ChalkBoard"),
+        url(/fonts/ChalkBoard.woff2) format("woff2");
+    /* other formats include: 'woff2', 'truetype, 'opentype',
                               'embedded-opentype', and 'svg' */
 }
 
 @font-face {
-  font-family: "KGSummerSunshineBlackout";
-  src:
-    local("KGSummerSunshineBlackout"),
-    url(/fonts/KGSummerSunshineBlackout.woff2) format("woff2");
-  /* other formats include: 'woff2', 'truetype, 'opentype',
+    font-family: "KGSummerSunshineBlackout";
+    src:
+        local("KGSummerSunshineBlackout"),
+        url(/fonts/KGSummerSunshineBlackout.woff2) format("woff2");
+    /* other formats include: 'woff2', 'truetype, 'opentype',
                               'embedded-opentype', and 'svg' */
 }
 
 @font-face {
-  font-family: "ReemKufiRegular";
-  src:
-    local("ReemKufiRegular"),
-    url(/fonts/ReemKufiRegular.woff2) format("woff2");
-  /* other formats include: 'woff2', 'truetype, 'opentype',
+    font-family: "ReemKufiRegular";
+    src:
+        local("ReemKufiRegular"),
+        url(/fonts/ReemKufiRegular.woff2) format("woff2");
+    /* other formats include: 'woff2', 'truetype, 'opentype',
                               'embedded-opentype', and 'svg' */
 }
 
 @font-face {
-  font-family: "Whocats";
-  src:
-    local("Whocats"),
-    url(/fonts/Whocats.ttf) format("woff");
+    font-family: "Whocats";
+    src:
+        local("Whocats"),
+        url(/fonts/Whocats.ttf) format("woff");
 }
 
 .font-face-wc {
-  font-family: "Whocats";
+    font-family: "Whocats";
 }
 
 .font-face-kg {
-  font-family: "KGSummerSunshineBlackout";
+    font-family: "KGSummerSunshineBlackout";
 }
 
 .font-face-cb {
-  font-family: "ChalkBoard";
+    font-family: "ChalkBoard";
 }
 
 .font-face-rk {
-  font-family: "ReemKufiRegular";
+    font-family: "ReemKufiRegular";
 }
 
 .montserrat-font {
-  font-family: var(--font-montserrat), Arial, sans-serif;
+    font-family: var(--font-montserrat), Arial, sans-serif;
 }

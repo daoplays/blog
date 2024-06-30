@@ -9,48 +9,38 @@ import entropy from "../../components/blog/resources/3_PythSeeds/entropy.png";
 import entropy_diffs from "../../components/blog/resources/3_PythSeeds/diffs_entropy.png";
 
 function ImageBlock() {
-  return (
-    <>
-      <Box>
-        <Image src={entropy.src} alt="Entropy" />
-      </Box>
-      <Box>
-        <Image src={entropy_diffs.src} alt="Entropy Diffs" />
-      </Box>
-    </>
-  );
+    return (
+        <>
+            <Box>
+                <Image src={entropy.src} alt="Entropy" />
+            </Box>
+            <Box>
+                <Image src={entropy_diffs.src} alt="Entropy Diffs" />
+            </Box>
+        </>
+    );
 }
 
-function HighLightCode({
-  codeBlock,
-  language,
-}: {
-  codeBlock: string;
-  language: string;
-}) {
-  return (
-    <Highlight
-      theme={themes.shadesOfPurple}
-      code={codeBlock}
-      language={language}
-    >
-      {({ style, tokens, getLineProps, getTokenProps }) => (
-        <pre style={style}>
-          {tokens.map((line, i) => (
-            <div key={i} {...getLineProps({ line })}>
-              {line.map((token, key) => (
-                <span key={key} {...getTokenProps({ token })} />
-              ))}
-            </div>
-          ))}
-        </pre>
-      )}
-    </Highlight>
-  );
+function HighLightCode({ codeBlock, language }: { codeBlock: string; language: string }) {
+    return (
+        <Highlight theme={themes.shadesOfPurple} code={codeBlock} language={language}>
+            {({ style, tokens, getLineProps, getTokenProps }) => (
+                <pre style={style}>
+                    {tokens.map((line, i) => (
+                        <div key={i} {...getLineProps({ line })}>
+                            {line.map((token, key) => (
+                                <span key={key} {...getTokenProps({ token })} />
+                            ))}
+                        </div>
+                    ))}
+                </pre>
+            )}
+        </Highlight>
+    );
 }
 
 function PostContent() {
-  const BTC_check = `
+    const BTC_check = `
     // in processor.rs 
     let account_info_iter = &mut accounts.iter();
     let BTC_key = Pubkey::from_str("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J").unwrap();
@@ -65,14 +55,14 @@ function PostContent() {
     }
 `;
 
-  const BTC_struct = `
+    const BTC_struct = `
     // in processor.rs 
     // get the price and confidence interval from Pyth
     let btc_price_feed = load_price_feed_from_account_info( &BTC_account_info ).unwrap();
     let btc_price_struct = btc_price_feed.get_current_price().unwrap();
 `;
 
-  const BTC_example = `
+    const BTC_example = `
     // in processor.rs 
     // the price is an i64, so first convert to a u64
     // for currencies this should be fine, but if you want a derivatives time series bear in mind that can go negative
@@ -80,7 +70,7 @@ function PostContent() {
     let btc_price_error = btc_price_struct.conf;
 `;
 
-  const BTC_shifted = `
+    const BTC_shifted = `
     // in processor.rs 
     let mut seed_values = SeedStruct { seed_prices : [0; 9] };
     seed_values.seed_prices[0] = Self::shift_seed(Self::shift_seed(btc_price_value + btc_price_error));
@@ -88,7 +78,7 @@ function PostContent() {
     seed_values.seed_prices[2] = Self::shift_seed(Self::shift_seed(btc_price_value - btc_price_error));
 `;
 
-  const seed_result = `
+    const seed_result = `
     // in processor.rs 
     let mut vec_to_hash = unsafe{Self::any_as_u8_slice(&seed_values)};
     let h = murmur3_x64_128(&mut vec_to_hash, 0).unwrap();
@@ -101,332 +91,250 @@ function PostContent() {
     let seed_double = Self::generate_random_f64(seed);
 `;
 
-  const seed_struct = `
+    const seed_struct = `
     // in state.rs
     pub struct SeedStruct {
         pub seed_prices : [u64;  9]
     }
 `;
 
-  return (
-    <div className="home">
-      <div className="container">
-        <h1 className="h1 text-center mb-0 pt-3 font-weight-bold text-body">
-          Using Pyth To Seed A Random Number Generator
-        </h1>
-        <h1 className="h5 text-center mb-1 pt-0 font-weight-bold text-secondary">
-          July 05 2022
-        </h1>
-        <br />
-        <p>
-          In our{" "}
-          <Link
-            style={{ textDecoration: "underline" }}
-            href="/blog/random_numbers"
-          >
-            previous
-          </Link>{" "}
-          post we compared a few different methods of generating random numbers
-          on the Solana blockchain. The use case in that instance was strictly
-          for programs that weren't using those random values for anything where
-          real world value was at stake (i.e. not in a gambling app). As
-          everything about the RNG sequence was transparent, it meant that it
-          was easy for anyone to predict the next values, and therefore
-          manipulate the system that used them.
-          <br />
-          <br />
-          In this post we are going to extend the previous functionality by
-          generating the seed for out random number generator (RNG) using
-          information from off-chain via the oracle{" "}
-          <a
-            style={{ textDecoration: "underline" }}
-            href="https://pyth.network/"
-          >
-            Pyth
-          </a>
-          . At time of writing Pyth provides free access to price data for
-          around 80 different crypto and non-crypto assets, and adds very little
-          computational cost to use within a program on-chain.
-          <br />
-          <br />
-          The advantage of doing this is that the entire process remains largely
-          trustless (a user only needs to trust that Pyth isn't somehow
-          manipulating the data being sent to the program to their advantage)
-          and means that we can use our RNGs in a much wider range of
-          applications. Although we wouldn't recommend using this for gambling
-          apps where the outcome of a bet is generated within the same block as
-          the bet is made, for applications where winners are selected some time
-          after entries have closed this process can provide extremely good
-          random values to seed our RNG. In general the security of the seed
-          will increase as the time interval before selecting any winners
-          increases, however any change to any of the price streams (including
-          their provided confidence intervals) that we include in our seed
-          generator will yield entirely independent values for the seed. As it
-          is adds very little computational cost to include more streams in the
-          creation of the seed, you could easily include dozens to increase
-          security, though in this post we will build our seed using only three.
-          <br />
-          <br />
-          The code for the on-chain program described in this post can be found{" "}
-          <a
-            style={{ textDecoration: "underline" }}
-            href="https://github.com/daoplays/solana_examples/tree/master/Pyth"
-          >
-            here
-          </a>{" "}
-          and by the end we will have covered the following:
-        </p>
-        <br />
-        <ul>
-          <li>Used Pyth to stream price data to our on-chain program</li>
-          <li>
-            Create a random seed using that data using techniques from our
-            previous post
-          </li>
-          <li>Demonstrated the robust nature of the seeds generated </li>
-        </ul>
-        <br />
+    return (
+        <div className="home">
+            <div className="container">
+                <h1 className="h1 text-center mb-0 pt-3 font-weight-bold text-body">Using Pyth To Seed A Random Number Generator</h1>
+                <h1 className="h5 text-center mb-1 pt-0 font-weight-bold text-secondary">July 05 2022</h1>
+                <br />
+                <p>
+                    In our{" "}
+                    <Link style={{ textDecoration: "underline" }} href="/blog/random_numbers">
+                        previous
+                    </Link>{" "}
+                    post we compared a few different methods of generating random numbers on the Solana blockchain. The use case in that
+                    instance was strictly for programs that weren't using those random values for anything where real world value was at
+                    stake (i.e. not in a gambling app). As everything about the RNG sequence was transparent, it meant that it was easy for
+                    anyone to predict the next values, and therefore manipulate the system that used them.
+                    <br />
+                    <br />
+                    In this post we are going to extend the previous functionality by generating the seed for out random number generator
+                    (RNG) using information from off-chain via the oracle{" "}
+                    <a style={{ textDecoration: "underline" }} href="https://pyth.network/">
+                        Pyth
+                    </a>
+                    . At time of writing Pyth provides free access to price data for around 80 different crypto and non-crypto assets, and
+                    adds very little computational cost to use within a program on-chain.
+                    <br />
+                    <br />
+                    The advantage of doing this is that the entire process remains largely trustless (a user only needs to trust that Pyth
+                    isn't somehow manipulating the data being sent to the program to their advantage) and means that we can use our RNGs in
+                    a much wider range of applications. Although we wouldn't recommend using this for gambling apps where the outcome of a
+                    bet is generated within the same block as the bet is made, for applications where winners are selected some time after
+                    entries have closed this process can provide extremely good random values to seed our RNG. In general the security of
+                    the seed will increase as the time interval before selecting any winners increases, however any change to any of the
+                    price streams (including their provided confidence intervals) that we include in our seed generator will yield entirely
+                    independent values for the seed. As it is adds very little computational cost to include more streams in the creation of
+                    the seed, you could easily include dozens to increase security, though in this post we will build our seed using only
+                    three.
+                    <br />
+                    <br />
+                    The code for the on-chain program described in this post can be found{" "}
+                    <a style={{ textDecoration: "underline" }} href="https://github.com/daoplays/solana_examples/tree/master/Pyth">
+                        here
+                    </a>{" "}
+                    and by the end we will have covered the following:
+                </p>
+                <br />
+                <ul>
+                    <li>Used Pyth to stream price data to our on-chain program</li>
+                    <li>Create a random seed using that data using techniques from our previous post</li>
+                    <li>Demonstrated the robust nature of the seeds generated </li>
+                </ul>
+                <br />
 
-        <h2 className="mt-5" style={{ fontSize: "20px" }}>
-          Using Pyth to stream price data on-chain
-        </h2>
-        <br />
-        <p>
-          The rust crate required to use Pyth can be found{" "}
-          <a
-            style={{ textDecoration: "underline" }}
-            href="https://crates.io/crates/pyth-sdk-solana"
-          >
-            here
-          </a>
-          . In our example program we will be using price series data from three
-          cryptocurrency streams: BTC, ETH and SOL. Pyth provide the public keys
-          for each of their supported price streams (for example on the Solana
-          devnet you can find them{" "}
-          <a
-            style={{ textDecoration: "underline" }}
-            href="https://pyth.network/developers/price-feed-ids/#solana-devnet"
-          >
-            here
-          </a>
-          ) and these will need to be provided to your program when you interact
-          with it in the list of accounts to be accessed.
-          <br />
-          <br />
-          Below we will go through the process of obtaining the current price
-          and the provided confidence interval for the BTC case. The ETH and SOL
-          cases can be found in the program source code, but just follow the
-          same pattern.
-          <br />
-          <br />
-        </p>
-        <HighLightCode codeBlock={BTC_check} language={"rust"} />
+                <h2 className="mt-5" style={{ fontSize: "20px" }}>
+                    Using Pyth to stream price data on-chain
+                </h2>
+                <br />
+                <p>
+                    The rust crate required to use Pyth can be found{" "}
+                    <a style={{ textDecoration: "underline" }} href="https://crates.io/crates/pyth-sdk-solana">
+                        here
+                    </a>
+                    . In our example program we will be using price series data from three cryptocurrency streams: BTC, ETH and SOL. Pyth
+                    provide the public keys for each of their supported price streams (for example on the Solana devnet you can find them{" "}
+                    <a style={{ textDecoration: "underline" }} href="https://pyth.network/developers/price-feed-ids/#solana-devnet">
+                        here
+                    </a>
+                    ) and these will need to be provided to your program when you interact with it in the list of accounts to be accessed.
+                    <br />
+                    <br />
+                    Below we will go through the process of obtaining the current price and the provided confidence interval for the BTC
+                    case. The ETH and SOL cases can be found in the program source code, but just follow the same pattern.
+                    <br />
+                    <br />
+                </p>
+                <HighLightCode codeBlock={BTC_check} language={"rust"} />
 
-        <p>
-          <br />
-          The first thing we need to do is to just check that the account that
-          has been passed to the program is indeed the Pyth Bitcoin account.
-          This stops malicious individuals sending the wrong accounts, and
-          providing fake data to our program which would give them control over
-          the seeds generated.
-          <br />
-          <br />
-        </p>
-        <HighLightCode codeBlock={BTC_struct} language={"rust"} />
+                <p>
+                    <br />
+                    The first thing we need to do is to just check that the account that has been passed to the program is indeed the Pyth
+                    Bitcoin account. This stops malicious individuals sending the wrong accounts, and providing fake data to our program
+                    which would give them control over the seeds generated.
+                    <br />
+                    <br />
+                </p>
+                <HighLightCode codeBlock={BTC_struct} language={"rust"} />
 
-        <p>
-          <br />
-          From there obtaining the current price, and the confidence interval on
-          it is incredibly straight forward, requiring only a couple of function
-          calls to the Pyth API: load_price_feed_from_account_info and
-          get_current_price. The btc_price_struct object has the following
-          fields:
-          <br />
-          <br />
-        </p>
-        <HighLightCode
-          codeBlock={`
+                <p>
+                    <br />
+                    From there obtaining the current price, and the confidence interval on it is incredibly straight forward, requiring only
+                    a couple of function calls to the Pyth API: load_price_feed_from_account_info and get_current_price. The
+                    btc_price_struct object has the following fields:
+                    <br />
+                    <br />
+                </p>
+                <HighLightCode
+                    codeBlock={`
     pub struct Price {
         pub price: i64,
         pub conf: u64,
         pub expo: i32,
     }
 `}
-          language={"rust"}
-        />
+                    language={"rust"}
+                />
 
-        <p>
-          <br />
+                <p>
+                    <br />
 
-          <MathJaxContext>
-            and if you are actually interested in the price then it is just
-            given by{" "}
-            <MathJax inline={true}>
-              {
-                "\\(P = (\\mathrm{price} \\pm \\mathrm{conf}) \\times 10^{\\mathrm{expo}}\\)"
-              }{" "}
-            </MathJax>{" "}
-            , but in our case we just take the price and conf fields, and
-            convert the price to a u64. This is safe for cryptocurrency prices,
-            but be aware that for derivatives you may need to be more careful as
-            prices can go{" "}
-            <a
-              style={{ textDecoration: "underline" }}
-              href="https://www.bbc.co.uk/news/business-52350082"
-            >
-              negative
-            </a>
-            .
-          </MathJaxContext>
+                    <MathJaxContext>
+                        and if you are actually interested in the price then it is just given by{" "}
+                        <MathJax inline={true}>{"\\(P = (\\mathrm{price} \\pm \\mathrm{conf}) \\times 10^{\\mathrm{expo}}\\)"} </MathJax> ,
+                        but in our case we just take the price and conf fields, and convert the price to a u64. This is safe for
+                        cryptocurrency prices, but be aware that for derivatives you may need to be more careful as prices can go{" "}
+                        <a style={{ textDecoration: "underline" }} href="https://www.bbc.co.uk/news/business-52350082">
+                            negative
+                        </a>
+                        .
+                    </MathJaxContext>
 
-          <br />
-          <br />
-        </p>
-        <HighLightCode codeBlock={BTC_example} language={"rust"} />
+                    <br />
+                    <br />
+                </p>
+                <HighLightCode codeBlock={BTC_example} language={"rust"} />
 
-        <h2 className="mt-5" style={{ fontSize: "20px" }}>
-          Using Prices To Build Our Seed Value
-        </h2>
-        <br />
+                <h2 className="mt-5" style={{ fontSize: "20px" }}>
+                    Using Prices To Build Our Seed Value
+                </h2>
+                <br />
 
-        <p>
-          In our program we define a SeedStruct type which is just a vector of
-          nine unsigned 64bit integers (u64s):
-          <br />
-          <br />
-        </p>
-        <HighLightCode codeBlock={seed_struct} language={"rust"} />
+                <p>
+                    In our program we define a SeedStruct type which is just a vector of nine unsigned 64bit integers (u64s):
+                    <br />
+                    <br />
+                </p>
+                <HighLightCode codeBlock={seed_struct} language={"rust"} />
 
-        <p>
-          <br />
+                <p>
+                    <br />
 
-          <MathJaxContext>
-            This is because for each of our streams we are going to create three
-            u64 values using a combination of the BTC price{" "}
-            <MathJax inline>{"\\(\\pm\\)"}</MathJax> the confidence interval. We
-            also make use of the Xorshift* RNG from the previous post, which
-            takes a u64 as input and generates a random u64 from it. While it is
-            probably only necessary to apply this once per input we do so twice
-            simply to make sure we have moved further from the starting point in
-            state space. By applying the Xorshift* generator at this point we
-            guarantee that any delta in the price or confidence interval will
-            yield significantly different inputs to the hashing function that
-            will actually produce the seed.
-          </MathJaxContext>
-          <br />
-          <br />
-        </p>
-        <HighLightCode codeBlock={BTC_shifted} language={"rust"} />
+                    <MathJaxContext>
+                        This is because for each of our streams we are going to create three u64 values using a combination of the BTC price{" "}
+                        <MathJax inline>{"\\(\\pm\\)"}</MathJax> the confidence interval. We also make use of the Xorshift* RNG from the
+                        previous post, which takes a u64 as input and generates a random u64 from it. While it is probably only necessary to
+                        apply this once per input we do so twice simply to make sure we have moved further from the starting point in state
+                        space. By applying the Xorshift* generator at this point we guarantee that any delta in the price or confidence
+                        interval will yield significantly different inputs to the hashing function that will actually produce the seed.
+                    </MathJaxContext>
+                    <br />
+                    <br />
+                </p>
+                <HighLightCode codeBlock={BTC_shifted} language={"rust"} />
 
-        <p>
-          <br />
-          The final hashing step is shown below, where we make use of the fast
-          murmur3 method described in the previous post to hash our struct into
-          a single unsigned 128bit integer (u128).
-          <br />
-          <br />
-        </p>
-        <HighLightCode codeBlock={seed_result} language={"rust"} />
+                <p>
+                    <br />
+                    The final hashing step is shown below, where we make use of the fast murmur3 method described in the previous post to
+                    hash our struct into a single unsigned 128bit integer (u128).
+                    <br />
+                    <br />
+                </p>
+                <HighLightCode codeBlock={seed_result} language={"rust"} />
 
-        <p>
-          <br />
-          Whereas previously we split this u128 into two halves in order to have
-          two independent u64 random values to use in our generator, in this
-          case we combine them using the bitwise XOR function to produce a
-          single u64 value as our final seed. For the purposes of this post we
-          then also convert that to a floating point value in the range[0..1) so
-          that we can more easily compute some statistics on it to compare to
-          the expected uniform distribution.
-        </p>
-        <h2 className="mt-5" style={{ fontSize: "20px" }}>
-          Checking The Statistical Properties Of The Seed Values
-        </h2>
-        <br />
+                <p>
+                    <br />
+                    Whereas previously we split this u128 into two halves in order to have two independent u64 random values to use in our
+                    generator, in this case we combine them using the bitwise XOR function to produce a single u64 value as our final seed.
+                    For the purposes of this post we then also convert that to a floating point value in the range[0..1) so that we can more
+                    easily compute some statistics on it to compare to the expected uniform distribution.
+                </p>
+                <h2 className="mt-5" style={{ fontSize: "20px" }}>
+                    Checking The Statistical Properties Of The Seed Values
+                </h2>
+                <br />
 
-        <p>
-          Now that we have our program we can take a look at the statistical
-          properties of the seeds we generate. Below is a javascript API that
-          can access our on-chain program. When you click Generate Seed it will
-          go and get the current prices for BTC, ETH and SOL and produce the
-          seed either in the way we have described above (the 'ShiftMurmur'
-          option) or simply by hashing the nine price values directly using a
-          SHA256 hash function, and taking the lower 64bits as our seed. The
-          None option simply allows you to check the baseline computation cost
-          for everything except the process of generating the seed once the
-          price data has been obtained.
-        </p>
+                <p>
+                    Now that we have our program we can take a look at the statistical properties of the seeds we generate. Below is a
+                    javascript API that can access our on-chain program. When you click Generate Seed it will go and get the current prices
+                    for BTC, ETH and SOL and produce the seed either in the way we have described above (the 'ShiftMurmur' option) or simply
+                    by hashing the nine price values directly using a SHA256 hash function, and taking the lower 64bits as our seed. The
+                    None option simply allows you to check the baseline computation cost for everything except the process of generating the
+                    seed once the price data has been obtained.
+                </p>
 
-        <br />
-        <br />
-        <SeedExample />
+                <br />
+                <br />
+                <SeedExample />
 
-        <br />
-        <br />
+                <br />
+                <br />
 
-        <p>
-          The baseline cost of running the program is about 32000 units, of
-          which only 5000 is actually getting the price data, the rest is spent
-          checking that the keys are the ones that we expect. This means that
-          the ShiftMurmur approach costs only 3000 compute units to generate the
-          seed, compared to 18000 for the SHA256 hash. Although it seems like
-          the process of using the Xorshift* and Murmur3 hash functions is a lot
-          of trouble compared to a single call to SHA256, it is still the much
-          cheaper option, at least for the number of streams we are dealing with
-          in this example, and both will yield very different seed values for
-          even a tiny change in the input.
-        </p>
+                <p>
+                    The baseline cost of running the program is about 32000 units, of which only 5000 is actually getting the price data,
+                    the rest is spent checking that the keys are the ones that we expect. This means that the ShiftMurmur approach costs
+                    only 3000 compute units to generate the seed, compared to 18000 for the SHA256 hash. Although it seems like the process
+                    of using the Xorshift* and Murmur3 hash functions is a lot of trouble compared to a single call to SHA256, it is still
+                    the much cheaper option, at least for the number of streams we are dealing with in this example, and both will yield
+                    very different seed values for even a tiny change in the input.
+                </p>
 
-        <Box marginBottom="10px">
-          <Center>
-            {!isMobile && (
-              <HStack spacing="24px" alignItems="start">
-                <ImageBlock />
-              </HStack>
-            )}
-            {isMobile && (
-              <VStack spacing="24px" alignItems="start">
-                <ImageBlock />
-              </VStack>
-            )}
-          </Center>
-        </Box>
-        <p>
-          In order to get some idea of how well distributed these seeds are we
-          computed 5000 values in a row and calculated the entropy of the
-          histogram of those values. We then did the same thing using the Numpy
-          uniform random number generator for one thousand realizations, in
-          order to build a distribution of the expected entropies for a dataset
-          of this size. We then repeated this process, but taking the absolute
-          values of the deltas between subsequent seed values, rather than the
-          values themselves. The images above show the entropy distributions
-          generated using Numpy, with the vertical lines the entropy of our
-          random seeds. Both are consistent with the Numpy RNG, and if you want
-          to try other statistical tests you can find both the python script and
-          the seed values that were used here in the git repository for this
-          example.
-          <br />
-          <br />
-          On that note we will bring this post to a close, many thanks to
-          Zantetsu | Shinobi Systems on the Solana Tech discord for helpful
-          discussions on this topic. Hopefully you've learnt something about how
-          to use Pyth to create seeds for your random number generators, and if
-          you did find this useful or informative feel free to follow us on{" "}
-          <a
-            style={{ textDecoration: "underline" }}
-            href="http://www.twitter.com/dao_plays"
-          >
-            Twitter
-          </a>{" "}
-          to keep up to date with future posts, and the release of our first
-          proper Solana DApp!
-        </p>
-      </div>
-    </div>
-  );
+                <Box marginBottom="10px">
+                    <Center>
+                        {!isMobile && (
+                            <HStack spacing="24px" alignItems="start">
+                                <ImageBlock />
+                            </HStack>
+                        )}
+                        {isMobile && (
+                            <VStack spacing="24px" alignItems="start">
+                                <ImageBlock />
+                            </VStack>
+                        )}
+                    </Center>
+                </Box>
+                <p>
+                    In order to get some idea of how well distributed these seeds are we computed 5000 values in a row and calculated the
+                    entropy of the histogram of those values. We then did the same thing using the Numpy uniform random number generator for
+                    one thousand realizations, in order to build a distribution of the expected entropies for a dataset of this size. We
+                    then repeated this process, but taking the absolute values of the deltas between subsequent seed values, rather than the
+                    values themselves. The images above show the entropy distributions generated using Numpy, with the vertical lines the
+                    entropy of our random seeds. Both are consistent with the Numpy RNG, and if you want to try other statistical tests you
+                    can find both the python script and the seed values that were used here in the git repository for this example.
+                    <br />
+                    <br />
+                    On that note we will bring this post to a close, many thanks to Zantetsu | Shinobi Systems on the Solana Tech discord
+                    for helpful discussions on this topic. Hopefully you've learnt something about how to use Pyth to create seeds for your
+                    random number generators, and if you did find this useful or informative feel free to follow us on{" "}
+                    <a style={{ textDecoration: "underline" }} href="http://www.twitter.com/dao_plays">
+                        Twitter
+                    </a>{" "}
+                    to keep up to date with future posts, and the release of our first proper Solana DApp!
+                </p>
+            </div>
+        </div>
+    );
 }
 
 function PythSeeds() {
-  return <PostContent />;
+    return <PostContent />;
 }
 
 export default PythSeeds;

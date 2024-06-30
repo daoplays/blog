@@ -1,14 +1,9 @@
 "use client";
 
 import { useConnection, useWallet, WalletContextState } from "@solana/wallet-adapter-react";
-import {
-    UserData,
-} from "../components/state/state";
-import {
-    RunGPA,
-    GPAccount,
-} from "../components/state/rpc";
-import { BASH, Config, PROGRAM,} from "../components/state/constants";
+import { UserData } from "../components/state/state";
+import { RunGPA, GPAccount } from "../components/state/rpc";
+import { BASH, Config, PROGRAM } from "../components/state/constants";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { useCallback, useEffect, useState, useRef, PropsWithChildren } from "react";
 import { AppRootContextProvider } from "../components/context/useAppRoot";
@@ -16,10 +11,8 @@ import "bootstrap/dist/css/bootstrap.css";
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { bignum_to_num, TokenAccount } from "../components/blog/apps/common";
 
-
 const GetProgramData = async (check_program_data, setProgramData) => {
     if (!check_program_data.current) return;
-
 
     let list = await RunGPA();
 
@@ -33,7 +26,6 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const { connection } = useConnection();
     const [program_data, setProgramData] = useState<GPAccount[] | null>(null);
 
-    
     const [user_data, setUserData] = useState<Map<string, UserData> | null>(new Map());
     const [current_user_data, setCurrentUserData] = useState<UserData | null>(null);
     const [userBashBalance, setUserBashBalance] = useState<number>(0);
@@ -46,11 +38,8 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const user_balance_ws_id = useRef<number | null>(null);
     const program_ws_id = useRef<number | null>(null);
 
-
     useEffect(() => {
         if (update_program_data.current === 0 || new_program_data === null) return;
-
-       
 
         update_program_data.current -= 1;
 
@@ -69,13 +58,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             }
             return;
         }
-
-
-    }, [
-        new_program_data,
-        wallet,
-        user_data,
-    ]);
+    }, [new_program_data, wallet, user_data]);
 
     const check_program_update = useCallback(async (result: any) => {
         update_program_data.current += 1;
@@ -88,11 +71,10 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         }
 
         let token_key = getAssociatedTokenAddressSync(BASH, wallet.publicKey, true, TOKEN_2022_PROGRAM_ID);
-        try{
+        try {
             let balance = await connection.getTokenAccountBalance(token_key);
             setUserBashBalance(parseInt(balance.value.amount));
-        }
-        catch (error) {
+        } catch (error) {
             console.log(error);
         }
     }, [wallet]);
@@ -105,7 +87,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             let event_data = result.data;
             const [token_account] = TokenAccount.struct.deserialize(event_data);
             let amount = bignum_to_num(token_account.amount);
-            setUserBashBalance(amount)
+            setUserBashBalance(amount);
         } catch (error) {}
     }, []);
 
@@ -125,7 +107,6 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         }
     }, [wallet, check_user_balance, checkUserBalance, check_program_update]);
 
-   
     useEffect(() => {
         if (program_data === null) return;
 
@@ -139,12 +120,10 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         }
 
         let user_data: Map<string, UserData> = new Map<string, UserData>();
-        
+
         //console.log("program_data", program_data.length);
         for (let i = 0; i < program_data.length; i++) {
             let data = program_data[i].data;
-
-            
 
             if (data[0] === 1) {
                 const [user] = UserData.struct.deserialize(data);
@@ -154,20 +133,14 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             }
         }
 
-        
-
         setUserData(user_data);
-        
 
         if (have_wallet) {
             if (user_data.has(wallet.publicKey.toString())) {
                 setCurrentUserData(user_data.get(wallet.publicKey.toString()));
             }
         }
-        
     }, [program_data, wallet]);
-
-    
 
     useEffect(() => {
         let current_time = new Date().getTime();
@@ -179,10 +152,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     }, []);
 
     return (
-        <AppRootContextProvider
-            currentUserData={current_user_data}
-            userBashBalance={userBashBalance}
-        >
+        <AppRootContextProvider currentUserData={current_user_data} userBashBalance={userBashBalance}>
             {children}
         </AppRootContextProvider>
     );

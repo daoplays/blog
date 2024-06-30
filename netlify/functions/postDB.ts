@@ -1,25 +1,14 @@
-const { TwitterApi } = require("twitter-api-v2");
 import admin from "firebase-admin";
 
 exports.handler = async function (event, context) {
     // Only allow POST requests
-    if (event.httpMethod !== "GET") {
+    if (event.httpMethod !== "POST") {
         return { statusCode: 405, body: "Method Not Allowed" };
     }
 
-    const { user_key } = event.queryStringParameters;
-
-    const client = new TwitterApi({
-        appKey: process.env.TWITTER_CONSUMER_KEY,
-        appSecret: process.env.TWITTER_CONSUMER_SECRET,
-        accessToken: process.env.TWITTER_ACCESS_TOKEN,
-        accessSecret: process.env.TWITTER_ACCESS_SECRET,
-    });
+    const { table, user_key, game, entry } = event.queryStringParameters;
 
     try {
-        // Generate authentication URL
-        const authLink = await client.generateAuthLink("http://localhost:8888/.netlify/functions/twitterCallback");
-
         if (!admin.apps.length) {
             try {
                 admin.initializeApp({
@@ -35,14 +24,32 @@ exports.handler = async function (event, context) {
             }
         }
 
-        let body = JSON.stringify({
-            user_key: user_key,
-            url: authLink.url,
-            oauth_token: authLink.oauth_token,
-            oauth_token_secret: authLink.oauth_token_secret,
-        });
+        let body: any;
+        let location: string;
+        if (table === "entry") {
+            let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
+            location = "BlinkBash/entries/" + game + "/" + current_date.toString() + "/" + user_key;
+            body = JSON.stringify({
+                user_key: user_key,
+                game: game,
+                date: current_date,
+                entry: entry,
+                score: 0,
+                tweeted: false,
+            });
+        } else if (table === "user") {
+            location = "BlinkBash/users/" + user_key;
+            body = JSON.stringify({
+                user_id: 0,
+            });
+        } else {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: "Invalid table" }),
+            };
+        }
         const db = admin.database();
-        const database = db.ref("BlinkBash/twitter/" + authLink.oauth_token);
+        const database = db.ref(location);
         await database.set(body);
 
         return {

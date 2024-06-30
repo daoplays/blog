@@ -12,10 +12,7 @@ import ContextProviders from "./_contexts";
 import NoSSR from "../utils/NoSSR";
 import { usePathname } from "next/navigation";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import {
-  ConnectionProvider,
-  WalletProvider,
-} from "@solana/wallet-adapter-react";
+import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
 import { DEV_RPC_NODE, DEV_WSS_NODE } from "../components/blog/apps/common";
 import { useMemo } from "react";
 import { ConnectionConfig } from "@solana/web3.js";
@@ -23,44 +20,42 @@ import NavigationBonk from "../components/bonkathon/topNav";
 import { bonkathonLinks } from "./bonkathon2024";
 
 function MyApp({ Component, pageProps }) {
-  const pathname = usePathname();
+    const pathname = usePathname();
 
-  const wallets = useMemo(() => [], []);
+    const wallets = useMemo(() => [], []);
 
-  const connectionConfig: ConnectionConfig = {
-    wsEndpoint: DEV_WSS_NODE,
-    commitment: "confirmed",
-  };
+    const connectionConfig: ConnectionConfig = {
+        wsEndpoint: DEV_WSS_NODE,
+        commitment: "confirmed",
+    };
 
-  return (
-    <NoSSR>
-      <ToastContainer
-        position="bottom-right"
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        pauseOnFocusLoss={false}
-        pauseOnHover={false}
-        rtl={false}
-        draggable
-        theme="light"
-      />
-      <ChakraProvider theme={theme}>
-        <ConnectionProvider endpoint={DEV_RPC_NODE} config={connectionConfig}>
-          <WalletProvider wallets={wallets} autoConnect>
-            <WalletModalProvider>
-            <ContextProviders>
-              
-              <Component {...pageProps} />
-              </ContextProviders>
-
-            </WalletModalProvider>
-          </WalletProvider>
-        </ConnectionProvider>
-      </ChakraProvider>
-    </NoSSR>
-  );
+    return (
+        <NoSSR>
+            <ToastContainer
+                position="bottom-right"
+                autoClose={4000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                pauseOnFocusLoss={false}
+                pauseOnHover={false}
+                rtl={false}
+                draggable
+                theme="light"
+            />
+            <ChakraProvider theme={theme}>
+                <ConnectionProvider endpoint={DEV_RPC_NODE} config={connectionConfig}>
+                    <WalletProvider wallets={wallets} autoConnect>
+                        <WalletModalProvider>
+                            <ContextProviders>
+                                <Component {...pageProps} />
+                            </ContextProviders>
+                        </WalletModalProvider>
+                    </WalletProvider>
+                </ConnectionProvider>
+            </ChakraProvider>
+        </NoSSR>
+    );
 }
 
 export default MyApp;

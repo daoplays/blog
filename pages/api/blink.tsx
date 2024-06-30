@@ -43,8 +43,8 @@ export default async function handler(req, res) {
             let listing_account = PublicKey.findProgramAddressSync([token_mint.toBytes(), Buffer.from("Listing")], PROGRAM)[0];
             const snapshot = await get(ref(database, "data/" + listing_account.toString()));
             let listing = JSON.parse(snapshot.val());
-            let text1 = listing.name.replaceAll(" ", "%20")
-            console.log(text1.trim())
+            let text1 = listing.name.replaceAll(" ", "%20");
+            console.log(text1.trim());
 
             let actions = [
                 {
@@ -55,11 +55,11 @@ export default async function handler(req, res) {
                     label: "Not Hyped", // button text
                     href: "/api/vote?mint=" + mint + "&choice=2",
                 },
-            ]
+            ];
 
             let title = listing.name + " Hype!";
-            let image_link = listing.icon
-           
+            let image_link = listing.icon;
+
             // Your data here
             const data = {
                 title: title,
@@ -90,13 +90,12 @@ export default async function handler(req, res) {
             console.log("have account", account);
             const { game, vote } = req.query;
 
-            let game_val = parseInt(game)
+            let game_val = parseInt(game);
             let vote_val = parseInt(vote);
             if (vote_val < 1 || vote_val > 2) {
                 console.log("invalid vote");
                 return res.status(400).json({ error: "Invalid vote" });
             }
-            
 
             let user = new PublicKey(account);
             let instructions = await GetVoteInstruction(user, user, game_val, vote_val);

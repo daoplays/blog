@@ -1,18 +1,16 @@
 /** @type {import('next').NextConfig} */
 
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
-  enabled: false,
+    enabled: false,
 });
 
 const nextConfig = withBundleAnalyzer({
-  reactStrictMode: true,
-  swcMinify: true,
+    reactStrictMode: true,
+    swcMinify: true,
 
-  images: {
-    domains: [`www.arweave.net`, "gateway.irys.xyz", "snipboard.io"],
-  },
-
-  
+    images: {
+        domains: [`www.arweave.net`, "gateway.irys.xyz", "snipboard.io"],
+    },
 });
 
 module.exports = nextConfig;

@@ -8,7 +8,7 @@ import bs58 from "bs58";
 
 const useVote = () => {
     const wallet = useWallet();
-    const {connection} = useConnection();
+    const { connection } = useConnection();
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -35,8 +35,6 @@ const useVote = () => {
             isLoading: false,
             autoClose: 3000,
         });
-
-     
     }, []);
 
     const transaction_failed = useCallback(async () => {
@@ -52,9 +50,7 @@ const useVote = () => {
         });
     }, []);
 
-    
-
-    const Vote = async (creator: PublicKey, game : number, vote: number) => {
+    const Vote = async (creator: PublicKey, game: number, vote: number) => {
         console.log("in vote");
 
         if (wallet.signTransaction === undefined) {
@@ -62,26 +58,22 @@ const useVote = () => {
             return;
         }
 
-       
-
         if (signature_ws_id.current !== null) {
             console.log("signature not null");
             alert("Transaction pending, please wait");
             return;
         }
 
-
         setIsLoading(true);
 
-       
-        let instructions = await GetVoteInstruction(wallet.publicKey,creator, game, vote)
+        let instructions = await GetVoteInstruction(wallet.publicKey, creator, game, vote);
 
         let txArgs = await get_current_blockhash("");
 
         let transaction = new Transaction(txArgs);
         transaction.feePayer = wallet.publicKey;
 
-        for(let i = 0; i < instructions.length; i++) {
+        for (let i = 0; i < instructions.length; i++) {
             transaction.add(instructions[i]);
         }
 
