@@ -55,7 +55,7 @@ const useVote = () => {
     
 
     const Vote = async (creator: PublicKey, game : number, vote: number) => {
-        console.log("in wrap nft");
+        console.log("in vote");
 
         if (wallet.signTransaction === undefined) {
             console.log(wallet, "invalid wallet");
