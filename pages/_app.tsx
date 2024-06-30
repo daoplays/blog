@@ -21,6 +21,7 @@ import { useMemo } from "react";
 import { ConnectionConfig } from "@solana/web3.js";
 import NavigationBonk from "../components/bonkathon/topNav";
 import { bonkathonLinks } from "./bonkathon2024";
+
 function MyApp({ Component, pageProps }) {
   const pathname = usePathname();
 

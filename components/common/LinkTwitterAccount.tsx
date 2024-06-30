@@ -59,28 +59,6 @@ const TwitterIntegration = () => {
     }
   }, [wallet]);
 
-
-  const handleTwitterRedirect = useCallback(async () => {
-
-    const urlParams = new URLSearchParams(window.location.search);
-
-    const twitterResult = urlParams.get('twitter');
-    if (twitterResult === "success") {
-     
-      console.log('Twitter authentication successful');
-      setIsAuthenticated(true);
-      window.history.replaceState({}, document.title, "/");
-    } else if (error) {
-      console.error('Twitter authentication failed:', error);
-      setError(error);
-    }
-
-  }, []);
-
-  useEffect(() => {
-    handleTwitterRedirect();
-  }, []);
-
   useEffect(() => {
       if (wallet === null || wallet.publicKey === null) {
         return
