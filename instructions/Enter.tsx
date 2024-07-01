@@ -29,6 +29,7 @@ function serialise_Enter_instruction(game: number): Buffer {
     return buf;
 }
 
+
 export const GetEnterInstruction = async (user: PublicKey, game: number) => {
     let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
 

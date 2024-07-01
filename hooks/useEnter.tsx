@@ -3,7 +3,7 @@ import { useRef, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { GetEnterInstruction } from "../instructions/Enter";
 import { get_current_blockhash, send_transaction } from "../components/state/rpc";
-import { Transaction } from "@solana/web3.js";
+import { PublicKey, Transaction } from "@solana/web3.js";
 import bs58 from "bs58";
 
 const useEnter = () => {
@@ -49,6 +49,34 @@ const useEnter = () => {
             autoClose: 3000,
         });
     }, []);
+
+
+    const handleEntry = async (user: PublicKey, game: number, entry: string) => {
+
+        // first post to the DB
+
+        let body = JSON.stringify({
+            user_key: user.toString(),
+            game: game.toString(),
+            entry: entry,
+        });
+        const response : Response = await fetch("/.netlify/functions/postDB?table=entry", {
+            method: "POST",
+            body: body,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        let status = response.status;
+
+        if (status !== 200) {
+            toast.error("Error posting to DB" )
+        }
+       
+        // then enter
+        await Enter(game);
+    }
 
     const Enter = async (game: number) => {
         console.log("in wrap nft");
@@ -96,7 +124,7 @@ const useEnter = () => {
         }
     };
 
-    return { Enter, isLoading };
+    return { Enter, handleEntry, isLoading };
 };
 
 export default useEnter;

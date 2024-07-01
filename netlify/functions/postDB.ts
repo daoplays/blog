@@ -6,7 +6,7 @@ exports.handler = async function (event, context) {
         return { statusCode: 405, body: "Method Not Allowed" };
     }
 
-    const { table, user_key, game, entry } = event.queryStringParameters;
+    const { table } = event.queryStringParameters;
 
     try {
         if (!admin.apps.length) {
@@ -24,21 +24,25 @@ exports.handler = async function (event, context) {
             }
         }
 
+        let event_body = JSON.parse(event.body);
+        console.log(event_body);
         let body: any;
         let location: string;
         if (table === "entry") {
+            
             let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
-            location = "BlinkBash/entries/" + game + "/" + current_date.toString() + "/" + user_key;
+            let game = event_body["game"]
+            let user = event_body["user_key"]
+            let entry = event_body["entry"]
+            console.log(game, user, entry)
+            location = "BlinkBash/entries/" + game + "/" + current_date.toString() + "/" + user;
             body = JSON.stringify({
-                user_key: user_key,
-                game: game,
-                date: current_date,
                 entry: entry,
                 score: 0,
                 tweeted: false,
             });
         } else if (table === "user") {
-            location = "BlinkBash/users/" + user_key;
+            location = "BlinkBash/users/" +event.body.user_key;
             body = JSON.stringify({
                 user_id: 0,
             });
@@ -48,8 +52,20 @@ exports.handler = async function (event, context) {
                 body: JSON.stringify({ error: "Invalid table" }),
             };
         }
+
         const db = admin.database();
         const database = db.ref(location);
+        
+        // check if the entry exists
+        const current = await database.get();
+        if (current.val() !== null) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: "Entry already exists" }),
+            };
+        }
+
+        
         await database.set(body);
 
         return {

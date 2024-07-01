@@ -33,6 +33,7 @@ import { BiSolidLeftArrow } from "react-icons/bi";
 import useResponsive from "../components/blog/apps/commonHooks/useResponsive";
 import { Tooltip } from "@chakra-ui/react";
 import useAppRoot from "../components/context/useAppRoot";
+import useEntry from "../hooks/useEnter";
 
 const montserrat = Montserrat({
     weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -50,8 +51,10 @@ export default function Home() {
     const { userBashBalance, twitter } = useAppRoot();
 
     const [startDate, setStartDate] = useState<Date>(new Date());
+    const [entry, setEntry] = useState<string>("");
 
     const { isOpen: isStartOpen, onToggle: onToggleStart, onClose: onCloseStart } = useDisclosure();
+    const {handleEntry} = useEntry();
 
     return (
         <VStack
@@ -120,7 +123,7 @@ export default function Home() {
             <HStack spacing={8} mx={5}>
                 <VStack w="600px" justify="center" p={6}>
                     <Text fontSize="2xl" fontWeight={600} color="white">
-                        1. Post your caption to the Daily Prompt as a Solana Blink on X (Twitter) and earn $BASH. <br />
+                        1. Post your caption to the Daily Prompt as a Solana Blink on X (Twitter) for a chance to win $BASH. <br />
                         <br /> 2. Vote on others’ Blinks to earn $BASH. <br />
                         <br />
                         3. Spend $BASH on rewards sponsored by your favorite Solana projects!
@@ -184,15 +187,20 @@ export default function Home() {
 
                     <Textarea
                         mt={3}
+                        maxLength={250}
                         placeholder="Enter your Caption Here"
                         color="white"
                         _placeholder={{ color: "gray.300" }}
                         _active={{ border: "1px solid white" }}
+                        value={entry}
+                        onChange={(e) => {
+                            setEntry(e.target.value);
+                        }}
                     />
 
                     <TwitterIntegration />
                     {twitter && 
-                    <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg" w="full" onClick={() => {console.log("clicked")}}>
+                    <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg" w="full" onClick={() => handleEntry(wallet.publicKey, 0, entry)}>
                         Submit
                     </Button>
                     }
