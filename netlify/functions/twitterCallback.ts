@@ -22,10 +22,9 @@ exports.handler = async function (event, context) {
     }
 
     const db = admin.database();
-    const database = db.ref("BlinkBash/twitter/" + oauth_token);
-
-    const snapshot2 = await database.get();
-    let twitterData = JSON.parse(snapshot2.val());
+    const oauth_db = db.ref("twitter_auth/" + oauth_token);
+    const oauth_data = await oauth_db.get();
+    let twitterData = JSON.parse(oauth_data.val());
 
     if (!oauth_token || !oauth_verifier) {
         return {
@@ -62,10 +61,15 @@ exports.handler = async function (event, context) {
         let name = user.data.name;
         let profile_image_url = user.data.profile_image_url;
 
-        let body = JSON.stringify({ accessToken, accessSecret, name, username, profile_image_url });
+        let body = JSON.stringify({ name, username, profile_image_url });
         const database2 = db.ref("BlinkBash/twitter/" + twitterData.user_key);
         await database2.set(body);
-        await database.remove();
+
+        let auth_body = JSON.stringify({accessToken, accessSecret});
+        const authDB = db.ref("twitter_auth/" + twitterData.user_key);
+        await authDB.set(auth_body);
+
+        await oauth_db.remove();
         // Here you would typically save these tokens securely for future use
         // For this example, we'll just return them
         return {

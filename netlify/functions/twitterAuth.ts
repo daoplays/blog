@@ -42,7 +42,7 @@ exports.handler = async function (event, context) {
             oauth_token_secret: authLink.oauth_token_secret,
         });
         const db = admin.database();
-        const database = db.ref("BlinkBash/twitter/" + authLink.oauth_token);
+        const database = db.ref("twitter_auth/" + authLink.oauth_token);
         await database.set(body);
 
         return {

@@ -24,6 +24,7 @@ const firebaseConfig = {
 const GetProgramData = async (check_program_data, setProgramData, setTwitterDB) => {
     if (!check_program_data.current) return;
 
+    check_program_data.current = false;
     let list = await RunGPA();
 
     setProgramData(list);
@@ -36,6 +37,9 @@ const GetProgramData = async (check_program_data, setProgramData, setTwitterDB) 
 
     const twitter_users = await get(ref(database, "BlinkBash/twitter"));
     let entry = twitter_users.val();
+    if (entry === null) {
+        return;
+    }
     let twitter_map = new Map<string, TwitterUser>();
     Object.entries(entry).forEach(([key, value]) => {
         console.log(key, value);
@@ -49,7 +53,7 @@ const GetProgramData = async (check_program_data, setProgramData, setTwitterDB) 
         
     })
     setTwitterDB(twitter_map);
-    check_program_data.current = false;
+    
 };
 
 const ContextProviders = ({ children }: PropsWithChildren) => {
