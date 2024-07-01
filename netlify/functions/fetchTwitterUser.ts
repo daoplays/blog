@@ -24,13 +24,10 @@ exports.handler = async function (event, context) {
     }
 
     const db = admin.database();
-    const database = db.ref("BlinkBash/twitter/" + user_key);
+    const database = db.ref("twitter_auth/" + user_key);
 
     const snapshot2 = await database.get();
     let twitterData = JSON.parse(snapshot2.val());
-
-    let accessToken = twitterData.accessToken;
-    let accessSecret = twitterData.accessSecret;
 
     const client = new TwitterApi({
         appKey: process.env.TWITTER_CONSUMER_KEY,
@@ -48,8 +45,10 @@ exports.handler = async function (event, context) {
         let name = user.data.name;
         let profile_image_url = user.data.profile_image_url;
 
-        let body = JSON.stringify({ accessToken, accessSecret, name, username, profile_image_url });
-        await database.set(body);
+        let body = JSON.stringify({ name, username, profile_image_url });
+        const database2 = db.ref("BlinkBash/twitter/" + twitterData.user_key);
+        await database2.set(body);
+
 
         return {
             statusCode: 200,

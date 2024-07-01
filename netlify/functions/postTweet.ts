@@ -24,7 +24,7 @@ exports.handler = async function (event, context) {
     }
 
     const db = admin.database();
-    const database = db.ref("BlinkBash/twitter/" + user_key);
+    const database = db.ref("twitter_auth/" + user_key);
 
     const snapshot2 = await database.get();
     let twitterData = JSON.parse(snapshot2.val());
