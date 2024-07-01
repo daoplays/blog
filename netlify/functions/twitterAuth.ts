@@ -8,14 +8,14 @@ exports.handler = async function (event, context) {
     }
 
     const { user_key } = event.queryStringParameters;
-
+    console.log("in twitterAuth with user", user_key)
     const client = new TwitterApi({
         appKey: process.env.TWITTER_CONSUMER_KEY,
         appSecret: process.env.TWITTER_CONSUMER_SECRET,
         accessToken: process.env.TWITTER_ACCESS_TOKEN,
         accessSecret: process.env.TWITTER_ACCESS_SECRET,
     });
-
+    console.log("have client")
     try {
         // Generate authentication URL
         const authLink = await client.generateAuthLink("https://blinkbash.daoplays.org/.netlify/functions/twitterCallback");
