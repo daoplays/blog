@@ -19,7 +19,7 @@ exports.handler = async function (event, context) {
     try {
         // Generate authentication URL
         const authLink = await client.generateAuthLink("https://blinkbash.daoplays.org/.netlify/functions/twitterCallback");
-
+        console.log("have link")
         if (!admin.apps.length) {
             try {
                 admin.initializeApp({
