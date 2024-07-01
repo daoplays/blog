@@ -14,7 +14,15 @@ interface AppRootTypes {
 
 export const AppRootContext = createContext<AppRootTypes | null>(null);
 
-export const AppRootContextProvider = ({ children, userList, twitterList, currentUserData, userBashBalance, twitter, setTwitter }: PropsWithChildren<AppRootTypes>) => {
+export const AppRootContextProvider = ({
+    children,
+    userList,
+    twitterList,
+    currentUserData,
+    userBashBalance,
+    twitter,
+    setTwitter,
+}: PropsWithChildren<AppRootTypes>) => {
     return (
         <AppRootContext.Provider
             value={{
@@ -23,7 +31,7 @@ export const AppRootContextProvider = ({ children, userList, twitterList, curren
                 currentUserData,
                 userBashBalance,
                 twitter,
-                setTwitter
+                setTwitter,
             }}
         >
             {children}

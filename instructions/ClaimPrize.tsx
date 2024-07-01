@@ -33,7 +33,6 @@ function serialise_ClaimPrize_instruction(game: number, date: number): Buffer {
 }
 
 export const GetClaimPrizeInstruction = async (user: PublicKey, game: number, date: number) => {
-
     let user_data_account = PublicKey.findProgramAddressSync([user.toBytes(), Buffer.from("User")], PROGRAM)[0];
     let leaderboard = PublicKey.findProgramAddressSync(
         [uInt8ToLEBytes(game), uInt32ToLEBytes(date), Buffer.from("Leaderboard")],
@@ -42,14 +41,14 @@ export const GetClaimPrizeInstruction = async (user: PublicKey, game: number, da
     let entry = PublicKey.findProgramAddressSync([user.toBytes(), uInt8ToLEBytes(game), uInt32ToLEBytes(date)], PROGRAM)[0];
 
     let pda = PublicKey.findProgramAddressSync([uInt32ToLEBytes(PDA_ACCOUNT_SEED)], PROGRAM)[0];
-    let user_token = getAssociatedTokenAddressSync(BASH, user, true, TOKEN_2022_PROGRAM_ID)
+    let user_token = getAssociatedTokenAddressSync(BASH, user, true, TOKEN_2022_PROGRAM_ID);
     const instruction_data = serialise_ClaimPrize_instruction(game, date);
 
     var account_vector = [
         { pubkey: user, isSigner: true, isWritable: true },
 
         { pubkey: pda, isSigner: false, isWritable: true },
-        
+
         { pubkey: entry, isSigner: false, isWritable: true },
         { pubkey: user_data_account, isSigner: false, isWritable: true },
         { pubkey: leaderboard, isSigner: false, isWritable: true },
@@ -59,9 +58,7 @@ export const GetClaimPrizeInstruction = async (user: PublicKey, game: number, da
         { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
         { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: true },
         { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: true },
-
     ];
-    
 
     const list_instruction = new TransactionInstruction({
         keys: account_vector,

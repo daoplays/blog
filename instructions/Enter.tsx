@@ -30,7 +30,6 @@ function serialise_Enter_instruction(game: number): Buffer {
     return buf;
 }
 
-
 export const GetEnterInstruction = async (user: PublicKey, game: number) => {
     let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
 
@@ -39,7 +38,7 @@ export const GetEnterInstruction = async (user: PublicKey, game: number) => {
     let pda = PublicKey.findProgramAddressSync([uInt32ToLEBytes(PDA_ACCOUNT_SEED)], PROGRAM)[0];
     let stats = PublicKey.findProgramAddressSync([uInt32ToLEBytes(DATA_ACCOUNT_SEED)], PROGRAM)[0];
     let entry = PublicKey.findProgramAddressSync([user.toBytes(), uInt8ToLEBytes(game), uInt32ToLEBytes(current_date)], PROGRAM)[0];
-    let user_token = getAssociatedTokenAddressSync(BASH, user, true, TOKEN_2022_PROGRAM_ID)
+    let user_token = getAssociatedTokenAddressSync(BASH, user, true, TOKEN_2022_PROGRAM_ID);
 
     const instruction_data = serialise_Enter_instruction(game);
 
@@ -56,7 +55,8 @@ export const GetEnterInstruction = async (user: PublicKey, game: number) => {
 
         { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
         { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: true },
-        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: true }    ];
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: true },
+    ];
 
     const list_instruction = new TransactionInstruction({
         keys: account_vector,

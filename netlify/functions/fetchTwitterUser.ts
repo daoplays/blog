@@ -49,7 +49,6 @@ exports.handler = async function (event, context) {
         const database2 = db.ref("BlinkBash/twitter/" + twitterData.user_key);
         await database2.set(body);
 
-
         return {
             statusCode: 200,
             body: JSON.stringify(user.data),

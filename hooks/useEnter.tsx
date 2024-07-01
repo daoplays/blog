@@ -50,9 +50,7 @@ const useEnter = () => {
         });
     }, []);
 
-
     const handleEntry = async (user: PublicKey, game: number, entry: string) => {
-
         // first post to the DB
 
         let body = JSON.stringify({
@@ -60,7 +58,7 @@ const useEnter = () => {
             game: game.toString(),
             entry: entry,
         });
-        const response : Response = await fetch("/.netlify/functions/postDB?table=entry", {
+        const response: Response = await fetch("/.netlify/functions/postDB?table=entry", {
             method: "POST",
             body: body,
             headers: {
@@ -71,13 +69,13 @@ const useEnter = () => {
         let status = response.status;
 
         if (status !== 200) {
-            toast.error("Error posting to DB" )
+            toast.error("Error posting to DB");
             //return
         }
-       
+
         // then enter
         await Enter(game);
-    }
+    };
 
     const Enter = async (game: number) => {
         console.log("in wrap nft");

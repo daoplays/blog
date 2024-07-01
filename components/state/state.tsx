@@ -21,15 +21,13 @@ import {
 } from "@metaplex-foundation/beet";
 import { publicKey } from "@metaplex-foundation/beet-solana";
 
-
-
 export enum BashInstruction {
     Init = 0,
     Enter = 1,
     Vote = 2,
     ClaimPrize = 3,
     AddListing = 4,
-    BuyListing = 5
+    BuyListing = 5,
 }
 
 export class UserData {

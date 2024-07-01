@@ -1,41 +1,40 @@
-import Head from 'next/head';
-import { useState } from 'react';
+import Head from "next/head";
+import { useState } from "react";
 
 export default function TestImage() {
+    const [status, setStatus] = useState("");
 
-    const [status, setStatus] = useState('');
+    const handleClick = async (action: string) => {
+        try {
+            const response = await fetch(`/api/blink?creator=FxVpjJ5AGY6cfCwZQP5v8QBfS4J2NPa62HbGh1Fu2LpD&game=0&vote=` + action, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ account: "FxVpjJ5AGY6cfCwZQP5v8QBfS4J2NPa62HbGh1Fu2LpD" }),
+            });
 
-  const handleClick = async (action: string) => {
-    try {
-      const response = await fetch(`/api/blink?creator=FxVpjJ5AGY6cfCwZQP5v8QBfS4J2NPa62HbGh1Fu2LpD&game=0&vote=`+action, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ account: "FxVpjJ5AGY6cfCwZQP5v8QBfS4J2NPa62HbGh1Fu2LpD" }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setStatus(`Action '${action}' successful`);
-        console.log(data);
-      } else {
-        setStatus(`Action '${action}' failed`);
-      }
-    } catch (error) {
-      setStatus(`Action '${action}' failed: ${error.message}`);
-    }
-  };
-  return (
-    <div>
-      <Head>
-        <title>Interactive Image with Clickable Buttons</title>
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@dao_plays" />
-        <meta name="twitter:title" content="Interactive Buttons" />
-        <meta name="twitter:description" content="Click the buttons below." />
-        <meta name="twitter:image" content="https://blinkbash.daoplays.org/testImage" />
-        <style>{`
+            if (response.ok) {
+                const data = await response.json();
+                setStatus(`Action '${action}' successful`);
+                console.log(data);
+            } else {
+                setStatus(`Action '${action}' failed`);
+            }
+        } catch (error) {
+            setStatus(`Action '${action}' failed: ${error.message}`);
+        }
+    };
+    return (
+        <div>
+            <Head>
+                <title>Interactive Image with Clickable Buttons</title>
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:site" content="@dao_plays" />
+                <meta name="twitter:title" content="Interactive Buttons" />
+                <meta name="twitter:description" content="Click the buttons below." />
+                <meta name="twitter:image" content="https://blinkbash.daoplays.org/testImage" />
+                <style>{`
           .image-container {
             position: relative;
             width: 400px;
@@ -63,19 +62,17 @@ export default function TestImage() {
             height: 100px;
           }
         `}</style>
-      </Head>
+            </Head>
 
-      <div>
-        <h1>Generated Image with Buttons</h1>
-        <div className="image-container">
-          <img src="/api/simpleImage" alt="Generated Buttons" />
-          <button onClick={() => handleClick('1')} className="clickable-area up-button">
-          </button>
-          <button onClick={() => handleClick('2')} className="clickable-area down-button">
-          </button>
+            <div>
+                <h1>Generated Image with Buttons</h1>
+                <div className="image-container">
+                    <img src="/api/simpleImage" alt="Generated Buttons" />
+                    <button onClick={() => handleClick("1")} className="clickable-area up-button"></button>
+                    <button onClick={() => handleClick("2")} className="clickable-area down-button"></button>
+                </div>
+                <p>Status: {status}</p>
+            </div>
         </div>
-        <p>Status: {status}</p>
-      </div>
-    </div>
-  );
+    );
 }

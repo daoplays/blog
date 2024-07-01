@@ -45,7 +45,7 @@ export const GetVoteInstruction = async (user: PublicKey, creator: PublicKey, ga
 
     let pda = PublicKey.findProgramAddressSync([uInt32ToLEBytes(PDA_ACCOUNT_SEED)], PROGRAM)[0];
     let stats = PublicKey.findProgramAddressSync([uInt32ToLEBytes(DATA_ACCOUNT_SEED)], PROGRAM)[0];
-    let user_token = getAssociatedTokenAddressSync(BASH, user, true, TOKEN_2022_PROGRAM_ID)
+    let user_token = getAssociatedTokenAddressSync(BASH, user, true, TOKEN_2022_PROGRAM_ID);
 
     const instruction_data = serialise_Vote_instruction(game, vote);
 
@@ -65,7 +65,8 @@ export const GetVoteInstruction = async (user: PublicKey, creator: PublicKey, ga
 
         { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
         { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: true },
-        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: true },    ];
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: true },
+    ];
 
     const list_instruction = new TransactionInstruction({
         keys: account_vector,

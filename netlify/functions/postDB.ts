@@ -29,12 +29,11 @@ exports.handler = async function (event, context) {
         let body: any;
         let location: string;
         if (table === "entry") {
-            
             let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
-            let game = event_body["game"]
-            let user = event_body["user_key"]
-            let entry = event_body["entry"]
-            console.log(game, user, entry)
+            let game = event_body["game"];
+            let user = event_body["user_key"];
+            let entry = event_body["entry"];
+            console.log(game, user, entry);
             location = "BlinkBash/entries/" + game + "/" + current_date.toString() + "/" + user;
             body = JSON.stringify({
                 entry: entry,
@@ -42,7 +41,7 @@ exports.handler = async function (event, context) {
                 tweeted: false,
             });
         } else if (table === "user") {
-            location = "BlinkBash/users/" +event.body.user_key;
+            location = "BlinkBash/users/" + event.body.user_key;
             body = JSON.stringify({
                 user_id: 0,
             });
@@ -55,7 +54,7 @@ exports.handler = async function (event, context) {
 
         const db = admin.database();
         const database = db.ref(location);
-        
+
         // check if the entry exists
         const current = await database.get();
         if (current.val() !== null) {
@@ -65,7 +64,6 @@ exports.handler = async function (event, context) {
             };
         }
 
-        
         await database.set(body);
 
         return {

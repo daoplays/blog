@@ -37,10 +37,8 @@ const LeaderboardPage = () => {
     const { twitterList, userList, currentUserData } = useAppRoot();
     const { xs, sm, lg } = useResponsive();
 
-
     let userVec: UserData[] = [];
     if (userList !== null) {
-
         userList.forEach((user) => {
             let twitter = twitterList.get(user.user_key.toString());
             if (twitter === undefined) {
@@ -62,7 +60,6 @@ const LeaderboardPage = () => {
             { text: "WINS", field: "wins" },
             { text: "VOTES", field: "votes" },
             { text: "VOTED", field: "voted" },
-
         ];
 
         const handleHeaderClick = (field: string | null) => {
@@ -75,33 +72,31 @@ const LeaderboardPage = () => {
             }
         };
 
-        console.log("user vec", userVec)
+        console.log("user vec", userVec);
 
         const sortedUsers = userVec.sort((a, b) => {
             if (sortedField === "user") {
                 let a_name = twitterList.get(a.user_key.toString());
                 let b_name = twitterList.get(b.user_key.toString());
-               
+
                 return reverseSort ? b_name.username.localeCompare(a_name.username) : a_name.username.localeCompare(b_name.username);
             } else if (sortedField === "votes") {
                 let a_score = a.total_positive_votes - a.total_negative_votes;
                 let b_score = b.total_positive_votes - b.total_negative_votes;
                 return reverseSort ? b_score - a_score : a_score - b_score;
-            }
-            else if (sortedField === "voted") {
+            } else if (sortedField === "voted") {
                 let a_score = a.total_positive_voted + a.total_negative_voted;
                 let b_score = b.total_positive_voted + b.total_negative_voted;
                 return reverseSort ? b_score - a_score : a_score - b_score;
-            }
-            else if (sortedField === "wins") {
-                return reverseSort ? b.total_wins - a.total_wins : a.total_wins - b.total_wins
+            } else if (sortedField === "wins") {
+                return reverseSort ? b.total_wins - a.total_wins : a.total_wins - b.total_wins;
             }
 
             return 0;
         });
 
-
-        const currentUserIndex = currentUserData !== null ? sortedUsers.findIndex((user) => user.user_key.equals(currentUserData?.user_key)) : -1;
+        const currentUserIndex =
+            currentUserData !== null ? sortedUsers.findIndex((user) => user.user_key.equals(currentUserData?.user_key)) : -1;
 
         if (currentUserIndex !== -1) {
             const currentUser = sortedUsers.splice(currentUserIndex, 1)[0];
@@ -144,7 +139,7 @@ const LeaderboardPage = () => {
 
                         <tbody>
                             {sortedUsers.map((user, i) => {
-                                return <UserCard key={user.user_key.toString()}  user={user} index={i} />;
+                                return <UserCard key={user.user_key.toString()} user={user} index={i} />;
                             })}
                         </tbody>
                     </table>
@@ -156,12 +151,11 @@ const LeaderboardPage = () => {
     const UserCard = ({ user, index }: { user: UserData; index: number }) => {
         const { twitterList } = useAppRoot();
 
-        if (twitterList === null)
-            return(<></>)
+        if (twitterList === null) return <></>;
         const isUser = user.user_key.equals(currentUserData?.user_key);
         let twitter_id = twitterList.get(user.user_key.toString());
         if (twitter_id === undefined) {
-            return(<></>)
+            return <></>;
         }
         const rank = index + 1;
         let wins = user.total_wins;
@@ -239,14 +233,10 @@ const LeaderboardPage = () => {
                     >
                         Leaderboard
                     </Text>
-
-                    
                 </Flex>
 
                 <LeaderboardTable />
             </main>
-
-           
         </>
     );
 };

@@ -9,7 +9,7 @@ import { useCallback, useEffect, useState, useRef, PropsWithChildren } from "rea
 import { AppRootContextProvider } from "../components/context/useAppRoot";
 import "bootstrap/dist/css/bootstrap.css";
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
-import { bignum_to_num, TokenAccount } from "../components/blog/apps/common";
+import { bignum_to_num, request_raw_account_data, request_token_amount, TokenAccount } from "../components/blog/apps/common";
 import { TwitterUser } from "../components/state/interfaces";
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get } from "firebase/database";
@@ -20,7 +20,6 @@ const firebaseConfig = {
     databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
 };
 
-
 const GetProgramData = async (check_program_data, setProgramData, setTwitterDB) => {
     if (!check_program_data.current) return;
 
@@ -29,11 +28,11 @@ const GetProgramData = async (check_program_data, setProgramData, setTwitterDB) 
 
     setProgramData(list);
 
-     // Initialize Firebase
-     const app = initializeApp(firebaseConfig);
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
 
-     // Initialize Realtime Database and get a reference to the service
-     const database = getDatabase(app);
+    // Initialize Realtime Database and get a reference to the service
+    const database = getDatabase(app);
 
     const twitter_users = await get(ref(database, "BlinkBash/twitter"));
     let entry = twitter_users.val();
@@ -43,17 +42,15 @@ const GetProgramData = async (check_program_data, setProgramData, setTwitterDB) 
     let twitter_map = new Map<string, TwitterUser>();
     Object.entries(entry).forEach(([key, value]) => {
         console.log(key, value);
-        let json = JSON.parse(value.toString())
+        let json = JSON.parse(value.toString());
         let twitter_user: TwitterUser = {
             name: json.name,
             username: json.username,
             profile_image_url: json.profile_image_url,
         };
         twitter_map.set(key, twitter_user);
-        
-    })
+    });
     setTwitterDB(twitter_map);
-    
 };
 
 const ContextProviders = ({ children }: PropsWithChildren) => {
@@ -70,10 +67,8 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     //database entries
     const [twitter_db, setTwitterDB] = useState<Map<string, TwitterUser> | null>(null);
 
-
     const [userBashBalance, setUserBashBalance] = useState<number>(0);
     const [new_program_data, setNewProgramData] = useState<any>(null);
-
 
     const update_program_data = useRef<number>(0);
     const check_program_data = useRef<boolean>(true);
@@ -81,7 +76,6 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
     const user_balance_ws_id = useRef<number | null>(null);
     const program_ws_id = useRef<number | null>(null);
-
 
     useEffect(() => {
         if (update_program_data.current === 0 || new_program_data === null) return;
@@ -115,14 +109,13 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             return;
         }
 
-        let token_key = getAssociatedTokenAddressSync(BASH, wallet.publicKey, true, TOKEN_2022_PROGRAM_ID);
+        let token_key = getAssociatedTokenAddressSync(BASH, wallet.publicKey, false, TOKEN_2022_PROGRAM_ID);
         try {
             let balance = await connection.getTokenAccountBalance(token_key);
             setUserBashBalance(parseInt(balance.value.amount));
         } catch (error) {
             console.log(error);
         }
-
     }, [wallet, connection]);
 
     const check_user_balance = useCallback(async (result: any) => {
@@ -132,6 +125,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         try {
             let event_data = result.data;
             const [token_account] = TokenAccount.struct.deserialize(event_data);
+
             let amount = bignum_to_num(token_account.amount);
             setUserBashBalance(amount);
         } catch (error) {}
@@ -139,11 +133,9 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
     // launch account subscription handler
     useEffect(() => {
-        const connection = new Connection(Config.RPC_NODE, { wsEndpoint: Config.WSS_NODE });
-
         if (user_balance_ws_id.current === null && wallet !== null && wallet.publicKey !== null) {
             checkUserBalance();
-            let token_key = getAssociatedTokenAddressSync(BASH, wallet.publicKey, true, TOKEN_2022_PROGRAM_ID);
+            let token_key = getAssociatedTokenAddressSync(BASH, wallet.publicKey, false, TOKEN_2022_PROGRAM_ID);
 
             user_balance_ws_id.current = connection.onAccountChange(token_key, check_user_balance, "confirmed");
         }
@@ -151,12 +143,12 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         if (program_ws_id.current === null) {
             program_ws_id.current = connection.onProgramAccountChange(PROGRAM, check_program_update, "confirmed");
         }
-    }, [wallet, check_user_balance, checkUserBalance, check_program_update]);
+    }, [wallet, connection, check_user_balance, checkUserBalance, check_program_update]);
 
     useEffect(() => {
         if (program_data === null) return;
 
-        console.log("update data");
+        // console.log("update data");
         let wallet_bytes = PublicKey.default.toBytes();
         let have_wallet = false;
         // console.log("wallet", wallet !== null ? wallet.toString() : "null");
@@ -168,13 +160,13 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         let user_data: Map<string, UserData> = new Map<string, UserData>();
         let user_ids: Map<number, string> = new Map<number, string>();
 
-        console.log("program_data", program_data.length);
+        //console.log("program_data", program_data.length);
         for (let i = 0; i < program_data.length; i++) {
             let data = program_data[i].data;
-            console.log(program_data)
+            //console.log(program_data)
             if (data[0] === 1) {
                 const [user] = UserData.struct.deserialize(data);
-                console.log("user", user);
+                //console.log("user", user);
                 user_data.set(user.user_key.toString(), user);
                 user_ids.set(user.user_id, user.user_key.toString());
                 continue;
@@ -182,16 +174,13 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         }
 
         setUserData(user_data);
+        setUserIDs(user_ids);
 
         if (have_wallet) {
             if (user_data.has(wallet.publicKey.toString())) {
                 setCurrentUserData(user_data.get(wallet.publicKey.toString()));
             }
         }
-
-       
-
-
     }, [program_data, wallet]);
 
     useEffect(() => {
@@ -204,7 +193,14 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     }, []);
 
     return (
-        <AppRootContextProvider userList={user_data} twitterList={twitter_db} currentUserData={current_user_data} userBashBalance={userBashBalance} twitter={twitter} setTwitter={setTwitter}> 
+        <AppRootContextProvider
+            userList={user_data}
+            twitterList={twitter_db}
+            currentUserData={current_user_data}
+            userBashBalance={userBashBalance}
+            twitter={twitter}
+            setTwitter={setTwitter}
+        >
             {children}
         </AppRootContextProvider>
     );

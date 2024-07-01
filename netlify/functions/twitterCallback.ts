@@ -65,7 +65,7 @@ exports.handler = async function (event, context) {
         const database2 = db.ref("BlinkBash/twitter/" + twitterData.user_key);
         await database2.set(body);
 
-        let auth_body = JSON.stringify({accessToken, accessSecret});
+        let auth_body = JSON.stringify({ accessToken, accessSecret });
         const authDB = db.ref("twitter_auth/" + twitterData.user_key);
         await authDB.set(auth_body);
 

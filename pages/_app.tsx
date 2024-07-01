@@ -13,7 +13,7 @@ import NoSSR from "../utils/NoSSR";
 import { usePathname } from "next/navigation";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import { DEV_RPC_NODE, DEV_WSS_NODE } from "../components/blog/apps/common";
+import { Config } from "../components/state/constants";
 import { useMemo } from "react";
 import { ConnectionConfig } from "@solana/web3.js";
 import NavigationBonk from "../components/bonkathon/topNav";
@@ -25,7 +25,7 @@ function MyApp({ Component, pageProps }) {
     const wallets = useMemo(() => [], []);
 
     const connectionConfig: ConnectionConfig = {
-        wsEndpoint: DEV_WSS_NODE,
+        wsEndpoint: Config.WSS_NODE,
         commitment: "confirmed",
     };
 
@@ -44,7 +44,7 @@ function MyApp({ Component, pageProps }) {
                 theme="light"
             />
             <ChakraProvider theme={theme}>
-                <ConnectionProvider endpoint={DEV_RPC_NODE} config={connectionConfig}>
+                <ConnectionProvider endpoint={Config.RPC_NODE} config={connectionConfig}>
                     <WalletProvider wallets={wallets} autoConnect>
                         <WalletModalProvider>
                             <ContextProviders>

@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
             const snapshot = await get(ref(database, location));
             let entry = JSON.parse(snapshot.val());
-            let text = entry.entry
+            let text = entry.entry;
 
             let actions = [
                 {
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
                 },
             ];
 
-            let title = "BlinkBash Vote!"
+            let title = "BlinkBash Vote!";
             let image_link = "https://github.com/daoplays/blog/blob/blinkbash/public/images/prompt.png?raw=true";
 
             // Your data here
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: "Invalid vote" });
             }
 
-            let user = new PublicKey(account);        
+            let user = new PublicKey(account);
             let creator_key = new PublicKey(creator);
 
             let instructions = await GetVoteInstruction(user, creator_key, game_val, vote_val);

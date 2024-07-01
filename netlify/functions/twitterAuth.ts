@@ -15,11 +15,11 @@ exports.handler = async function (event, context) {
         accessToken: process.env.TWITTER_ACCESS_TOKEN,
         accessSecret: process.env.TWITTER_ACCESS_SECRET,
     });
-    console.log("have client");
+
     try {
         // Generate authentication URL
-        const authLink = await client.generateAuthLink("http://localhost:8888/.netlify/functions/twitterCallback");
-        console.log("have link");
+        const authLink = await client.generateAuthLink("https://blinkbash.daoplays.org/.netlify/functions/twitterCallback");
+
         if (!admin.apps.length) {
             try {
                 admin.initializeApp({
