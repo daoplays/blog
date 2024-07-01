@@ -1,3 +1,23 @@
+import {
+    Table,
+    Thead,
+    Tbody,
+    Tfoot,
+    Tr,
+    Th,
+    Td,
+    TableCaption,
+    TableContainer,
+    useDisclosure,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
+    Input,
+} from "@chakra-ui/react";
 import { Divider, HStack, Text, TabIndicator, TabList, TabPanel, TabPanels, Tabs, VStack, Button } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -10,6 +30,19 @@ export default function Shop() {
     const wallet = useWallet();
     const isConnected = wallet.publicKey !== null;
     const [selected, setSelected] = useState("Tokens");
+    const { isOpen, onOpen, onClose } = useDisclosure();
+
+    const [tokenName, setTokenName] = React.useState("");
+    const handleChangeTokenName = (event) => setTokenName(event.target.value);
+
+    const [tokenAddress, setTokenAddress] = React.useState("");
+    const handleChangeTokenAddress = (event) => setTokenAddress(event.target.value);
+
+    const [tokenQuantity, setTokenQuantity] = React.useState("");
+    const handleChangeTokenQuantity = (event) => setTokenQuantity(event.target.value);
+
+    const [tokenPrice, setTokenPrice] = React.useState("");
+    const handleChangeTokenPrice = (event) => setTokenPrice(event.target.value);
 
     return (
         <Layout>
@@ -56,15 +89,127 @@ export default function Shop() {
                             })}
                         </HStack>
 
-                        <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg">
+                        <Button
+                            shadow="md"
+                            colorScheme="yellow"
+                            color="#877714"
+                            rounded="lg"
+                            onClick={onOpen}
+                            isDisabled={selected !== "Tokens"}
+                        >
                             <HStack align="center" spacing={2}>
                                 <FaPlus size={18} />
                                 <Text m={0}>{selected === "Tokens" ? "Add Token" : "Add NFT"}</Text>
                             </HStack>
                         </Button>
                     </HStack>
+
+                    {selected === "Tokens" && (
+                        <TableContainer w="full" maxH={500} mt={3} overflowY="auto">
+                            <Table size="sm" colorScheme="teal" style={{ color: "white", fontWeight: 600 }}>
+                                <Thead>
+                                    <Tr>
+                                        <Th>Name</Th>
+                                        <Th>Address</Th>
+                                        <Th isNumeric>Qty</Th>
+                                        <Th isNumeric>Price</Th>
+                                        <Th isNumeric>Trade</Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>
+                                    <Tr>
+                                        <Td>$BAGS</Td>
+                                        <Td>8wbK...Vjd3</Td>
+                                        <Td isNumeric>250</Td>
+                                        <Td isNumeric>500 $BASH</Td>
+                                        <Td isNumeric>
+                                            <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg" size="sm" mr={-1}>
+                                                Buy
+                                            </Button>
+                                        </Td>
+                                    </Tr>
+                                </Tbody>
+                            </Table>
+                        </TableContainer>
+                    )}
+
+                    {selected !== "Tokens" && "Coming Soon"}
                 </VStack>
             </HStack>
+
+            <Modal isOpen={isOpen} onClose={onClose} isCentered>
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader py={4} color="#877714">
+                        Add a Token
+                    </ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody display="flex" flexDirection="column" gap={3} pb={4}>
+                        <VStack gap={1} align="start">
+                            <Text fontSize="sm" mb={0}>
+                                Token Name
+                            </Text>
+                            <Input
+                                rounded="md"
+                                value={tokenName}
+                                onChange={handleChangeTokenName}
+                                placeholder="Enter your Token Name"
+                                size="sm"
+                                disabled
+                            />
+                        </VStack>
+
+                        <VStack gap={1} align="start">
+                            <Text fontSize="sm" mb={0}>
+                                Token Name
+                            </Text>
+                            <Input
+                                rounded="md"
+                                value={tokenAddress}
+                                onChange={handleChangeTokenAddress}
+                                placeholder="Enter your Token Address"
+                                size="sm"
+                            />
+                        </VStack>
+
+                        <VStack gap={1} align="start">
+                            <Text fontSize="sm" mb={0}>
+                                Quantity
+                            </Text>
+                            <Input
+                                rounded="md"
+                                value={tokenQuantity}
+                                onChange={handleChangeTokenQuantity}
+                                placeholder="Enter Quantity"
+                                size="sm"
+                            />
+                        </VStack>
+
+                        <VStack gap={1} align="start">
+                            <Text fontSize="sm" mb={0}>
+                                Price
+                            </Text>
+                            <Input
+                                rounded="md"
+                                value={tokenPrice}
+                                onChange={handleChangeTokenPrice}
+                                placeholder="Enter Enter Price"
+                                size="sm"
+                            />
+                        </VStack>
+                    </ModalBody>
+
+                    <ModalFooter p={4}>
+                        <Button variant="ghost" onClick={onClose}>
+                            Close
+                        </Button>
+
+                        <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg">
+                            Add
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </Layout>
     );
 }

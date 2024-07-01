@@ -30,3 +30,22 @@ img {
     max-width: 100%;
     height: auto;
 }
+
+*::-webkit-scrollbar {
+    width: 7px;
+    height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #e6eaff;
+    border-radius: 5px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #b0bdd8;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #8893aa;
+}
