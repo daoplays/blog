@@ -1,10 +1,11 @@
 import { useConnection } from "@solana/wallet-adapter-react";
 import { ComputeBudgetProgram, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { Config, DATA_ACCOUNT_SEED, PDA_ACCOUNT_SEED, PROGRAM, SYSTEM_KEY } from "../components/state/constants";
+import { BASH, Config, DATA_ACCOUNT_SEED, PDA_ACCOUNT_SEED, PROGRAM, SYSTEM_KEY } from "../components/state/constants";
 import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common";
 import { FixableBeetStruct, u8 } from "@metaplex-foundation/beet";
 import { BashInstruction } from "../components/state/state";
 import { getRecentPrioritizationFees } from "../components/state/rpc";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 class Enter_Instruction {
     constructor(
@@ -38,6 +39,7 @@ export const GetEnterInstruction = async (user: PublicKey, game: number) => {
     let pda = PublicKey.findProgramAddressSync([uInt32ToLEBytes(PDA_ACCOUNT_SEED)], PROGRAM)[0];
     let stats = PublicKey.findProgramAddressSync([uInt32ToLEBytes(DATA_ACCOUNT_SEED)], PROGRAM)[0];
     let entry = PublicKey.findProgramAddressSync([user.toBytes(), uInt8ToLEBytes(game), uInt32ToLEBytes(current_date)], PROGRAM)[0];
+    let user_token = getAssociatedTokenAddressSync(BASH, user, true, TOKEN_2022_PROGRAM_ID)
 
     const instruction_data = serialise_Enter_instruction(game);
 
@@ -49,9 +51,12 @@ export const GetEnterInstruction = async (user: PublicKey, game: number) => {
 
         { pubkey: entry, isSigner: false, isWritable: true },
         { pubkey: user_data_account, isSigner: false, isWritable: true },
+        { pubkey: BASH, isSigner: false, isWritable: true },
+        { pubkey: user_token, isSigner: false, isWritable: true },
 
         { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
-    ];
+        { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: true },
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: true }    ];
 
     const list_instruction = new TransactionInstruction({
         keys: account_vector,

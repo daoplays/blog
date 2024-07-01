@@ -28,6 +28,8 @@ export enum BashInstruction {
     Enter = 1,
     Vote = 2,
     ClaimPrize = 3,
+    AddListing = 4,
+    BuyListing = 5
 }
 
 export class UserData {

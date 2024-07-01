@@ -34,19 +34,18 @@ interface Header {
 const LeaderboardPage = () => {
     const wallet = useWallet();
     const { handleConnectWallet } = UseWalletConnection();
-    const { userList, currentUserData } = useAppRoot();
+    const { twitterList, userList, currentUserData } = useAppRoot();
     const { xs, sm, lg } = useResponsive();
 
 
-    const [name, setName] = useState<string>("");
-
-    const handleNameChange = (e) => {
-        setName(e.target.value);
-    };
-
     let userVec: UserData[] = [];
     if (userList !== null) {
+
         userList.forEach((user) => {
+            let twitter = twitterList.get(user.user_key.toString());
+            if (twitter === undefined) {
+                return;
+            }
             userVec.push(user);
         });
     }
@@ -76,11 +75,14 @@ const LeaderboardPage = () => {
             }
         };
 
+        console.log("user vec", userVec)
+
         const sortedUsers = userVec.sort((a, b) => {
             if (sortedField === "user") {
-                let a_name = a.twitter;
-                let b_name = b.twitter;
-                return reverseSort ? b_name.localeCompare(a_name) : a_name.localeCompare(b_name);
+                let a_name = twitterList.get(a.user_key.toString());
+                let b_name = twitterList.get(b.user_key.toString());
+               
+                return reverseSort ? b_name.username.localeCompare(a_name.username) : a_name.username.localeCompare(b_name.username);
             } else if (sortedField === "votes") {
                 let a_score = a.total_positive_votes - a.total_negative_votes;
                 let b_score = b.total_positive_votes - b.total_negative_votes;
@@ -98,9 +100,8 @@ const LeaderboardPage = () => {
             return 0;
         });
 
-        console.log("sortedUsers", sortedUsers);
 
-        const currentUserIndex = sortedUsers.findIndex((user) => user.user_key.equals(currentUserData?.user_key));
+        const currentUserIndex = currentUserData !== null ? sortedUsers.findIndex((user) => user.user_key.equals(currentUserData?.user_key)) : -1;
 
         if (currentUserIndex !== -1) {
             const currentUser = sortedUsers.splice(currentUserIndex, 1)[0];
@@ -155,6 +156,8 @@ const LeaderboardPage = () => {
     const UserCard = ({ user, index }: { user: UserData; index: number }) => {
         const { twitterList } = useAppRoot();
 
+        if (twitterList === null)
+            return(<></>)
         const isUser = user.user_key.equals(currentUserData?.user_key);
         let twitter_id = twitterList.get(user.user_key.toString());
         if (twitter_id === undefined) {

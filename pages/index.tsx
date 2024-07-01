@@ -45,7 +45,7 @@ export default function Home() {
             <HStack spacing={8} mx={5}>
                 <VStack w="600px" justify="center" p={6}>
                     <Text fontSize="2xl" fontWeight={600} color="white">
-                        1. Post your caption to the Daily Prompt as a Solana Blink on X (Twitter) for a chance to win $BASH. <br />
+                        1. Post your caption to the Daily Prompt as a Solana Blink on X (Twitter) to earn $BASH.  Finish in the Top 3 for a $BASH payout! <br />
                         <br /> 2. Vote on others’ Blinks to earn $BASH. <br />
                         <br />
                         3. Spend $BASH on rewards sponsored by your favorite Solana projects!
