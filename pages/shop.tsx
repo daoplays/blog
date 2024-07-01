@@ -133,7 +133,11 @@ export default function Shop() {
                         </TableContainer>
                     )}
 
-                    {selected !== "Tokens" && "Coming Soon"}
+                    {selected !== "Tokens" && (
+                        <Text mt={4} color="white" fontWeight={600} opacity={"50%"}>
+                            Coming Soon
+                        </Text>
+                    )}
                 </VStack>
             </HStack>
 
