@@ -53,7 +53,7 @@ const TwitterIntegration = () => {
 
                 // Initialize Realtime Database and get a reference to the service
                 const database = getDatabase(app);
-                const snapshot = await get(ref(database, "BlinkBash/twitter_" + wallet.publicKey.toString()));
+                const snapshot = await get(ref(database, "BlinkBash/twitter/" + wallet.publicKey.toString()));
                 let db_entry = JSON.parse(snapshot.val());
                 console.log("db_entry", db_entry);
                 if (db_entry.username) {
