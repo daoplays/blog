@@ -1,6 +1,31 @@
 import Head from 'next/head';
+import { useState } from 'react';
 
 export default function TestImage() {
+
+    const [status, setStatus] = useState('');
+
+  const handleClick = async (action: string) => {
+    try {
+      const response = await fetch(`/api/blink?creator=FxVpjJ5AGY6cfCwZQP5v8QBfS4J2NPa62HbGh1Fu2LpD&game=0&vote=`+action, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ account: "FxVpjJ5AGY6cfCwZQP5v8QBfS4J2NPa62HbGh1Fu2LpD" }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStatus(`Action '${action}' successful`);
+        console.log(data);
+      } else {
+        setStatus(`Action '${action}' failed`);
+      }
+    } catch (error) {
+      setStatus(`Action '${action}' failed: ${error.message}`);
+    }
+  };
   return (
     <div>
       <Head>
@@ -40,10 +65,16 @@ export default function TestImage() {
         `}</style>
       </Head>
 
-      <div className="image-container">
-        <img src="/api/simpleImage" alt="Interactive Buttons" />
-        <a href="/api/blink?creator=FxVpjJ5AGY6cfCwZQP5v8QBfS4J2NPa62HbGh1Fu2LpD&game=0&vote=1" className="clickable-area up-button"></a>
-        <a href="/api/blink?creator=FxVpjJ5AGY6cfCwZQP5v8QBfS4J2NPa62HbGh1Fu2LpD&game=0&vote=2" className="clickable-area down-button"></a>
+      <div>
+        <h1>Generated Image with Buttons</h1>
+        <div className="image-container">
+          <img src="/api/simpleImage" alt="Generated Buttons" />
+          <button onClick={() => handleClick('1')} className="clickable-area up-button">
+          </button>
+          <button onClick={() => handleClick('2')} className="clickable-area down-button">
+          </button>
+        </div>
+        <p>Status: {status}</p>
       </div>
     </div>
   );
