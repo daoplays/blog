@@ -34,7 +34,7 @@ export default function TestImage() {
         <meta name="twitter:site" content="@dao_plays" />
         <meta name="twitter:title" content="Interactive Buttons" />
         <meta name="twitter:description" content="Click the buttons below." />
-        <meta name="twitter:image" content="blinkbash.daoplays.org/api/simpleImage" />
+        <meta name="twitter:image" content="https://blinkbash.daoplays.org/testImage" />
         <style>{`
           .image-container {
             position: relative;
