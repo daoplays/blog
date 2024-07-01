@@ -35,7 +35,7 @@ export const GetVoteInstruction = async (user: PublicKey, creator: PublicKey, ga
     let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
 
     let user_data_account = PublicKey.findProgramAddressSync([user.toBytes(), Buffer.from("User")], PROGRAM)[0];
-    let creator_data_account = PublicKey.findProgramAddressSync([user.toBytes(), Buffer.from("User")], PROGRAM)[0];
+    let creator_data_account = PublicKey.findProgramAddressSync([creator.toBytes(), Buffer.from("User")], PROGRAM)[0];
     let leaderboard = PublicKey.findProgramAddressSync(
         [uInt8ToLEBytes(game), uInt32ToLEBytes(current_date), Buffer.from("Leaderboard")],
         PROGRAM,
@@ -54,7 +54,6 @@ export const GetVoteInstruction = async (user: PublicKey, creator: PublicKey, ga
         { pubkey: stats, isSigner: false, isWritable: true },
 
         { pubkey: entry, isSigner: false, isWritable: true },
-        { pubkey: user_data_account, isSigner: false, isWritable: true },
         { pubkey: user_data_account, isSigner: false, isWritable: true },
         { pubkey: creator, isSigner: false, isWritable: true },
         { pubkey: creator_data_account, isSigner: false, isWritable: true },
