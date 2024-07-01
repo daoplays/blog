@@ -17,32 +17,32 @@ const firebaseConfig = {
 const TwitterIntegration = () => {
     const wallet = useWallet();
     const { handleConnectWallet } = UseWalletConnection();
-    const {twitter, setTwitter} = useAppRoot();
+    const { twitter, setTwitter } = useAppRoot();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const check_twitter_user = useRef<boolean>(true);
 
     const fetchUserInfo = useCallback(async () => {
-      try {
-          const response = await fetch("/.netlify/functions/fetchTwitterUser?user_key=" + wallet.publicKey.toString(), {
-              method: "GET",
-          });
+        try {
+            const response = await fetch("/.netlify/functions/fetchTwitterUser?user_key=" + wallet.publicKey.toString(), {
+                method: "GET",
+            });
 
-          if (!response.ok) {
-              throw new Error("Failed to fetch user information");
-          }
+            if (!response.ok) {
+                throw new Error("Failed to fetch user information");
+            }
 
-          const userData = await response.json();
-          console.log("have user data", userData);
-          let twitter_user: TwitterUser = {
-              name: userData.name,
-              username: userData.username,
-              profile_image_url: userData.profile_image_url,
-          };
-          setTwitter(twitter_user);
-          setIsAuthenticated(true);
-      } catch (error) {
-          console.log("Error fetching user info:", error);
-      }
+            const userData = await response.json();
+            console.log("have user data", userData);
+            let twitter_user: TwitterUser = {
+                name: userData.name,
+                username: userData.username,
+                profile_image_url: userData.profile_image_url,
+            };
+            setTwitter(twitter_user);
+            setIsAuthenticated(true);
+        } catch (error) {
+            console.log("Error fetching user info:", error);
+        }
     }, [wallet, setTwitter]);
 
     const checkTwitterUser = useCallback(async () => {
@@ -81,8 +81,6 @@ const TwitterIntegration = () => {
         checkTwitterUser();
     }, [wallet, isAuthenticated, checkTwitterUser]);
 
-
-
     const initiateTwitterLogin = async () => {
         try {
             const response = await fetch("/.netlify/functions/twitterAuth?user_key=" + wallet.publicKey.toString(), { method: "GET" });
@@ -94,31 +92,18 @@ const TwitterIntegration = () => {
         }
     };
 
-
     return (
         <div style={{ width: "100%" }}>
             {!wallet.connected ? (
                 <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg" w="full" onClick={() => handleConnectWallet()}>
                     Connect Wallet
                 </Button>
-            ) : !isAuthenticated ? (
-                <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg" w="full" onClick={initiateTwitterLogin}>
-                    Login with Twitter
-                </Button>
             ) : (
-                <>
-                    {twitter && (
-                        <div>
-                            <img
-                                src={twitter.profile_image_url}
-                                alt="User Avatar"
-                                style={{ width: 50, height: 50, borderRadius: "50%" }}
-                            ></img>
-                            <h2>{twitter.name}</h2>
-                            <p>@{twitter.username}</p>
-                        </div>
-                    )}
-                </>
+                !isAuthenticated && (
+                    <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg" w="full" onClick={initiateTwitterLogin}>
+                        Login with Twitter
+                    </Button>
+                )
             )}
         </div>
     );
