@@ -62,6 +62,8 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const [program_data, setProgramData] = useState<GPAccount[] | null>(null);
 
     const [user_data, setUserData] = useState<Map<string, UserData> | null>(new Map());
+    const [user_ids, setUserIDs] = useState<Map<number, string> | null>(new Map());
+
     const [current_user_data, setCurrentUserData] = useState<UserData | null>(null);
     const [twitter, setTwitter] = useState<TwitterUser | null>(null);
 
@@ -164,6 +166,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         }
 
         let user_data: Map<string, UserData> = new Map<string, UserData>();
+        let user_ids: Map<number, string> = new Map<number, string>();
 
         console.log("program_data", program_data.length);
         for (let i = 0; i < program_data.length; i++) {
@@ -173,6 +176,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
                 const [user] = UserData.struct.deserialize(data);
                 console.log("user", user);
                 user_data.set(user.user_key.toString(), user);
+                user_ids.set(user.user_id, user.user_key.toString());
                 continue;
             }
         }
