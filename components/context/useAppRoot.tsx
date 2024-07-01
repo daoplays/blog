@@ -4,6 +4,8 @@ import { PropsWithChildren, createContext, useContext, MutableRefObject, SetStat
 import { UserData } from "../state/state";
 import { TwitterUser } from "../state/interfaces";
 interface AppRootTypes {
+    userList: Map<string, UserData>;
+    twitterList: Map<string, TwitterUser>;
     currentUserData: UserData;
     userBashBalance: number;
     twitter: TwitterUser;
@@ -12,10 +14,12 @@ interface AppRootTypes {
 
 export const AppRootContext = createContext<AppRootTypes | null>(null);
 
-export const AppRootContextProvider = ({ children, currentUserData, userBashBalance, twitter, setTwitter }: PropsWithChildren<AppRootTypes>) => {
+export const AppRootContextProvider = ({ children, userList, twitterList, currentUserData, userBashBalance, twitter, setTwitter }: PropsWithChildren<AppRootTypes>) => {
     return (
         <AppRootContext.Provider
             value={{
+                userList,
+                twitterList,
                 currentUserData,
                 userBashBalance,
                 twitter,

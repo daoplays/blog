@@ -11,14 +11,44 @@ import "bootstrap/dist/css/bootstrap.css";
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { bignum_to_num, TokenAccount } from "../components/blog/apps/common";
 import { TwitterUser } from "../components/state/interfaces";
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, get } from "firebase/database";
 
-const GetProgramData = async (check_program_data, setProgramData) => {
+const firebaseConfig = {
+    // ...
+    // The value of `databaseURL` depends on the location of the database
+    databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
+};
+
+
+const GetProgramData = async (check_program_data, setProgramData, setTwitterDB) => {
     if (!check_program_data.current) return;
 
     let list = await RunGPA();
 
     setProgramData(list);
 
+     // Initialize Firebase
+     const app = initializeApp(firebaseConfig);
+
+     // Initialize Realtime Database and get a reference to the service
+     const database = getDatabase(app);
+
+    const twitter_users = await get(ref(database, "BlinkBash/twitter"));
+    let entry = twitter_users.val();
+    let twitter_map = new Map<string, TwitterUser>();
+    Object.entries(entry).forEach(([key, value]) => {
+        console.log(key, value);
+        let json = JSON.parse(value.toString())
+        let twitter_user: TwitterUser = {
+            name: json.name,
+            username: json.username,
+            profile_image_url: json.profile_image_url,
+        };
+        twitter_map.set(key, twitter_user);
+        
+    })
+    setTwitterDB(twitter_map);
     check_program_data.current = false;
 };
 
@@ -31,6 +61,10 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const [current_user_data, setCurrentUserData] = useState<UserData | null>(null);
     const [twitter, setTwitter] = useState<TwitterUser | null>(null);
 
+    //database entries
+    const [twitter_db, setTwitterDB] = useState<Map<string, TwitterUser> | null>(null);
+
+
     const [userBashBalance, setUserBashBalance] = useState<number>(0);
     const [new_program_data, setNewProgramData] = useState<any>(null);
 
@@ -41,6 +75,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
     const user_balance_ws_id = useRef<number | null>(null);
     const program_ws_id = useRef<number | null>(null);
+
 
     useEffect(() => {
         if (update_program_data.current === 0 || new_program_data === null) return;
@@ -81,6 +116,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         } catch (error) {
             console.log(error);
         }
+
     }, [wallet, connection]);
 
     const check_user_balance = useCallback(async (result: any) => {
@@ -114,7 +150,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     useEffect(() => {
         if (program_data === null) return;
 
-        //console.log("update data");
+        console.log("update data");
         let wallet_bytes = PublicKey.default.toBytes();
         let have_wallet = false;
         // console.log("wallet", wallet !== null ? wallet.toString() : "null");
@@ -125,13 +161,13 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
         let user_data: Map<string, UserData> = new Map<string, UserData>();
 
-        //console.log("program_data", program_data.length);
+        console.log("program_data", program_data.length);
         for (let i = 0; i < program_data.length; i++) {
             let data = program_data[i].data;
-
+            console.log(program_data)
             if (data[0] === 1) {
                 const [user] = UserData.struct.deserialize(data);
-                //console.log("user", user);
+                console.log("user", user);
                 user_data.set(user.user_key.toString(), user);
                 continue;
             }
@@ -144,6 +180,10 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
                 setCurrentUserData(user_data.get(wallet.publicKey.toString()));
             }
         }
+
+       
+
+
     }, [program_data, wallet]);
 
     useEffect(() => {
@@ -152,11 +192,11 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
         last_program_data_update.current = current_time;
 
-        GetProgramData(check_program_data, setProgramData);
+        GetProgramData(check_program_data, setProgramData, setTwitterDB);
     }, []);
 
     return (
-        <AppRootContextProvider currentUserData={current_user_data} userBashBalance={userBashBalance} twitter={twitter} setTwitter={setTwitter}> 
+        <AppRootContextProvider userList={user_data} twitterList={twitter_db} currentUserData={current_user_data} userBashBalance={userBashBalance} twitter={twitter} setTwitter={setTwitter}> 
             {children}
         </AppRootContextProvider>
     );

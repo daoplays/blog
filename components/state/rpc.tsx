@@ -46,7 +46,7 @@ export async function RunGPA(): Promise<GPAccount[]> {
         let decoded_data = Buffer.from(encoded_data, "base64");
 
         // we dont want the program account
-        if (decoded_data[0] === 1) continue;
+        if (decoded_data[0] === 0) continue;
 
         result.push({ pubkey: new PublicKey(program_accounts_result["result"][i]["pubkey"]), data: decoded_data });
     }
