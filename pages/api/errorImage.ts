@@ -20,6 +20,12 @@ export default async function handler(req, res) {
     return;
 }
 
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Encoding, Accept-Encoding");
+    res.send(JSON.stringify({ done: 'Test!' }));
+return
   const width = 400;
   const height = 400;
   const padding = 20;
