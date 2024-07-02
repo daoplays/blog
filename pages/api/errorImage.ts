@@ -45,15 +45,7 @@ export default async function handler(req, res) {
     const canvas = createCanvas(width, 100); // Small canvas just for the text
     const ctx = canvas.getContext('2d');
 
-    // Add text to canvas
-    ctx.font = '30px Arial';
-    ctx.fillStyle = 'white';
-    ctx.textAlign = 'center';
-    ctx.fillText('No Entry Found', width / 2, 50);
-
-    // Convert canvas to buffer
-    const textBuffer = canvas.toBuffer('image/png');
-
+   
     console.log('Canvas text created');
 
     console.log('Final image generated, size:', finalImage.length);
