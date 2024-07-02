@@ -1,5 +1,4 @@
 import sharp from 'sharp';
-import { createCanvas } from 'canvas';
 
 export const config = {
   api: {
@@ -17,14 +16,14 @@ export default async function handler(req, res) {
     return;
 }
   try {
-    console.log('Starting image generation with text');
+    console.log('Starting image generation with Sharp only');
 
     const width = 800;
     const height = 600;
 
-    // Create gradient background
-    const gradientSvg = `
-      <svg width="${width}" height="${height}">
+    // Create SVG with gradient background and text
+    const svgImage = `
+      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" style="stop-color:#5DBBFF;stop-opacity:1" />
@@ -32,28 +31,13 @@ export default async function handler(req, res) {
           </linearGradient>
         </defs>
         <rect width="100%" height="100%" fill="url(#grad)"/>
+        <text x="50%" y="60" font-family="Arial" font-size="50" fill="white" text-anchor="middle">BlinkBash!</text>
+        <text x="50%" y="50%" font-family="Arial" font-size="30" fill="white" text-anchor="middle">No Entry Found</text>
       </svg>
     `;
 
-    // Create canvas for text
-    const canvas = createCanvas(width, height);
-    const ctx = canvas.getContext('2d');
-
-    // Add text to canvas
-    ctx.font = '50px Arial';
-    ctx.fillStyle = 'white';
-    ctx.textAlign = 'center';
-    ctx.fillText('BlinkBash!', width / 2, 60);
-
-    ctx.font = '30px Arial';
-    ctx.fillText('No Entry Found', width / 2, height / 2);
-
-    // Convert canvas to buffer
-    const textBuffer = canvas.toBuffer('image/png');
-
-    // Combine gradient and text using Sharp
-    const finalImage = await sharp(Buffer.from(gradientSvg))
-      .composite([{ input: textBuffer, blend: 'over' }])
+    // Convert SVG to PNG using Sharp
+    const finalImage = await sharp(Buffer.from(svgImage))
       .png()
       .toBuffer();
 
