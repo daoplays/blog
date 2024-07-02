@@ -43,7 +43,6 @@ export default async function handler(req, res) {
 
     // Create a small canvas for additional text
     const canvas = createCanvas(width, 100); // Small canvas just for the text
-    const ctx = canvas.getContext('2d');
 
    
     console.log('Canvas text created');
