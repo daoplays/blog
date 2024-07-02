@@ -2,17 +2,21 @@
 
 import { useConnection, useWallet, WalletContextState } from "@solana/wallet-adapter-react";
 import { AccountType, ListingData, UserData } from "../components/state/state";
-import { RunGPA, GPAccount, getMintData } from "../components/state/rpc";
-import { BASH, Config, PROGRAM } from "../components/state/constants";
+import { RunGPA, GPAccount, getMintData, fetchWithTimeout } from "../components/state/rpc";
+import { BASH, Config, PDA_ACCOUNT_SEED, PROGRAM, WHITELIST } from "../components/state/constants";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { useCallback, useEffect, useState, useRef, PropsWithChildren } from "react";
 import { AppRootContextProvider } from "../components/context/useAppRoot";
 import "bootstrap/dist/css/bootstrap.css";
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, unpackMint } from "@solana/spl-token";
-import { bignum_to_num, request_raw_account_data, request_token_amount, TokenAccount } from "../components/blog/apps/common";
-import { MintData, TwitterUser } from "../components/state/interfaces";
+import { bignum_to_num, request_raw_account_data, request_token_amount, TokenAccount, uInt32ToLEBytes } from "../components/blog/apps/common";
+import { MintData, NFTData, TwitterUser } from "../components/state/interfaces";
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get } from "firebase/database";
+import { AssetV1, getAssetV1GpaBuilder, Key } from "@metaplex-foundation/mpl-core";
+import type { RpcAccount, PublicKey as umiKey } from "@metaplex-foundation/umi";
+import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
+import { publicKey } from "@metaplex-foundation/umi";
 
 const firebaseConfig = {
     // ...
@@ -81,6 +85,42 @@ const GetTokenMintData = async (trade_keys: String[], setMintMap) => {
     setMintMap(mint_map);
 };
 
+const GetNFTData = async (nft_keys: String[], setNFTMap) => {
+    
+    const umi = createUmi(Config.RPC_NODE, "confirmed");
+    let pda = PublicKey.findProgramAddressSync([uInt32ToLEBytes(PDA_ACCOUNT_SEED)], PROGRAM)[0];
+
+    let pda_umiKey = publicKey(pda.toString());
+
+    const assets = await getAssetV1GpaBuilder(umi)
+        .whereField("key", Key.AssetV1)
+        .whereField('owner', pda_umiKey)
+        .getDeserialized();
+
+    let asset_map = new Map<String, NFTData>();
+    await Promise.all(assets.map(async (asset) => {
+        let nftdata: NFTData = {
+            mint: asset,
+            uri: asset.uri,
+            icon: ""
+        };
+
+        try {
+            const response = await fetchWithTimeout(asset.uri, 3000);
+            const uri_json = await response.json();
+            nftdata.icon = uri_json["image"];
+        } catch (error) {
+            console.error(`Error fetching data for asset ${asset.publicKey}:`, error);
+        }
+
+        asset_map.set(asset.publicKey.toString(), nftdata);
+    }));
+
+    
+    setNFTMap(asset_map)
+};
+
+
 const ContextProviders = ({ children }: PropsWithChildren) => {
     const wallet = useWallet();
     const { connection } = useConnection();
@@ -90,6 +130,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const [user_ids, setUserIDs] = useState<Map<number, string> | null>(new Map());
     const [listing_data, setListingData] = useState<Map<string, ListingData> | null>(new Map());
     const [mintData, setMintData] = useState<Map<string, MintData> | null>(null);
+    const [nftData, setNFTData] = useState<Map<string, NFTData> | null>(null);
 
     const [current_user_data, setCurrentUserData] = useState<UserData | null>(null);
     const [twitter, setTwitter] = useState<TwitterUser | null>(null);
@@ -98,6 +139,8 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const [twitter_db, setTwitterDB] = useState<Map<string, TwitterUser> | null>(null);
 
     const [userBashBalance, setUserBashBalance] = useState<number>(0);
+    const [userWLBalance, setUserWLBalance] = useState<number>(0);
+
     const [new_program_data, setNewProgramData] = useState<any>(null);
 
     const update_program_data = useRef<number>(0);
@@ -105,6 +148,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const last_program_data_update = useRef<number>(0);
 
     const user_balance_ws_id = useRef<number | null>(null);
+    const user_wl_balance_ws_id = useRef<number | null>(null);
     const program_ws_id = useRef<number | null>(null);
 
     useEffect(() => {
@@ -148,6 +192,20 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         }
     }, [wallet, connection]);
 
+    const checkUserWLBalance = useCallback(async () => {
+        if (wallet === null || wallet.publicKey === null) {
+            return;
+        }
+
+        let token_key = getAssociatedTokenAddressSync(WHITELIST, wallet.publicKey, false, TOKEN_2022_PROGRAM_ID);
+        try {
+            let balance = await connection.getTokenAccountBalance(token_key);
+            setUserWLBalance(parseInt(balance.value.amount));
+        } catch (error) {
+            console.log(error);
+        }
+    }, [wallet, connection]);
+
     const check_user_balance = useCallback(async (result: any) => {
         //console.log(result);
         // if we have a subscription field check against ws_id
@@ -161,13 +219,31 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         } catch (error) {}
     }, []);
 
+    const check_user_wl_balance = useCallback(async (result: any) => {
+        //console.log(result);
+        // if we have a subscription field check against ws_id
+
+        try {
+            let event_data = result.data;
+            const [token_account] = TokenAccount.struct.deserialize(event_data);
+
+            let amount = bignum_to_num(token_account.amount);
+            setUserWLBalance(amount);
+        } catch (error) {}
+    }, []);
+
     // launch account subscription handler
     useEffect(() => {
         if (user_balance_ws_id.current === null && wallet !== null && wallet.publicKey !== null) {
             checkUserBalance();
             let token_key = getAssociatedTokenAddressSync(BASH, wallet.publicKey, false, TOKEN_2022_PROGRAM_ID);
-
             user_balance_ws_id.current = connection.onAccountChange(token_key, check_user_balance, "confirmed");
+        }
+
+        if (user_wl_balance_ws_id.current === null && wallet !== null && wallet.publicKey !== null) {
+            checkUserWLBalance();
+            let token_key = getAssociatedTokenAddressSync(WHITELIST, wallet.publicKey, false, TOKEN_2022_PROGRAM_ID);
+            user_wl_balance_ws_id.current = connection.onAccountChange(token_key, check_user_wl_balance, "confirmed");
         }
 
         if (program_ws_id.current === null) {
@@ -191,6 +267,8 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         let user_ids: Map<number, string> = new Map<number, string>();
         let listings: Map<string, ListingData> = new Map<string, ListingData>();
         let token_listings: string[] = [];
+        let nft_listings: string[] = [];
+
         //console.log("program_data", program_data.length);
         for (let i = 0; i < program_data.length; i++) {
             let data = program_data[i].data;
@@ -210,6 +288,9 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
                 if (listing.item_type === 1) {
                     token_listings.push(listing.item_address.toString());
                 }
+                if (listing.item_type === 2) {
+                    nft_listings.push(listing.item_address.toString());
+                }
                 continue;
             }
         }
@@ -225,6 +306,8 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         }
 
         GetTokenMintData(token_listings, setMintData);
+        GetNFTData(nft_listings, setNFTData);
+
     }, [program_data, wallet]);
 
     useEffect(() => {
@@ -242,8 +325,10 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             twitterList={twitter_db}
             listingList={listing_data}
             tokenList={mintData}
+            nftList={nftData}
             currentUserData={current_user_data}
             userBashBalance={userBashBalance}
+            userWLBalance={userWLBalance}
             twitter={twitter}
             setTwitter={setTwitter}
         >

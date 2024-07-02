@@ -97,9 +97,8 @@ export const GetAddListingInstruction = async (user: PublicKey, item: PublicKey,
     let instructions: TransactionInstruction[] = [];
 
     let feeMicroLamports = await getRecentPrioritizationFees(Config.PROD);
-
     instructions.push(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: feeMicroLamports }));
-    instructions.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }));
+    instructions.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }));
     instructions.push(list_instruction);
 
     return instructions;

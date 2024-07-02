@@ -44,13 +44,9 @@ export default function Shop() {
     const isConnected = wallet.publicKey !== null;
     const [selected, setSelected] = useState("Tokens");
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const { listingList, tokenList } = useAppRoot();
-    const { ListItem } = useListemItem();
+    const { listingList, tokenList, nftList, userWLBalance } = useAppRoot();
+    const { ListItem, } = useListemItem();
 
-    console.log("listingList", listingList);
-
-    const [token, setToken] = useState("");
-    const handleChangeToken = (event) => setToken(event.target.value);
 
     const [tokenAddress, setTokenAddress] = useState("");
     const handleChangeTokenAddress = (event) => setTokenAddress(event.target.value);
@@ -64,9 +60,6 @@ export default function Shop() {
     const [nftContractAddress, setNftContractAddress] = useState("");
     const handleChangeNftContractAddress = (event) => setNftContractAddress(event.target.value);
 
-    const [nftTokenId, setNftTokenId] = useState("");
-    const handleChangeNftTokenId = (event) => setNftTokenId(event.target.value);
-
     const [nftPrice, setNftPrice] = useState("");
     const handleChangeNftPrice = (event) => setNftPrice(event.target.value);
 
@@ -74,12 +67,78 @@ export default function Shop() {
         if (selected === "Tokens") {
             ListItem(1, new PublicKey(tokenAddress), parseInt(tokenQuantity), parseInt(tokenPrice));
         } else {
-            ListItem(2, new PublicKey(tokenAddress), 1, parseInt(tokenPrice));
+            ListItem(2, new PublicKey(nftContractAddress), 1, parseInt(nftPrice));
         }
     };
 
+    const NFTRow = ({ item }: { item: ListingData }) => {
+        if (nftList === null || item.item_type !== 2) {
+            return <></>;
+        }
+
+        let address = item.item_address.toString();
+        let mint = nftList.get(address);
+        if (mint === undefined) {
+            return <></>;
+        }
+        let price = bignum_to_num(item.price);
+
+        return (
+            <Tr>
+                <Td>
+                    <Image
+                        alt="Launch icon"
+                        src={mint.icon}
+                        width={45}
+                        height={45}
+                        style={{ borderRadius: "8px", backgroundSize: "cover" }}
+                    />
+                </Td>
+                <Td>{mint.mint.name}</Td>
+                <Td>
+                    <HStack spacing={3} align="start" justify="start">
+                        <Text>{trimAddress(address)}</Text>
+
+                        <Tooltip label="Copy Contract Address" hasArrow fontSize="large" offset={[0, 10]}>
+                            <div
+                                style={{ cursor: "pointer" }}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    navigator.clipboard.writeText(address);
+                                }}
+                            >
+                                <MdOutlineContentCopy color="white" size={20} />
+                            </div>
+                        </Tooltip>
+
+                        <Tooltip label="View in explorer" hasArrow fontSize="large" offset={[0, 10]}>
+                            <Link href={getSolscanLink(item.item_address, "Token")} target="_blank" onClick={(e) => e.stopPropagation()}>
+                                <Image src="/images/solscan.png" width={20} height={20} alt="Solscan icon" />
+                            </Link>
+                        </Tooltip>
+                    </HStack>
+                </Td>
+                <Td isNumeric>{price / 10}</Td>
+                <Td isNumeric>
+                    <Button
+                        shadow="md"
+                        _active={{ bg: "#FFE376" }}
+                        _hover={{ opacity: "90%" }}
+                        bg="#FFE376"
+                        color="#BA6502"
+                        rounded="lg"
+                        size="sm"
+                        mr={-1}
+                    >
+                        Buy
+                    </Button>
+                </Td>
+            </Tr>
+        );
+    };
+
     const TokenRow = ({ item }: { item: ListingData }) => {
-        if (tokenList === null) {
+        if (tokenList === null || item.item_type !== 1) {
             return <></>;
         }
         let address = item.item_address.toString();
@@ -233,34 +292,17 @@ export default function Shop() {
                             <Table size="sm" colorScheme="teal" style={{ color: "white", fontWeight: 600 }}>
                                 <Thead>
                                     <Tr>
+                                        <Th>Icon</Th>
                                         <Th>Name</Th>
                                         <Th>Address</Th>
-                                        <Th isNumeric>Qty</Th>
                                         <Th isNumeric>Price</Th>
                                         <Th isNumeric>Trade</Th>
                                     </Tr>
                                 </Thead>
                                 <Tbody>
-                                    <Tr>
-                                        <Td>Joy #1124</Td>
-                                        <Td>8wbK...Vjd3</Td>
-                                        <Td isNumeric>1</Td>
-                                        <Td isNumeric>1500 $BASH</Td>
-                                        <Td isNumeric>
-                                            <Button
-                                                shadow="md"
-                                                _active={{ bg: "#FFE376" }}
-                                                _hover={{ opacity: "90%" }}
-                                                bg="#FFE376"
-                                                color="#BA6502"
-                                                rounded="lg"
-                                                size="sm"
-                                                mr={-1}
-                                            >
-                                                Buy
-                                            </Button>
-                                        </Td>
-                                    </Tr>
+                                {Array.from(listingList).map(([key, item], i) => (
+                                        <NFTRow key={key} item={item} />
+                                    ))}
                                 </Tbody>
                             </Table>
                         </TableContainer>
@@ -272,7 +314,21 @@ export default function Shop() {
                 <ModalOverlay />
                 <ModalContent borderRadius={12}>
                     <ModalHeader py={4} color="#BA6502">
-                        {selected === "Tokens" ? "List a Token" : "List an NFT"}
+                        <HStack>
+                            <Text m="0">
+                            {selected === "Tokens" ? "List a Token" : "List an NFT"}
+                            </Text>
+                            <Image
+                                alt="Launch icon"
+                                src="/images/bash_wlist.png"
+                                width={30}
+                                height={30}
+                                style={{ borderRadius: "8px", backgroundSize: "cover" }}
+                            />
+                            <Text m="0">
+                            {userWLBalance}
+                            </Text>
+                        </HStack>
                     </ModalHeader>
                     <ModalCloseButton />
                     <ModalBody display="flex" flexDirection="column" gap={3} pb={4}>
@@ -325,30 +381,16 @@ export default function Shop() {
                                     <Text fontSize="sm" mb={0}>
                                         NFT
                                     </Text>
-                                    <Select rounded="md" value={token} onChange={handleChangeToken} placeholder="Select your NFT" size="sm">
-                                        <option value="option1">Option 1</option>
-                                        <option value="option2">Option 2</option>
-                                        <option value="option3">Option 3</option>
-                                    </Select>
-                                </VStack>
-
-                                <VStack gap={1} align="start">
-                                    <HStack w="full" justify="space-between">
-                                        <Text fontSize="sm" mb={0}>
-                                            Quantity
-                                        </Text>
-                                        <Text opacity="50%" fontSize="sm" mb={0}>
-                                            Your NFTs: 0
-                                        </Text>
-                                    </HStack>
                                     <Input
                                         rounded="md"
-                                        value={tokenQuantity}
-                                        onChange={handleChangeTokenQuantity}
-                                        placeholder="Enter Quantity"
+                                        value={nftContractAddress}
+                                        onChange={handleChangeNftContractAddress}
+                                        placeholder="Enter Address"
                                         size="sm"
                                     />
                                 </VStack>
+
+                               
 
                                 <VStack gap={1} align="start">
                                     <Text fontSize="sm" mb={0}>
@@ -356,8 +398,8 @@ export default function Shop() {
                                     </Text>
                                     <Input
                                         rounded="md"
-                                        value={tokenPrice}
-                                        onChange={handleChangeTokenPrice}
+                                        value={nftPrice}
+                                        onChange={handleChangeNftPrice}
                                         placeholder="Enter Enter Price"
                                         size="sm"
                                     />

@@ -2,14 +2,17 @@
 
 import { PropsWithChildren, createContext, useContext, MutableRefObject, SetStateAction, Dispatch } from "react";
 import { ListingData, UserData } from "../state/state";
-import { MintData, TwitterUser } from "../state/interfaces";
+import { MintData, NFTData, TwitterUser } from "../state/interfaces";
+import { AssetV1 } from "@metaplex-foundation/mpl-core";
 interface AppRootTypes {
     userList: Map<string, UserData>;
     twitterList: Map<string, TwitterUser>;
     listingList: Map<string, ListingData>;
     tokenList: Map<string, MintData>;
+    nftList: Map<string, NFTData>;
     currentUserData: UserData;
     userBashBalance: number;
+    userWLBalance: number;
     twitter: TwitterUser;
     setTwitter: Dispatch<SetStateAction<TwitterUser>>;
 }
@@ -22,8 +25,10 @@ export const AppRootContextProvider = ({
     twitterList,
     listingList,
     tokenList,
+    nftList,
     currentUserData,
     userBashBalance,
+    userWLBalance,
     twitter,
     setTwitter,
 }: PropsWithChildren<AppRootTypes>) => {
@@ -34,8 +39,10 @@ export const AppRootContextProvider = ({
                 twitterList,
                 listingList,
                 tokenList,
+                nftList,
                 currentUserData,
                 userBashBalance,
+                userWLBalance,
                 twitter,
                 setTwitter,
             }}
