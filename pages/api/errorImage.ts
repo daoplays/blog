@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
   try {
     // Register the custom font
-    registerFont(path.join(process.cwd(), 'public', 'fonts', 'Whocats.ttf'), { family: 'CustomFont' });
+    registerFont('./public/fonts/Whocats.ttf', { family: 'CustomFont' });
 
     // Create a canvas for the text
     const canvas = createCanvas(width, height);
@@ -119,7 +119,6 @@ export default async function handler(req, res) {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Encoding, Accept-Encoding");
-    res.setHeader('Cache-Control', 's-maxage=10, stale-while-revalidate');
     res.send(finalImage);
 
   } catch (error) {
