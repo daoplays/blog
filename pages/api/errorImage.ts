@@ -9,6 +9,16 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Encoding, Accept-Encoding");
+
+    res.status(200).end();
+    return;
+}
+
   const width = 400;
   const height = 400;
   const padding = 20;
@@ -104,7 +114,10 @@ export default async function handler(req, res) {
       .toBuffer();
 
     // Set the content type and send the image
-    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Encoding, Accept-Encoding");
     res.setHeader('Cache-Control', 's-maxage=10, stale-while-revalidate');
     res.send(finalImage);
 
