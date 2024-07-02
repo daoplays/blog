@@ -109,3 +109,47 @@ export class ListingData {
         "ListingData",
     );
 }
+
+export class LeaderboardData {
+    constructor(
+        readonly account_type: number,
+        readonly game: number,
+        readonly date: number,
+        readonly entrants: number[],
+        readonly scores: number[],
+    ) {}
+
+    static readonly struct = new FixableBeetStruct<LeaderboardData>(
+        [
+            ["account_type", u8],
+            ["game", u8],
+            ["date", u32],
+            ["entrants", array(u32)],
+            ["scores", array(u32)],
+        ],
+        (args) => new LeaderboardData(args.account_type!, args.game!, args.date!, args.entrants!, args.scores!),
+        "LeaderboardData",
+    );
+}
+
+export class EntryData {
+    constructor(
+        readonly account_type: number,
+        readonly positive_votes: number,
+        readonly negative_votes: number,
+        readonly reward_claimed: number,
+        
+    ) {}
+
+    static readonly struct = new FixableBeetStruct<EntryData>(
+        [
+            ["account_type", u8],
+            ["positive_votes", u32],
+            ["negative_votes", u32],
+            ["reward_claimed", u8],
+           
+        ],
+        (args) => new EntryData(args.account_type!, args.positive_votes!, args.negative_votes!, args.reward_claimed!),
+        "EntryData",
+    );
+}

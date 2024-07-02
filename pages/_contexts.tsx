@@ -1,7 +1,7 @@
 "use client";
 
 import { useConnection, useWallet, WalletContextState } from "@solana/wallet-adapter-react";
-import { AccountType, ListingData, UserData } from "../components/state/state";
+import { AccountType, EntryData, LeaderboardData, ListingData, UserData } from "../components/state/state";
 import { RunGPA, GPAccount, getMintData, fetchWithTimeout } from "../components/state/rpc";
 import { BASH, Config, PDA_ACCOUNT_SEED, PROGRAM, WHITELIST } from "../components/state/constants";
 import { PublicKey, Connection } from "@solana/web3.js";
@@ -45,7 +45,6 @@ const GetProgramData = async (check_program_data, setProgramData, setTwitterDB) 
     }
     let twitter_map = new Map<string, TwitterUser>();
     Object.entries(entry).forEach(([key, value]) => {
-        console.log(key, value);
         let json = JSON.parse(value.toString());
         let twitter_user: TwitterUser = {
             name: json.name,
@@ -129,6 +128,9 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const [user_data, setUserData] = useState<Map<string, UserData> | null>(new Map());
     const [user_ids, setUserIDs] = useState<Map<number, string> | null>(new Map());
     const [listing_data, setListingData] = useState<Map<string, ListingData> | null>(new Map());
+    const [leaderboard_data, setLeaderboardData] = useState<Map<string, LeaderboardData> | null>(new Map());
+    const [entry_data, setEntryData] = useState<Map<string, EntryData> | null>(new Map());
+
     const [mintData, setMintData] = useState<Map<string, MintData> | null>(null);
     const [nftData, setNFTData] = useState<Map<string, NFTData> | null>(null);
 
@@ -159,9 +161,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         let event_data = Buffer.from(new_program_data.accountInfo.data);
         let account_key = new_program_data.accountId;
 
-        if (event_data[0] === 1) {
-            //console.log("updating user data from context");
-
+        if (event_data[0] === AccountType.User) {
             const [user] = UserData.struct.deserialize(event_data);
 
             user_data.set(user.user_key.toString(), user);
@@ -176,13 +176,28 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             //console.log("updating user data from context");
 
             const [listing] = ListingData.struct.deserialize(event_data);
-
             listing_data.set(listing.item_address.toString(), listing);
             setListingData(new Map(listing_data));
             
             return;
         }
-    }, [new_program_data, wallet, user_data, listing_data]);
+
+        if (event_data[0] === AccountType.Entry) {
+            const [entry] = EntryData.struct.deserialize(event_data);
+            entry_data.set(account_key.toString(), entry);
+            setEntryData(new Map(entry_data));
+
+            return;
+        }
+
+        if (event_data[0] === AccountType.Leaderboard) {
+            const [leaderboard] = LeaderboardData.struct.deserialize(event_data);
+            leaderboard_data.set(account_key.toString(), leaderboard);
+            setLeaderboardData(new Map(leaderboard_data));
+
+            return;
+        }
+    }, [new_program_data, wallet, user_data, listing_data, entry_data, leaderboard_data]);
 
     const check_program_update = useCallback(async (result: any) => {
         update_program_data.current += 1;
@@ -277,6 +292,9 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         let user_data: Map<string, UserData> = new Map<string, UserData>();
         let user_ids: Map<number, string> = new Map<number, string>();
         let listings: Map<string, ListingData> = new Map<string, ListingData>();
+        let entries: Map<string, EntryData> = new Map<string, EntryData>();
+        let leaderboards: Map<string, LeaderboardData> = new Map<string, LeaderboardData>();
+
         let token_listings: string[] = [];
         let nft_listings: string[] = [];
 
@@ -284,7 +302,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         for (let i = 0; i < program_data.length; i++) {
             let data = program_data[i].data;
             //console.log(program_data)
-            if (data[0] === 1) {
+            if (data[0] === AccountType.User) {
                 const [user] = UserData.struct.deserialize(data);
                 //console.log("user", user);
                 user_data.set(user.user_key.toString(), user);
@@ -294,7 +312,6 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
             if (data[0] === AccountType.Listing) {
                 const [listing] = ListingData.struct.deserialize(data);
-                console.log("listing", listing);
                 listings.set(listing.item_address.toString(), listing);
                 if (listing.item_type === 1) {
                     token_listings.push(listing.item_address.toString());
@@ -304,11 +321,25 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
                 }
                 continue;
             }
+
+            if (data[0] === AccountType.Entry) {
+                const [entry] = EntryData.struct.deserialize(data);
+                entries.set(program_data[i].pubkey.toString(), entry);
+                continue;
+            }
+
+            if (data[0] === AccountType.Leaderboard) {
+                const [leaderboard] = LeaderboardData.struct.deserialize(data);
+                leaderboards.set(program_data[i].pubkey.toString(), leaderboard);
+                continue;
+            }
         }
 
         setUserData(user_data);
         setUserIDs(user_ids);
         setListingData(listings);
+        setEntryData(entries)
+        setLeaderboardData(leaderboards);
 
         if (have_wallet) {
             if (user_data.has(wallet.publicKey.toString())) {

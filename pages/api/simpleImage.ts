@@ -1,40 +1,44 @@
-import sharp from "sharp";
+import sharp from 'sharp';
+import path from 'path';
+import fs from 'fs';
 
-const handler = async (req, res) => {
-    console.log("in simple image");
-    const buttonUp = `
-    <svg width="200" height="100">
-      <rect width="200" height="100" style="fill:blue;stroke:black;stroke-width:2"/>
-      <text x="100" y="60" font-family="Arial" font-size="40" fill="white" text-anchor="middle">Up</text>
-    </svg>`;
+export default async function handler(req, res) {
+  const width = 800; // Image width
+  const height = 400; // Image height
+  const text = 'BlinkBash!';
+  const fontPath = path.resolve('./public/fonts/Whocats.ttf');
 
-    const buttonDown = `
-    <svg width="200" height="100">
-      <rect width="200" height="100" style="fill:red;stroke:black;stroke-width:2"/>
-      <text x="100" y="60" font-family="Arial" font-size="40" fill="white" text-anchor="middle">Down</text>
-    </svg>`;
+  // Read the font file
+  const fontData = fs.readFileSync(fontPath).toString('base64');
 
-    try {
-        const imageBuffer = await sharp({
-            create: {
-                width: 400,
-                height: 200,
-                channels: 4,
-                background: { r: 255, g: 255, b: 255, alpha: 1 },
-            },
-        })
-            .composite([
-                { input: Buffer.from(buttonUp), top: 50, left: 0 },
-                { input: Buffer.from(buttonDown), top: 50, left: 200 },
-            ])
-            .png()
-            .toBuffer();
+  // Create an SVG overlay with the text
+  const svg = `
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <style type="text/css">
+          @font-face {
+            font-family: 'Whocats';
+            src: url('data:font/ttf;base64,${fontData}') format('truetype');
+          }
+          .title {
+            font-family: 'Whocats';
+            font-size: 72px;
+            fill: black;
+            text-anchor: middle;
+          }
+        </style>
+      </defs>
+      <rect width="100%" height="100%" fill="white"/>
+      <text x="50%" y="50%" dy=".35em" class="title">${text}</text>
+    </svg>
+  `;
 
-        res.setHeader("Content-Type", "image/png");
-        res.send(imageBuffer);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to generate image" });
-    }
-};
+  // Create the image with Sharp
+  const image = await sharp(Buffer.from(svg))
+    .png()
+    .toBuffer();
 
-export default handler;
+  // Set the content type and send the image
+  res.setHeader('Content-Type', 'image/png');
+  res.send(image);
+}

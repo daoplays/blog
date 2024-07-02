@@ -55,7 +55,6 @@ const TwitterIntegration = () => {
                 const database = getDatabase(app);
                 const snapshot = await get(ref(database, "BlinkBash/twitter/" + wallet.publicKey.toString()));
                 let db_entry = JSON.parse(snapshot.val());
-                console.log("db_entry", db_entry);
                 if (db_entry.username) {
                     let twitter_user: TwitterUser = {
                         name: db_entry.name,
