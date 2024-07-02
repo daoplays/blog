@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
   try {
     // Register the custom font
-    registerFont('./public/fonts/Whocats.ttf', { family: 'CustomFont' });
+    //registerFont('./public/fonts/Whocats.ttf', { family: 'CustomFont' });
 
     // Create a canvas for the text
     const canvas = createCanvas(width, height);
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
     // Function to draw centered text
     const drawCenteredText = (text, y, fontSize, color) => {
-      ctx.font = `${fontSize}px "CustomFont"`;
+      ctx.font = `${fontSize}px Arial, sans-serif`;
       ctx.fillStyle = color;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     };
 
     // Draw title "BlinkBash!"
-    ctx.font = `${titleFontSize}px "CustomFont"`;
+    ctx.font = `${titleFontSize}px Arial, sans-serif`;
     ctx.textBaseline = 'top';
     const blinkWidth = ctx.measureText('Blink').width;
     const bashWidth = ctx.measureText('Bash!').width;
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
     drawCenteredText('to check out the latest', bottomTextY + lineHeight, bottomFontSize, 'white');
 
     // Draw the last line with split-colored "BlinkBash" and proper spacing
-    ctx.font = `${bottomFontSize}px "CustomFont"`;
+    ctx.font = `${bottomFontSize}px Arial, sans-serif`;
     const lastLineY = bottomTextY + lineHeight * 2;
     const lastLineText = 'BlinkBash entries!';
     const blinkWidth2 = ctx.measureText('Blink').width;
