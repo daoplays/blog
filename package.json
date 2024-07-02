@@ -30,7 +30,6 @@
         "@types/react-plotly.js": "^2.6.1",
         "better-react-mathjax": "^2.0.3",
         "bootstrap": "^5.3.2",
-        "canvas": "^2.11.2",
         "chart.js": "^4.4.0",
         "firebase": "^10.12.2",
         "firebase-admin": "^12.2.0",
@@ -58,6 +57,7 @@
         "react-toastify": "^10.0.5",
         "react-twitch-embed": "^3.0.1",
         "sharp": "^0.32.6",
+        "text-to-svg": "^3.1.5",
         "twitter-api-v2": "^1.17.1"
     },
     "engines": {
