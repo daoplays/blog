@@ -95,7 +95,6 @@ const LeaderboardPage = () => {
             return 0;
         });
 
-
         return (
             <>
                 <TableContainer>
@@ -142,7 +141,6 @@ const LeaderboardPage = () => {
     };
 
     const UserCard = ({ user, index }: { user: UserData; index: number }) => {
-
         if (twitterList === null) return <></>;
 
         const isUser = currentUserData === null ? false : user.user_key.equals(currentUserData.user_key);

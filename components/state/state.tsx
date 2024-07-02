@@ -37,6 +37,14 @@ export enum BashInstruction {
     BuyListing = 5,
 }
 
+export enum AccountType {
+    Program = 0,
+    User = 1,
+    Entry = 2,
+    Leaderboard = 3,
+    Listing = 4,
+}
+
 export class UserData {
     constructor(
         readonly account_type: number,
@@ -75,5 +83,29 @@ export class UserData {
                 args.total_negative_voted!,
             ),
         "UserData",
+    );
+}
+
+export class ListingData {
+    constructor(
+        readonly account_type: number,
+        readonly item_type: number,
+        readonly item_address: PublicKey,
+        readonly price: bignum,
+        readonly quantity: bignum,
+        readonly bundle_size: bignum,
+    ) {}
+
+    static readonly struct = new FixableBeetStruct<ListingData>(
+        [
+            ["account_type", u8],
+            ["item_type", u8],
+            ["item_address", publicKey],
+            ["price", u64],
+            ["quantity", u64],
+            ["bundle_size", u64],
+        ],
+        (args) => new ListingData(args.account_type!, args.item_type!, args.item_address!, args.price!, args.quantity!, args.bundle_size!),
+        "ListingData",
     );
 }

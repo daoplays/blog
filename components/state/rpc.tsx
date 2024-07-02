@@ -1,11 +1,21 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { Config, METAPLEX_META, PROGRAM } from "./constants";
 import { MintData } from "./interfaces";
-import { ExtensionType, Mint, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID, getExtensionData, getMetadataPointerState, getPermanentDelegate, getTransferFeeConfig, getTransferHook, unpackMint } from "@solana/spl-token";
+import {
+    ExtensionType,
+    Mint,
+    TOKEN_2022_PROGRAM_ID,
+    TOKEN_PROGRAM_ID,
+    getExtensionData,
+    getMetadataPointerState,
+    getPermanentDelegate,
+    getTransferFeeConfig,
+    getTransferHook,
+    unpackMint,
+} from "@solana/spl-token";
 import { Extensions } from "./state";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { unpack, TokenMetadata } from "@solana/spl-token-metadata";
-
 
 // Example POST method implementation:
 export async function postData(url = "", bearer = "", data = {}) {
@@ -166,8 +176,6 @@ export async function fetchWithTimeout(resource, timeout: number) {
 
     return response;
 }
-
-
 
 export async function getMintData(connection: Connection, mint: Mint, token_program: PublicKey): Promise<MintData | null> {
     let uri: string | null = null;

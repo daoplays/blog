@@ -1,11 +1,13 @@
 "use client";
 
 import { PropsWithChildren, createContext, useContext, MutableRefObject, SetStateAction, Dispatch } from "react";
-import { UserData } from "../state/state";
-import { TwitterUser } from "../state/interfaces";
+import { ListingData, UserData } from "../state/state";
+import { MintData, TwitterUser } from "../state/interfaces";
 interface AppRootTypes {
     userList: Map<string, UserData>;
     twitterList: Map<string, TwitterUser>;
+    listingList: Map<string, ListingData>;
+    tokenList: Map<string, MintData>;
     currentUserData: UserData;
     userBashBalance: number;
     twitter: TwitterUser;
@@ -18,6 +20,8 @@ export const AppRootContextProvider = ({
     children,
     userList,
     twitterList,
+    listingList,
+    tokenList,
     currentUserData,
     userBashBalance,
     twitter,
@@ -28,6 +32,8 @@ export const AppRootContextProvider = ({
             value={{
                 userList,
                 twitterList,
+                listingList,
+                tokenList,
                 currentUserData,
                 userBashBalance,
                 twitter,

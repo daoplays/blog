@@ -19,12 +19,11 @@ const MainNetConfig: NetworkConfig = {
 };
 
 export const BASH = new PublicKey("BASH6YCvhMeKGzTTmHquBCHeoyPJRDMYE7yQvYXerbcg");
-export const WHITELIST = new PublicKey("BASHr9FsPoGq1LVWxSZLKHM6KMd7cjycjYH1eW25oC2K")
+export const WHITELIST = new PublicKey("BASHr9FsPoGq1LVWxSZLKHM6KMd7cjycjYH1eW25oC2K");
 export const PROGRAM = new PublicKey("BASHv2NgqzdjKni4Rp7PxM2EzKZPSVGHCkC92ZfNZis3");
 export const SYSTEM_KEY = new PublicKey("11111111111111111111111111111111");
 export const CORE = new PublicKey("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d");
 export const METAPLEX_META = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
-
 
 // account seeds
 export const PDA_ACCOUNT_SEED = 6968193;

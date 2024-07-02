@@ -18,7 +18,10 @@ import {
     ModalOverlay,
     Input,
     Select,
+    Tooltip,
+    Link,
 } from "@chakra-ui/react";
+import Image from "next/image";
 import { Divider, HStack, Text, TabIndicator, TabList, TabPanel, TabPanels, Tabs, VStack, Button } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -28,6 +31,12 @@ import { FaPlus } from "react-icons/fa6";
 import useListemItem from "../hooks/useListItem";
 import { PublicKey } from "@solana/web3.js";
 import { setMintData } from "../components/state/rpc";
+import useAppRoot from "../components/context/useAppRoot";
+import { ListingData } from "../components/state/state";
+import { getSolscanLink } from "../components/state/utils";
+import { trimAddress } from "../components/state/utils";
+import { MdOutlineContentCopy } from "react-icons/md";
+import { bignum_to_num } from "../components/blog/apps/common";
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 export default function Shop() {
@@ -35,7 +44,10 @@ export default function Shop() {
     const isConnected = wallet.publicKey !== null;
     const [selected, setSelected] = useState("Tokens");
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const { listingList, tokenList } = useAppRoot();
     const { ListItem } = useListemItem();
+
+    console.log("listingList", listingList);
 
     const [token, setToken] = useState("");
     const handleChangeToken = (event) => setToken(event.target.value);
@@ -59,15 +71,79 @@ export default function Shop() {
     const handleChangeNftPrice = (event) => setNftPrice(event.target.value);
 
     const handleSubmitListing = (e) => {
-        if (selected === "Tokens") { 
-            ListItem(1, new PublicKey(tokenAddress), parseInt(tokenQuantity), parseInt(tokenPrice)) 
+        if (selected === "Tokens") {
+            ListItem(1, new PublicKey(tokenAddress), parseInt(tokenQuantity), parseInt(tokenPrice));
+        } else {
+            ListItem(2, new PublicKey(tokenAddress), 1, parseInt(tokenPrice));
         }
-        else {
-            ListItem(2, new PublicKey(tokenAddress), 1, parseInt(tokenPrice))
-        }
-        
-    }
+    };
 
+    const TokenRow = ({ item }: { item: ListingData }) => {
+        if (tokenList === null) {
+            return <></>;
+        }
+        let address = item.item_address.toString();
+        let mint = tokenList.get(address);
+        if (mint === undefined) {
+            return <></>;
+        }
+        let price = bignum_to_num(item.price);
+        let quantity = bignum_to_num(item.quantity) / Math.pow(10, mint.mint.decimals);
+
+        return (
+            <Tr>
+                <Td>
+                    <Image
+                        alt="Launch icon"
+                        src={mint.icon}
+                        width={45}
+                        height={45}
+                        style={{ borderRadius: "8px", backgroundSize: "cover" }}
+                    />
+                </Td>
+                <Td>{mint.symbol}</Td>
+                <Td>
+                    <HStack spacing={3} align="start" justify="start">
+                        <Text>{trimAddress(address)}</Text>
+
+                        <Tooltip label="Copy Contract Address" hasArrow fontSize="large" offset={[0, 10]}>
+                            <div
+                                style={{ cursor: "pointer" }}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    navigator.clipboard.writeText(address);
+                                }}
+                            >
+                                <MdOutlineContentCopy color="white" size={20} />
+                            </div>
+                        </Tooltip>
+
+                        <Tooltip label="View in explorer" hasArrow fontSize="large" offset={[0, 10]}>
+                            <Link href={getSolscanLink(item.item_address, "Token")} target="_blank" onClick={(e) => e.stopPropagation()}>
+                                <Image src="/images/solscan.png" width={20} height={20} alt="Solscan icon" />
+                            </Link>
+                        </Tooltip>
+                    </HStack>
+                </Td>
+                <Td isNumeric>{quantity}</Td>
+                <Td isNumeric>{price / 10}</Td>
+                <Td isNumeric>
+                    <Button
+                        shadow="md"
+                        _active={{ bg: "#FFE376" }}
+                        _hover={{ opacity: "90%" }}
+                        bg="#FFE376"
+                        color="#BA6502"
+                        rounded="lg"
+                        size="sm"
+                        mr={-1}
+                    >
+                        Buy
+                    </Button>
+                </Td>
+            </Tr>
+        );
+    };
 
     return (
         <Layout>
@@ -135,6 +211,7 @@ export default function Shop() {
                             <Table size="sm" colorScheme="teal" style={{ color: "white", fontWeight: 600 }}>
                                 <Thead>
                                     <Tr>
+                                        <Th>Icon</Th>
                                         <Th>Name</Th>
                                         <Th>Address</Th>
                                         <Th isNumeric>Qty</Th>
@@ -143,26 +220,9 @@ export default function Shop() {
                                     </Tr>
                                 </Thead>
                                 <Tbody>
-                                    <Tr>
-                                        <Td>$BAGS</Td>
-                                        <Td>8wbK...Vjd3</Td>
-                                        <Td isNumeric>250</Td>
-                                        <Td isNumeric>500 $BASH</Td>
-                                        <Td isNumeric>
-                                            <Button
-                                                shadow="md"
-                                                _active={{ bg: "#FFE376" }}
-                                                _hover={{ opacity: "90%" }}
-                                                bg="#FFE376"
-                                                color="#BA6502"
-                                                rounded="lg"
-                                                size="sm"
-                                                mr={-1}
-                                            >
-                                                Buy
-                                            </Button>
-                                        </Td>
-                                    </Tr>
+                                    {Array.from(listingList).map(([key, item], i) => (
+                                        <TokenRow key={key} item={item} />
+                                    ))}
                                 </Tbody>
                             </Table>
                         </TableContainer>
@@ -318,12 +378,7 @@ export default function Shop() {
                             bg="#FFE376"
                             color="#BA6502"
                             rounded="lg"
-                            onClick={() => {
-                                selected === "Tokens" ? 
-                                ListItem(1, new PublicKey(tokenAddress), parseInt(tokenQuantity), parseInt(tokenPrice) * 10) : 
-                                ListItem(2, new PublicKey(tokenAddress), 1, parseInt(tokenPrice))
-                                }
-                            }
+                            onClick={(e) => handleSubmitListing(e)}
                         >
                             Submit Listing
                         </Button>

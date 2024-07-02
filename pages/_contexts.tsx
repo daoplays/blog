@@ -1,16 +1,16 @@
 "use client";
 
 import { useConnection, useWallet, WalletContextState } from "@solana/wallet-adapter-react";
-import { UserData } from "../components/state/state";
-import { RunGPA, GPAccount } from "../components/state/rpc";
+import { AccountType, ListingData, UserData } from "../components/state/state";
+import { RunGPA, GPAccount, getMintData } from "../components/state/rpc";
 import { BASH, Config, PROGRAM } from "../components/state/constants";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { useCallback, useEffect, useState, useRef, PropsWithChildren } from "react";
 import { AppRootContextProvider } from "../components/context/useAppRoot";
 import "bootstrap/dist/css/bootstrap.css";
-import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, unpackMint } from "@solana/spl-token";
 import { bignum_to_num, request_raw_account_data, request_token_amount, TokenAccount } from "../components/blog/apps/common";
-import { TwitterUser } from "../components/state/interfaces";
+import { MintData, TwitterUser } from "../components/state/interfaces";
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get } from "firebase/database";
 
@@ -53,6 +53,34 @@ const GetProgramData = async (check_program_data, setProgramData, setTwitterDB) 
     setTwitterDB(twitter_map);
 };
 
+const GetTokenMintData = async (trade_keys: String[], setMintMap) => {
+    //console.log("GETTING MINT DATA");
+    const connection = new Connection(Config.RPC_NODE, { wsEndpoint: Config.WSS_NODE });
+
+    let pubkeys: PublicKey[] = [];
+    for (let i = 0; i < trade_keys.length; i++) {
+        pubkeys.push(new PublicKey(trade_keys[i]));
+    }
+    let result = await connection.getMultipleAccountsInfo(pubkeys, "confirmed");
+    //console.log(result);
+    let mint_map = new Map<String, MintData>();
+    for (let i = 0; i < result.length; i++) {
+        try {
+            let mint = unpackMint(pubkeys[i], result[i], result[i].owner);
+            let mint_data = await getMintData(connection, mint, result[i].owner);
+
+            mint_map.set(pubkeys[i].toString(), mint_data);
+            //console.log("mint; ", mint.address.toString());
+        } catch (error) {
+            console.log("bad mint", pubkeys[i].toString());
+            console.log(error);
+        }
+    }
+
+    //console.log("SET MINT MAP", mint_map);
+    setMintMap(mint_map);
+};
+
 const ContextProviders = ({ children }: PropsWithChildren) => {
     const wallet = useWallet();
     const { connection } = useConnection();
@@ -60,6 +88,8 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
     const [user_data, setUserData] = useState<Map<string, UserData> | null>(new Map());
     const [user_ids, setUserIDs] = useState<Map<number, string> | null>(new Map());
+    const [listing_data, setListingData] = useState<Map<string, ListingData> | null>(new Map());
+    const [mintData, setMintData] = useState<Map<string, MintData> | null>(null);
 
     const [current_user_data, setCurrentUserData] = useState<UserData | null>(null);
     const [twitter, setTwitter] = useState<TwitterUser | null>(null);
@@ -159,7 +189,8 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
         let user_data: Map<string, UserData> = new Map<string, UserData>();
         let user_ids: Map<number, string> = new Map<number, string>();
-
+        let listings: Map<string, ListingData> = new Map<string, ListingData>();
+        let token_listings: string[] = [];
         //console.log("program_data", program_data.length);
         for (let i = 0; i < program_data.length; i++) {
             let data = program_data[i].data;
@@ -171,16 +202,29 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
                 user_ids.set(user.user_id, user.user_key.toString());
                 continue;
             }
+
+            if (data[0] === AccountType.Listing) {
+                const [listing] = ListingData.struct.deserialize(data);
+                console.log("listing", listing);
+                listings.set(listing.item_address.toString(), listing);
+                if (listing.item_type === 1) {
+                    token_listings.push(listing.item_address.toString());
+                }
+                continue;
+            }
         }
 
         setUserData(user_data);
         setUserIDs(user_ids);
+        setListingData(listings);
 
         if (have_wallet) {
             if (user_data.has(wallet.publicKey.toString())) {
                 setCurrentUserData(user_data.get(wallet.publicKey.toString()));
             }
         }
+
+        GetTokenMintData(token_listings, setMintData);
     }, [program_data, wallet]);
 
     useEffect(() => {
@@ -196,6 +240,8 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         <AppRootContextProvider
             userList={user_data}
             twitterList={twitter_db}
+            listingList={listing_data}
+            tokenList={mintData}
             currentUserData={current_user_data}
             userBashBalance={userBashBalance}
             twitter={twitter}
