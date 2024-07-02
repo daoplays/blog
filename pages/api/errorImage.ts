@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import { createCanvas } from 'canvas';
 
 export const config = {
   api: {
@@ -32,7 +33,6 @@ export default async function handler(req, res) {
         </defs>
         <rect width="100%" height="100%" fill="url(#grad)"/>
         <text x="50%" y="60" font-family="Arial" font-size="50" fill="white" text-anchor="middle">BlinkBash!</text>
-        <text x="50%" y="50%" font-family="Arial" font-size="30" fill="white" text-anchor="middle">No Entry Found</text>
       </svg>
     `;
 
@@ -40,6 +40,21 @@ export default async function handler(req, res) {
     const finalImage = await sharp(Buffer.from(svgImage))
       .png()
       .toBuffer();
+
+    // Create a small canvas for additional text
+    const canvas = createCanvas(width, 100); // Small canvas just for the text
+    const ctx = canvas.getContext('2d');
+
+    // Add text to canvas
+    ctx.font = '30px Arial';
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.fillText('No Entry Found', width / 2, 50);
+
+    // Convert canvas to buffer
+    const textBuffer = canvas.toBuffer('image/png');
+
+    console.log('Canvas text created');
 
     console.log('Final image generated, size:', finalImage.length);
 
