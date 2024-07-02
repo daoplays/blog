@@ -49,7 +49,6 @@ export default function Shop() {
     const { ListItem } = useListemItem();
     const { BuyItem } = useBuyItem();
 
-
     const [tokenAddress, setTokenAddress] = useState("");
     const handleChangeTokenAddress = (event) => setTokenAddress(event.target.value);
 
@@ -73,7 +72,7 @@ export default function Shop() {
         }
     };
 
-    const handleBuyItem = (e, listing : ListingData) => {
+    const handleBuyItem = (e, listing: ListingData) => {
         if (selected === "Tokens") {
             BuyItem(1, listing.item_address, 1);
         } else {
@@ -106,8 +105,8 @@ export default function Shop() {
                 </Td>
                 <Td>{mint.mint.name}</Td>
                 <Td>
-                    <HStack spacing={3} align="start" justify="start">
-                        <Text>{trimAddress(address)}</Text>
+                    <HStack spacing={3}>
+                        <Text m={0}>{trimAddress(address)}</Text>
 
                         <Tooltip label="Copy Contract Address" hasArrow fontSize="large" offset={[0, 10]}>
                             <div
@@ -173,8 +172,8 @@ export default function Shop() {
                 </Td>
                 <Td>{mint.symbol}</Td>
                 <Td>
-                    <HStack spacing={3} align="start" justify="start">
-                        <Text>{trimAddress(address)}</Text>
+                    <HStack spacing={3}>
+                        <Text m={0}>{trimAddress(address)}</Text>
 
                         <Tooltip label="Copy Contract Address" hasArrow fontSize="large" offset={[0, 10]}>
                             <div
@@ -208,7 +207,6 @@ export default function Shop() {
                         size="sm"
                         mr={-1}
                         onClick={(e) => handleBuyItem(e, item)}
-
                     >
                         Buy
                     </Button>
@@ -313,7 +311,7 @@ export default function Shop() {
                                     </Tr>
                                 </Thead>
                                 <Tbody>
-                                {Array.from(listingList).map(([key, item], i) => (
+                                    {Array.from(listingList).map(([key, item], i) => (
                                         <NFTRow key={key} item={item} />
                                     ))}
                                 </Tbody>
@@ -328,9 +326,7 @@ export default function Shop() {
                 <ModalContent borderRadius={12}>
                     <ModalHeader py={4} color="#BA6502">
                         <HStack>
-                            <Text m="0">
-                            {selected === "Tokens" ? "List a Token" : "List an NFT"}
-                            </Text>
+                            <Text m="0">{selected === "Tokens" ? "List a Token" : "List an NFT"}</Text>
                             <Image
                                 alt="Launch icon"
                                 src="/images/bash_wlist.png"
@@ -338,9 +334,7 @@ export default function Shop() {
                                 height={30}
                                 style={{ borderRadius: "8px", backgroundSize: "cover" }}
                             />
-                            <Text m="0">
-                            {userWLBalance}
-                            </Text>
+                            <Text m="0">{userWLBalance}</Text>
                         </HStack>
                     </ModalHeader>
                     <ModalCloseButton />
@@ -402,8 +396,6 @@ export default function Shop() {
                                         size="sm"
                                     />
                                 </VStack>
-
-                               
 
                                 <VStack gap={1} align="start">
                                     <Text fontSize="sm" mb={0}>
