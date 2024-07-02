@@ -95,13 +95,6 @@ const LeaderboardPage = () => {
             return 0;
         });
 
-        const currentUserIndex =
-            currentUserData !== null ? sortedUsers.findIndex((user) => user.user_key.equals(currentUserData?.user_key)) : -1;
-
-        if (currentUserIndex !== -1) {
-            const currentUser = sortedUsers.splice(currentUserIndex, 1)[0];
-            sortedUsers.unshift(currentUser);
-        }
 
         return (
             <>
