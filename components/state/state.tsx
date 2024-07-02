@@ -21,6 +21,13 @@ import {
 } from "@metaplex-foundation/beet";
 import { publicKey } from "@metaplex-foundation/beet-solana";
 
+export const Extensions = {
+    None: 0,
+    TransferFee: 1,
+    PermanentDelegate: 2,
+    TransferHook: 4,
+};
+
 export enum BashInstruction {
     Init = 0,
     Enter = 1,

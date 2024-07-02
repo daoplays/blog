@@ -38,7 +38,7 @@ const LeaderboardPage = () => {
     const { xs, sm, lg } = useResponsive();
 
     let userVec: UserData[] = [];
-    if (userList !== null) {
+    if (userList !== null && twitterList !== null) {
         userList.forEach((user) => {
             let twitter = twitterList.get(user.user_key.toString());
             if (twitter === undefined) {
@@ -142,10 +142,10 @@ const LeaderboardPage = () => {
     };
 
     const UserCard = ({ user, index }: { user: UserData; index: number }) => {
-        const { twitterList } = useAppRoot();
 
         if (twitterList === null) return <></>;
-        const isUser = user.user_key.equals(currentUserData?.user_key);
+
+        const isUser = currentUserData === null ? false : user.user_key.equals(currentUserData.user_key);
         let twitter_id = twitterList.get(user.user_key.toString());
         if (twitter_id === undefined) {
             return <></>;

@@ -25,6 +25,9 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import "react-datepicker/dist/react-datepicker.css";
 import Layout from "./layout";
 import { FaPlus } from "react-icons/fa6";
+import useListemItem from "../hooks/useListItem";
+import { PublicKey } from "@solana/web3.js";
+import { setMintData } from "../components/state/rpc";
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 export default function Shop() {
@@ -32,6 +35,7 @@ export default function Shop() {
     const isConnected = wallet.publicKey !== null;
     const [selected, setSelected] = useState("Tokens");
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const { ListItem } = useListemItem();
 
     const [token, setToken] = useState("");
     const handleChangeToken = (event) => setToken(event.target.value);
@@ -53,6 +57,17 @@ export default function Shop() {
 
     const [nftPrice, setNftPrice] = useState("");
     const handleChangeNftPrice = (event) => setNftPrice(event.target.value);
+
+    const handleSubmitListing = (e) => {
+        if (selected === "Tokens") { 
+            ListItem(1, new PublicKey(tokenAddress), parseInt(tokenQuantity), parseInt(tokenPrice)) 
+        }
+        else {
+            ListItem(2, new PublicKey(tokenAddress), 1, parseInt(tokenPrice))
+        }
+        
+    }
+
 
     return (
         <Layout>
@@ -207,20 +222,19 @@ export default function Shop() {
                                     <Text fontSize="sm" mb={0}>
                                         Token
                                     </Text>
-                                    <Select rounded="md" value={token} onChange={handleChangeToken} placeholder="Select a Token" size="sm">
-                                        <option value="option1">Option 1</option>
-                                        <option value="option2">Option 2</option>
-                                        <option value="option3">Option 3</option>
-                                    </Select>
+                                    <Input
+                                        rounded="md"
+                                        value={tokenAddress}
+                                        onChange={handleChangeTokenAddress}
+                                        placeholder="Enter Address"
+                                        size="sm"
+                                    />
                                 </VStack>
 
                                 <VStack gap={1} align="start">
                                     <HStack w="full" justify="space-between">
                                         <Text fontSize="sm" mb={0}>
-                                            Quantity
-                                        </Text>
-                                        <Text opacity="50%" fontSize="sm" mb={0}>
-                                            Your Balance: 0
+                                            Quantity To List
                                         </Text>
                                     </HStack>
                                     <Input
@@ -234,7 +248,7 @@ export default function Shop() {
 
                                 <VStack gap={1} align="start">
                                     <Text fontSize="sm" mb={0}>
-                                        Price
+                                        Price Per Token
                                     </Text>
                                     <Input
                                         rounded="md"
@@ -304,6 +318,12 @@ export default function Shop() {
                             bg="#FFE376"
                             color="#BA6502"
                             rounded="lg"
+                            onClick={() => {
+                                selected === "Tokens" ? 
+                                ListItem(1, new PublicKey(tokenAddress), parseInt(tokenQuantity), parseInt(tokenPrice) * 10) : 
+                                ListItem(2, new PublicKey(tokenAddress), 1, parseInt(tokenPrice))
+                                }
+                            }
                         >
                             Submit Listing
                         </Button>

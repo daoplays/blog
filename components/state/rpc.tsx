@@ -1,5 +1,11 @@
-import { PublicKey } from "@solana/web3.js";
-import { Config, PROGRAM } from "./constants";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { Config, METAPLEX_META, PROGRAM } from "./constants";
+import { MintData } from "./interfaces";
+import { ExtensionType, Mint, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID, getExtensionData, getMetadataPointerState, getPermanentDelegate, getTransferFeeConfig, getTransferHook, unpackMint } from "@solana/spl-token";
+import { Extensions } from "./state";
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
+import { unpack, TokenMetadata } from "@solana/spl-token-metadata";
+
 
 // Example POST method implementation:
 export async function postData(url = "", bearer = "", data = {}) {
@@ -144,4 +150,142 @@ export async function send_transaction(bearer: string, encoded_transaction: stri
 
     transaction_response.result = "INVALID";
     return transaction_response;
+}
+
+export async function fetchWithTimeout(resource, timeout: number) {
+    const options = { timeout: timeout };
+
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+
+    const response = await fetch(resource, {
+        ...options,
+        signal: controller.signal,
+    });
+    clearTimeout(id);
+
+    return response;
+}
+
+
+
+export async function getMintData(connection: Connection, mint: Mint, token_program: PublicKey): Promise<MintData | null> {
+    let uri: string | null = null;
+    let metadata_pointer = null;
+    let name: string;
+    let symbol: string;
+    if (token_program.equals(TOKEN_2022_PROGRAM_ID)) {
+        // first look for t22 metadata
+        metadata_pointer = getMetadataPointerState(mint);
+    }
+
+    //console.log("get mint data", mint.address.toString());
+    if (metadata_pointer !== null) {
+        //console.log("havemetadata pointer ",mint.address.toString(),  metadata_pointer.metadataAddress.toString());
+        const data = getExtensionData(ExtensionType.TokenMetadata, mint.tlvData);
+        let metadata: TokenMetadata = unpack(data);
+        //console.log(metadata)
+        uri = metadata.uri;
+        name = metadata.name;
+        symbol = metadata.symbol;
+    } else {
+        let token_meta_key = PublicKey.findProgramAddressSync(
+            [Buffer.from("metadata"), METAPLEX_META.toBuffer(), mint.address.toBuffer()],
+            METAPLEX_META,
+        )[0];
+        let raw_meta_data = await connection.getAccountInfo(token_meta_key);
+
+        if (raw_meta_data === null) {
+            return null;
+        }
+
+        let meta_data = Metadata.deserialize(raw_meta_data.data);
+        //console.log(meta_data);
+        //console.log(meta_data[0].data.symbol, meta_data[0].data.name);
+        uri = meta_data[0].data.uri;
+        name = meta_data[0].data.name;
+        symbol = meta_data[0].data.symbol;
+    }
+
+    // check the extensions we care about
+    let transfer_hook = getTransferHook(mint);
+    let transfer_fee_config = getTransferFeeConfig(mint);
+    let permanent_delegate = getPermanentDelegate(mint);
+
+    let extensions =
+        (Extensions.TransferFee * Number(transfer_fee_config !== null)) |
+        (Extensions.PermanentDelegate * Number(permanent_delegate !== null)) |
+        (Extensions.TransferHook * Number(transfer_hook !== null));
+
+    //console.log(name, uri);
+    let icon: string;
+    uri = uri.replace("https://cf-ipfs.com/", "https://gateway.moralisipfs.com/");
+    try {
+        let uri_json = await fetchWithTimeout(uri, 3000).then((res) => res.json());
+        //console.log(uri_json)
+        icon = uri_json["image"];
+    } catch (error) {
+        console.log("error getting uri, using SOL icon");
+        console.log(error);
+        icon = "/images/sol.png";
+    }
+    let mint_data: MintData = {
+        mint: mint,
+        uri: uri,
+        name: name,
+        symbol: symbol,
+        icon: icon,
+        extensions: extensions,
+        token_program: token_program,
+    };
+
+    //console.log("have mint data", mint_data);
+    return mint_data;
+}
+
+export async function setMintData(token_mint: string): Promise<MintData | null> {
+    if (token_mint === "" || !token_mint) {
+        return null;
+    }
+
+    let token_key;
+
+    try {
+        // Attempt to create a PublicKey instance
+        token_key = new PublicKey(token_mint);
+        // If no error is thrown, input is a valid public key
+    } catch (error) {
+        return null;
+    }
+
+    const connection = new Connection(Config.RPC_NODE, {
+        wsEndpoint: Config.WSS_NODE,
+    });
+    let result = await connection.getAccountInfo(token_key, "confirmed");
+    //console.log(result)
+    let mint: Mint;
+    let token_program: PublicKey;
+    if (result.owner.equals(TOKEN_PROGRAM_ID)) {
+        try {
+            mint = unpackMint(token_key, result, TOKEN_PROGRAM_ID);
+            token_program = TOKEN_PROGRAM_ID;
+            // console.log(mint);
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    } else {
+        try {
+            mint = unpackMint(token_key, result, TOKEN_2022_PROGRAM_ID);
+            token_program = TOKEN_2022_PROGRAM_ID;
+            // console.log(mint);
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    }
+
+    let mint_data = await getMintData(connection, mint, token_program);
+
+    return mint_data;
 }
