@@ -59,8 +59,8 @@ exports.handler = async function (event, context) {
         const current = await database.get();
         if (current.val() !== null) {
             return {
-                statusCode: 400,
-                body: JSON.stringify({ error: "Entry already exists" }),
+                statusCode: 200,
+                body: current.val(),
             };
         }
 

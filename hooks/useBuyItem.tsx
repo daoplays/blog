@@ -1,12 +1,13 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useRef, useState, useCallback } from "react";
 import { toast } from "react-toastify";
-import { GetEnterInstruction } from "../instructions/Enter";
+import { GetAddListingInstruction } from "../instructions/AddListing";
 import { get_current_blockhash, send_transaction } from "../components/state/rpc";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import bs58 from "bs58";
+import { GetBuyItemInstruction } from "../instructions/BuyItem";
 
-const useEnter = () => {
+const useBuyItem = () => {
     const wallet = useWallet();
     const { connection } = useConnection();
 
@@ -50,35 +51,8 @@ const useEnter = () => {
         });
     }, []);
 
-    const handleEntry = async (user: PublicKey, game: number, entry: string) => {
-        // first post to the DB
-
-        let body = JSON.stringify({
-            user_key: user.toString(),
-            game: game.toString(),
-            entry: entry,
-        });
-        const response: Response = await fetch("/.netlify/functions/postDB?table=entry", {
-            method: "POST",
-            body: body,
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-
-        let status = response.status;
-
-        if (status !== 200) {
-            toast.error("Error posting to DB");
-            return
-        }
-
-        // then enter
-        await Enter(game);
-    };
-
-    const Enter = async (game: number) => {
-        console.log("in wrap nft");
+    const BuyItem = async (item_type: number, item: PublicKey, quantity: number) => {
+        console.log("in list item");
 
         if (wallet.signTransaction === undefined) {
             console.log(wallet, "invalid wallet");
@@ -93,7 +67,7 @@ const useEnter = () => {
 
         setIsLoading(true);
 
-        let instructions = await GetEnterInstruction(wallet.publicKey, game);
+        let instructions = await GetBuyItemInstruction(wallet.publicKey, item, item_type, quantity);
 
         let txArgs = await get_current_blockhash("");
 
@@ -112,7 +86,7 @@ const useEnter = () => {
 
             let signature = transaction_response.result;
 
-            console.log("wrap nft sig: ", signature);
+            console.log("add item sig: ", signature);
 
             signature_ws_id.current = connection.onSignature(signature, check_signature_update, "confirmed");
             setTimeout(transaction_failed, 20000);
@@ -123,7 +97,7 @@ const useEnter = () => {
         }
     };
 
-    return { Enter, handleEntry, isLoading };
+    return { BuyItem, isLoading };
 };
 
-export default useEnter;
+export default useBuyItem;

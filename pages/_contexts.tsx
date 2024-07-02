@@ -171,7 +171,18 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             }
             return;
         }
-    }, [new_program_data, wallet, user_data]);
+
+        if (event_data[0] === AccountType.Listing) {
+            //console.log("updating user data from context");
+
+            const [listing] = ListingData.struct.deserialize(event_data);
+
+            listing_data.set(listing.item_address.toString(), listing);
+            setListingData(new Map(listing_data));
+            
+            return;
+        }
+    }, [new_program_data, wallet, user_data, listing_data]);
 
     const check_program_update = useCallback(async (result: any) => {
         update_program_data.current += 1;

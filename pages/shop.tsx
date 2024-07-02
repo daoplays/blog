@@ -29,8 +29,9 @@ import "react-datepicker/dist/react-datepicker.css";
 import Layout from "./layout";
 import { FaPlus } from "react-icons/fa6";
 import useListemItem from "../hooks/useListItem";
+import useBuyItem from "../hooks/useBuyItem";
+
 import { PublicKey } from "@solana/web3.js";
-import { setMintData } from "../components/state/rpc";
 import useAppRoot from "../components/context/useAppRoot";
 import { ListingData } from "../components/state/state";
 import { getSolscanLink } from "../components/state/utils";
@@ -45,7 +46,8 @@ export default function Shop() {
     const [selected, setSelected] = useState("Tokens");
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { listingList, tokenList, nftList, userWLBalance } = useAppRoot();
-    const { ListItem, } = useListemItem();
+    const { ListItem } = useListemItem();
+    const { BuyItem } = useBuyItem();
 
 
     const [tokenAddress, setTokenAddress] = useState("");
@@ -71,8 +73,16 @@ export default function Shop() {
         }
     };
 
+    const handleBuyItem = (e, listing : ListingData) => {
+        if (selected === "Tokens") {
+            BuyItem(1, listing.item_address, 1);
+        } else {
+            BuyItem(2, listing.item_address, 1);
+        }
+    };
+
     const NFTRow = ({ item }: { item: ListingData }) => {
-        if (nftList === null || item.item_type !== 2) {
+        if (nftList === null || item.item_type !== 2 || item.quantity === 0) {
             return <></>;
         }
 
@@ -129,6 +139,7 @@ export default function Shop() {
                         rounded="lg"
                         size="sm"
                         mr={-1}
+                        onClick={(e) => handleBuyItem(e, item)}
                     >
                         Buy
                     </Button>
@@ -138,7 +149,7 @@ export default function Shop() {
     };
 
     const TokenRow = ({ item }: { item: ListingData }) => {
-        if (tokenList === null || item.item_type !== 1) {
+        if (tokenList === null || item.item_type !== 1 || item.quantity === 0) {
             return <></>;
         }
         let address = item.item_address.toString();
@@ -196,6 +207,8 @@ export default function Shop() {
                         rounded="lg"
                         size="sm"
                         mr={-1}
+                        onClick={(e) => handleBuyItem(e, item)}
+
                     >
                         Buy
                     </Button>
