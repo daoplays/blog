@@ -1,6 +1,5 @@
 import sharp from 'sharp';
 import TextToSVG from 'text-to-svg';
-import { promisify } from 'util';
 import path from 'path';
 
 export const config = {
@@ -9,15 +8,16 @@ export const config = {
   },
 };
 
-const textToSVG = TextToSVG.loadSync(path.join(process.cwd(), 'public', 'fonts', 'Whocats.ttf'));
+let textToSVG;
 
-const generateTextPath = (text, fontSize, x, y) => {
-  const options = {
-    x,
-    y,
-    fontSize,
-    anchor: 'center middle',
-  };
+const initializeTextToSVG = async () => {
+  if (!textToSVG) {
+    textToSVG = TextToSVG.loadSync(path.join(process.cwd(), 'public', 'fonts', 'Whocats.ttf'));
+  }
+};
+
+const generateTextPath = (text, fontSize, x, y, anchor = 'left middle') => {
+  const options = { x, y, fontSize, anchor };
   return textToSVG.getD(text, options);
 };
 
@@ -29,22 +29,53 @@ export default async function handler(req, res) {
 
     res.status(200).end();
     return;
-}
+  }
+
+  await initializeTextToSVG();
+
+  const width = 500;
+  const height = 500;
 
   try {
-    console.log('Starting image generation with Sharp and text-to-svg');
+    console.log('Starting image generation with dynamic layout and colored text');
 
-    const width = 800;
-    const height = 600;
+    const titleFontSize = 50;
+    const middleFontSize = 30;
+    const bottomFontSize = 20;
 
-    const blinkPath = generateTextPath('Blink', 50, width / 2 - 60, 60);
-    const bashPath = generateTextPath('Bash!', 50, width / 2 + 60, 60);
-    const noEntryPath = generateTextPath('No Entry Found', 30, width / 2, height / 2);
-    const bottomLine1 = generateTextPath('Head to blinkbash.daoplays.org', 20, width / 2, height - 80);
-    const bottomLine2 = generateTextPath('to check out the latest', 20, width / 2, height - 50);
-    const bottomLine3Blink = generateTextPath('Blink', 20, width / 2 - 50, height - 20);
-    const bottomLine3Bash = generateTextPath('Bash', 20, width / 2 + 10, height - 20);
-    const bottomLine3Entries = generateTextPath('entries!', 20, width / 2 + 70, height - 20);
+    const padding = Math.round(width * 0.025);
+    const verticalSpacing = height * 0.05;
+
+    // Generate paths for all text elements
+    const titleWidth = textToSVG.getMetrics('BlinkBash!', { fontSize: titleFontSize }).width;
+    const titleWidth2 = textToSVG.getMetrics('Blink', { fontSize: titleFontSize }).width;
+
+    const blinkPath = generateTextPath('Blink', titleFontSize, width / 2 - titleWidth/2, padding + titleFontSize / 2);
+    const bashPath = generateTextPath('Bash!', titleFontSize, width / 2 - titleWidth/2 + titleWidth2, padding + titleFontSize / 2);
+
+    const entryWidth = textToSVG.getMetrics('No Entry Found', { fontSize: middleFontSize }).width;
+    const noEntryPath = generateTextPath('No Entry Found', middleFontSize, width / 2 - entryWidth/2, height / 2);
+
+    const bottomY1 = height - 3 * verticalSpacing - bottomFontSize;
+    const bottomY2 = height - 2 * verticalSpacing - bottomFontSize;
+    const bottomY3 = height - verticalSpacing - bottomFontSize;
+
+    const bl1Text = 'Head to blinkbash.daoplays.org'
+    const bl2Text = 'to check out the latest';
+    const bl1Width = textToSVG.getMetrics(bl1Text, { fontSize: bottomFontSize }).width;
+    const bl2Width = textToSVG.getMetrics(bl2Text, { fontSize: bottomFontSize }).width;
+
+    const bottomLine1 = generateTextPath(bl1Text, bottomFontSize, width / 2 - bl1Width  / 2, bottomY1);
+    const bottomLine2 = generateTextPath(bl2Text, bottomFontSize, width / 2 - bl2Width / 2, bottomY2);
+    
+    const bottomBlinkWidth = textToSVG.getMetrics('Blink', { fontSize: bottomFontSize }).width;
+    const bottomBashWidth = textToSVG.getMetrics('Bash', { fontSize: bottomFontSize }).width;
+    const entriesWidth = textToSVG.getMetrics(' entries!', { fontSize: bottomFontSize }).width;
+    const totalWidth = bottomBlinkWidth + bottomBashWidth + entriesWidth;
+    
+    const bottomBlinkPath = generateTextPath('Blink', bottomFontSize, width / 2 - totalWidth / 2, bottomY3);
+    const bottomBashPath = generateTextPath('Bash', bottomFontSize, width / 2 - totalWidth / 2 + bottomBlinkWidth, bottomY3);
+    const bottomEntriesPath = generateTextPath(' entries!', bottomFontSize, width / 2 - totalWidth / 2 + bottomBlinkWidth + bottomBashWidth, bottomY3);
 
     const svgImage = `
       <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -60,9 +91,9 @@ export default async function handler(req, res) {
         <path d="${noEntryPath}" fill="white" />
         <path d="${bottomLine1}" fill="white" />
         <path d="${bottomLine2}" fill="white" />
-        <path d="${bottomLine3Blink}" fill="white" />
-        <path d="${bottomLine3Bash}" fill="#FFDD56" />
-        <path d="${bottomLine3Entries}" fill="white" />
+        <path d="${bottomBlinkPath}" fill="white" />
+        <path d="${bottomBashPath}" fill="#FFDD56" />
+        <path d="${bottomEntriesPath}" fill="white" />
       </svg>
     `;
 
@@ -78,9 +109,8 @@ export default async function handler(req, res) {
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Encoding, Accept-Encoding");
     res.send(finalImage);
 
-    console.log('Response sent');
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Error generating image', details: error.message, stack: error.stack });
+    console.error('Error generating image:', error);
+    res.status(500).json({ error: 'Error generating image', details: error.message });
   }
 }
