@@ -114,7 +114,7 @@ export default async function handler(req, res) {
       .toBuffer();
 
     // Set the content type and send the image
-    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Content-Type', 'image/png');
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Encoding, Accept-Encoding");
