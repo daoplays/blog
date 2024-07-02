@@ -47,7 +47,7 @@ const Layout = ({ children }: PropsWithChildren) => {
                 </Link>
 
                 <HStack
-                    gap={6}
+                    gap={10}
                     alignItems="center"
                     style={{
                         position: "absolute",
@@ -58,6 +58,11 @@ const Layout = ({ children }: PropsWithChildren) => {
                         width: "fit-content",
                     }}
                 >
+                    <Link href="/">
+                        <Text m={0} color="white" fontSize="2xl" className="font-face-wc">
+                            Play
+                        </Text>
+                    </Link>
                     <Link href="/shop">
                         <Text m={0} color="white" fontSize="2xl" className="font-face-wc">
                             Shop
@@ -81,8 +86,10 @@ const Layout = ({ children }: PropsWithChildren) => {
                     )}
                     <Button
                         shadow="md"
-                        colorScheme="yellow"
-                        color="#877714"
+                        _active={{ bg: "#FFE376" }}
+                        _hover={{ opacity: "90%" }}
+                        bg="#FFE376"
+                        color="#BA6502"
                         rounded="lg"
                         onClick={isConnected ? handleDisconnectWallet : handleConnectWallet}
                     >
@@ -117,10 +124,10 @@ const Layout = ({ children }: PropsWithChildren) => {
             {children}
 
             <Image
-                src="/images/builder.png"
+                src="/images/man.png"
                 alt="Builder Character"
-                width={xl ? 250 : 350}
-                height={xl ? 250 : 350}
+                width={300}
+                height={300}
                 style={{ position: "absolute", bottom: 0, left: 0 }}
             />
         </VStack>

@@ -17,6 +17,7 @@ import {
     ModalHeader,
     ModalOverlay,
     Input,
+    Select,
 } from "@chakra-ui/react";
 import { Divider, HStack, Text, TabIndicator, TabList, TabPanel, TabPanels, Tabs, VStack, Button } from "@chakra-ui/react";
 import React, { useState } from "react";
@@ -32,21 +33,30 @@ export default function Shop() {
     const [selected, setSelected] = useState("Tokens");
     const { isOpen, onOpen, onClose } = useDisclosure();
 
-    const [tokenName, setTokenName] = React.useState("");
-    const handleChangeTokenName = (event) => setTokenName(event.target.value);
+    const [token, setToken] = useState("");
+    const handleChangeToken = (event) => setToken(event.target.value);
 
-    const [tokenAddress, setTokenAddress] = React.useState("");
+    const [tokenAddress, setTokenAddress] = useState("");
     const handleChangeTokenAddress = (event) => setTokenAddress(event.target.value);
 
-    const [tokenQuantity, setTokenQuantity] = React.useState("");
+    const [tokenQuantity, setTokenQuantity] = useState("");
     const handleChangeTokenQuantity = (event) => setTokenQuantity(event.target.value);
 
-    const [tokenPrice, setTokenPrice] = React.useState("");
+    const [tokenPrice, setTokenPrice] = useState("");
     const handleChangeTokenPrice = (event) => setTokenPrice(event.target.value);
+
+    const [nftContractAddress, setNftContractAddress] = useState("");
+    const handleChangeNftContractAddress = (event) => setNftContractAddress(event.target.value);
+
+    const [nftTokenId, setNftTokenId] = useState("");
+    const handleChangeNftTokenId = (event) => setNftTokenId(event.target.value);
+
+    const [nftPrice, setNftPrice] = useState("");
+    const handleChangeNftPrice = (event) => setNftPrice(event.target.value);
 
     return (
         <Layout>
-            <HStack spacing={8} mx={5}>
+            <HStack bg="#0ab7f2" spacing={8} mx={5} rounded="xl">
                 <VStack w="700px" border="1px solid white" p={4} rounded="xl" shadow="xl">
                     <HStack justifyContent="space-between" w="full">
                         <HStack spacing={3}>
@@ -91,15 +101,16 @@ export default function Shop() {
 
                         <Button
                             shadow="md"
-                            colorScheme="yellow"
-                            color="#877714"
+                            _active={{ bg: "#FFE376" }}
+                            _hover={{ opacity: "90%" }}
+                            bg="#FFE376"
+                            color="#BA6502"
                             rounded="lg"
                             onClick={onOpen}
-                            isDisabled={selected !== "Tokens"}
                         >
                             <HStack align="center" spacing={2}>
                                 <FaPlus size={18} />
-                                <Text m={0}>{selected === "Tokens" ? "Add Token" : "Add NFT"}</Text>
+                                <Text m={0}>{selected === "Tokens" ? "List Token" : "List NFT"}</Text>
                             </HStack>
                         </Button>
                     </HStack>
@@ -123,7 +134,16 @@ export default function Shop() {
                                         <Td isNumeric>250</Td>
                                         <Td isNumeric>500 $BASH</Td>
                                         <Td isNumeric>
-                                            <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg" size="sm" mr={-1}>
+                                            <Button
+                                                shadow="md"
+                                                _active={{ bg: "#FFE376" }}
+                                                _hover={{ opacity: "90%" }}
+                                                bg="#FFE376"
+                                                color="#BA6502"
+                                                rounded="lg"
+                                                size="sm"
+                                                mr={-1}
+                                            >
                                                 Buy
                                             </Button>
                                         </Td>
@@ -134,82 +154,158 @@ export default function Shop() {
                     )}
 
                     {selected !== "Tokens" && (
-                        <Text mt={4} color="white" fontWeight={600} opacity={"50%"}>
-                            Coming Soon
-                        </Text>
+                        <TableContainer w="full" maxH={500} mt={3} overflowY="auto">
+                            <Table size="sm" colorScheme="teal" style={{ color: "white", fontWeight: 600 }}>
+                                <Thead>
+                                    <Tr>
+                                        <Th>Name</Th>
+                                        <Th>Address</Th>
+                                        <Th isNumeric>Qty</Th>
+                                        <Th isNumeric>Price</Th>
+                                        <Th isNumeric>Trade</Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>
+                                    <Tr>
+                                        <Td>Joy #1124</Td>
+                                        <Td>8wbK...Vjd3</Td>
+                                        <Td isNumeric>1</Td>
+                                        <Td isNumeric>1500 $BASH</Td>
+                                        <Td isNumeric>
+                                            <Button
+                                                shadow="md"
+                                                _active={{ bg: "#FFE376" }}
+                                                _hover={{ opacity: "90%" }}
+                                                bg="#FFE376"
+                                                color="#BA6502"
+                                                rounded="lg"
+                                                size="sm"
+                                                mr={-1}
+                                            >
+                                                Buy
+                                            </Button>
+                                        </Td>
+                                    </Tr>
+                                </Tbody>
+                            </Table>
+                        </TableContainer>
                     )}
                 </VStack>
             </HStack>
 
             <Modal isOpen={isOpen} onClose={onClose} isCentered>
                 <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader py={4} color="#877714">
-                        Add a Token
+                <ModalContent borderRadius={12}>
+                    <ModalHeader py={4} color="#BA6502">
+                        {selected === "Tokens" ? "List a Token" : "List an NFT"}
                     </ModalHeader>
                     <ModalCloseButton />
                     <ModalBody display="flex" flexDirection="column" gap={3} pb={4}>
-                        <VStack gap={1} align="start">
-                            <Text fontSize="sm" mb={0}>
-                                Token Name
-                            </Text>
-                            <Input
-                                rounded="md"
-                                value={tokenName}
-                                onChange={handleChangeTokenName}
-                                placeholder="Enter your Token Name"
-                                size="sm"
-                                disabled
-                            />
-                        </VStack>
+                        {selected === "Tokens" ? (
+                            <>
+                                <VStack gap={1} align="start">
+                                    <Text fontSize="sm" mb={0}>
+                                        Token
+                                    </Text>
+                                    <Select rounded="md" value={token} onChange={handleChangeToken} placeholder="Select a Token" size="sm">
+                                        <option value="option1">Option 1</option>
+                                        <option value="option2">Option 2</option>
+                                        <option value="option3">Option 3</option>
+                                    </Select>
+                                </VStack>
 
-                        <VStack gap={1} align="start">
-                            <Text fontSize="sm" mb={0}>
-                                Token Name
-                            </Text>
-                            <Input
-                                rounded="md"
-                                value={tokenAddress}
-                                onChange={handleChangeTokenAddress}
-                                placeholder="Enter your Token Address"
-                                size="sm"
-                            />
-                        </VStack>
+                                <VStack gap={1} align="start">
+                                    <HStack w="full" justify="space-between">
+                                        <Text fontSize="sm" mb={0}>
+                                            Quantity
+                                        </Text>
+                                        <Text opacity="50%" fontSize="sm" mb={0}>
+                                            Your Balance: 0
+                                        </Text>
+                                    </HStack>
+                                    <Input
+                                        rounded="md"
+                                        value={tokenQuantity}
+                                        onChange={handleChangeTokenQuantity}
+                                        placeholder="Enter Quantity"
+                                        size="sm"
+                                    />
+                                </VStack>
 
-                        <VStack gap={1} align="start">
-                            <Text fontSize="sm" mb={0}>
-                                Quantity
-                            </Text>
-                            <Input
-                                rounded="md"
-                                value={tokenQuantity}
-                                onChange={handleChangeTokenQuantity}
-                                placeholder="Enter Quantity"
-                                size="sm"
-                            />
-                        </VStack>
+                                <VStack gap={1} align="start">
+                                    <Text fontSize="sm" mb={0}>
+                                        Price
+                                    </Text>
+                                    <Input
+                                        rounded="md"
+                                        value={tokenPrice}
+                                        onChange={handleChangeTokenPrice}
+                                        placeholder="Enter Enter Price"
+                                        size="sm"
+                                    />
+                                </VStack>
+                            </>
+                        ) : (
+                            <>
+                                <VStack gap={1} align="start">
+                                    <Text fontSize="sm" mb={0}>
+                                        NFT
+                                    </Text>
+                                    <Select rounded="md" value={token} onChange={handleChangeToken} placeholder="Select your NFT" size="sm">
+                                        <option value="option1">Option 1</option>
+                                        <option value="option2">Option 2</option>
+                                        <option value="option3">Option 3</option>
+                                    </Select>
+                                </VStack>
 
-                        <VStack gap={1} align="start">
-                            <Text fontSize="sm" mb={0}>
-                                Price
-                            </Text>
-                            <Input
-                                rounded="md"
-                                value={tokenPrice}
-                                onChange={handleChangeTokenPrice}
-                                placeholder="Enter Enter Price"
-                                size="sm"
-                            />
-                        </VStack>
+                                <VStack gap={1} align="start">
+                                    <HStack w="full" justify="space-between">
+                                        <Text fontSize="sm" mb={0}>
+                                            Quantity
+                                        </Text>
+                                        <Text opacity="50%" fontSize="sm" mb={0}>
+                                            Your NFTs: 0
+                                        </Text>
+                                    </HStack>
+                                    <Input
+                                        rounded="md"
+                                        value={tokenQuantity}
+                                        onChange={handleChangeTokenQuantity}
+                                        placeholder="Enter Quantity"
+                                        size="sm"
+                                    />
+                                </VStack>
+
+                                <VStack gap={1} align="start">
+                                    <Text fontSize="sm" mb={0}>
+                                        Price
+                                    </Text>
+                                    <Input
+                                        rounded="md"
+                                        value={tokenPrice}
+                                        onChange={handleChangeTokenPrice}
+                                        placeholder="Enter Enter Price"
+                                        size="sm"
+                                    />
+                                </VStack>
+                            </>
+                        )}
                     </ModalBody>
 
                     <ModalFooter p={4}>
-                        <Button variant="ghost" onClick={onClose}>
+                        <Button rounded="lg" variant="ghost" onClick={onClose} mr={1}>
                             Close
                         </Button>
 
-                        <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg">
-                            Add
+                        <Button
+                            shadow="md"
+                            _active={{ bg: "#FFE376" }}
+                            _hover={{ opacity: "90%" }}
+                            bg="#FFE376"
+                            color="#BA6502"
+                            rounded="lg"
+                        >
+                            Submit Listing
                         </Button>
                     </ModalFooter>
                 </ModalContent>

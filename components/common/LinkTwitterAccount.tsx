@@ -95,12 +95,30 @@ const TwitterIntegration = () => {
     return (
         <div style={{ width: "100%" }}>
             {!wallet.connected ? (
-                <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg" w="full" onClick={() => handleConnectWallet()}>
+                <Button
+                    shadow="md"
+                    _active={{ bg: "#FFE376" }}
+                    _hover={{ opacity: "90%" }}
+                    bg="#FFE376"
+                    color="#BA6502"
+                    rounded="lg"
+                    w="full"
+                    onClick={() => handleConnectWallet()}
+                >
                     Connect Wallet
                 </Button>
             ) : (
                 !isAuthenticated && (
-                    <Button shadow="md" colorScheme="yellow" color="#877714" rounded="lg" w="full" onClick={initiateTwitterLogin}>
+                    <Button
+                        shadow="md"
+                        _active={{ bg: "#FFE376" }}
+                        _hover={{ opacity: "90%" }}
+                        bg="#FFE376"
+                        color="#BA6502"
+                        rounded="lg"
+                        w="full"
+                        onClick={initiateTwitterLogin}
+                    >
                         Login with Twitter
                     </Button>
                 )

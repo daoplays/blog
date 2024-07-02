@@ -53,18 +53,24 @@ export default function Home() {
                     </Text>
                 </VStack>
 
-                <VStack w="500px" border="1px solid white" p={6} rounded="xl" shadow="xl">
+                <VStack bg="#0ab7f2" w="500px" border="1px solid white" p={6} rounded="xl" shadow="xl">
                     <Text m={0} color="white" fontSize="5xl" className="font-face-wc">
                         Daily Prompt
                     </Text>
 
-                    <HStack spacing={4}>
+                    <HStack spacing={3}>
                         <Text m="0" color="white" className="font-face-kg">
                             {startDate.toLocaleDateString()}
                         </Text>
                         <Popover isOpen={isStartOpen} onClose={onCloseStart} placement="bottom" closeOnBlur={false}>
                             <PopoverTrigger>
-                                <IconButton onClick={onToggleStart} aria-label="FaCalendarAlt" icon={<FaCalendarAlt size={24} />} />
+                                <IconButton
+                                    size="sm"
+                                    color="#BA6502"
+                                    onClick={onToggleStart}
+                                    aria-label="FaCalendarAlt"
+                                    icon={<FaCalendarAlt size={22} />}
+                                />
                             </PopoverTrigger>
                             <PopoverContent width="fit-content">
                                 <PopoverArrow />
@@ -97,7 +103,7 @@ export default function Home() {
                                 alt="Image Frame"
                                 style={{ backgroundSize: "cover", borderRadius: 12 }}
                             />
-                            <HStack
+                            {/* <HStack
                                 bg="white"
                                 rounded="lg"
                                 p={1}
@@ -112,7 +118,7 @@ export default function Home() {
                                     Sponsored By:
                                 </Text>
                                 <Image src="/images/logo.png" alt="BlinkBlash Logo" width={20} height={20} />
-                            </HStack>
+                            </HStack> */}
                         </Box>
                         <BiSolidLeftArrow size={28} color="white" style={{ rotate: "180deg", cursor: "pointer" }} />
                     </HStack>
@@ -124,6 +130,7 @@ export default function Home() {
                         color="white"
                         _placeholder={{ color: "gray.300" }}
                         _active={{ border: "1px solid white" }}
+                        _focus={{ border: "1px solid white" }}
                         value={entry}
                         onChange={(e) => {
                             setEntry(e.target.value);
@@ -133,8 +140,10 @@ export default function Home() {
                     {twitter && isConnected ? (
                         <Button
                             shadow="md"
-                            colorScheme="yellow"
-                            color="#877714"
+                            _active={{ bg: "#FFE376" }}
+                            _hover={{ opacity: "90%" }}
+                            bg="#FFE376"
+                            color="#BA6502"
                             rounded="lg"
                             w="full"
                             onClick={() => handleEntry(wallet.publicKey, 0, entry)}
