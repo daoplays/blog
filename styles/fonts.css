@@ -29,7 +29,7 @@
     font-family: "Whocats";
     src:
         local("Whocats"),
-        url(/fonts/Whocats.ttf) format("woff");
+        url(/fonts/Whocats.ttf) format("truetype");
 }
 
 .font-face-wc {

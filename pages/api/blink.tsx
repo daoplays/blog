@@ -39,11 +39,41 @@ export default async function handler(req, res) {
         try {
             const { creator, game } = req.query;
 
+            // todo - if params arnt passed get a random one, for now return error image
+            if (game === undefined || creator === undefined) {
+                const data = {
+                    title: "BlinkBash!",
+                    icon: "https://blinkbash.daoplays.org/api/errorImage",
+                    description: "No entry found",
+                    label: "Error",
+                    links: {
+                        actions: [],
+                    },
+                };
+                res.status(200).json(data);
+            }
+             
+
+
             let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
             let location = "BlinkBash/entries/" + game + "/" + current_date.toString() + "/" + creator;
 
             const snapshot = await get(ref(database, location));
             let entry = JSON.parse(snapshot.val());
+
+            if (entry === null) {
+                // Your data here
+                const data = {
+                    title: "BlinkBash!",
+                    icon: "https://blinkbash.daoplays.org/api/errorImage",
+                    description: "No entry found",
+                    label: "Error",
+                    links: {
+                        actions: [],
+                    },
+                };
+                res.status(200).json(data);
+            }
             let text = entry.entry;
 
             let actions = [
