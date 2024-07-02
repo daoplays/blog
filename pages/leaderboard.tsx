@@ -43,6 +43,7 @@ const LeaderboardPage = () => {
     const { handleConnectWallet } = UseWalletConnection();
     const { twitterList, userList, currentUserData } = useAppRoot();
     const { xs, sm, lg } = useResponsive();
+    const [selected, setSelected] = useState("Today");
 
     let userVec: UserData[] = [];
     if (userList !== null && twitterList !== null) {
@@ -129,7 +130,46 @@ const LeaderboardPage = () => {
         <Layout>
             <HStack bg="#0ab7f2" mx={5} rounded="xl">
                 <VStack w="670px" border="1px solid white" p={4} rounded="xl" shadow="xl">
-                    <TableContainer w="full" maxH={500} overflowY="auto">
+                    <HStack spacing={3} w="full">
+                        {["Today", "Global"].map((name, i) => {
+                            const isActive = selected === name;
+
+                            const baseStyle = {
+                                display: "flex",
+                                alignItems: "center",
+                                cursor: "pointer",
+                            };
+
+                            const activeStyle = {
+                                color: isActive ? "#FFDD56" : "white",
+                                borderBottom: isActive ? "2px solid #FFDD56" : "",
+                                opacity: isActive ? 1 : 0.5,
+                            };
+
+                            return (
+                                <HStack
+                                    key={i}
+                                    style={{
+                                        ...baseStyle,
+                                        ...activeStyle,
+                                    }}
+                                    onClick={() => {
+                                        setSelected(name);
+                                    }}
+                                    px={4}
+                                    py={2}
+                                    mt={-2}
+                                    w={"fit-content"}
+                                    justify="center"
+                                >
+                                    <Text m={"0 auto"} fontSize="lg" fontWeight="bold">
+                                        {name}
+                                    </Text>
+                                </HStack>
+                            );
+                        })}
+                    </HStack>
+                    <TableContainer w="full" maxH={500} mt={3} overflowY="auto">
                         <Table size="sm" colorScheme="teal" style={{ color: "white", fontWeight: 600 }}>
                             <Thead>
                                 <Tr>

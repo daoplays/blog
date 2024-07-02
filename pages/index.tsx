@@ -26,10 +26,12 @@ import { BiSolidLeftArrow } from "react-icons/bi";
 import useAppRoot from "../components/context/useAppRoot";
 import useEntry from "../hooks/useEnter";
 import Layout from "./layout";
+import useResponsive from "../components/blog/apps/commonHooks/useResponsive";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 export default function Home() {
+    const { xl } = useResponsive();
     const wallet = useWallet();
     const isConnected = wallet.publicKey !== null;
     const { twitter } = useAppRoot();
@@ -42,8 +44,8 @@ export default function Home() {
 
     return (
         <Layout>
-            <HStack spacing={8} mx={5}>
-                <VStack w="600px" justify="center" p={6}>
+            <HStack mt={100} spacing={8} mx={5} flexDirection={xl ? "column-reverse" : "row"}>
+                <VStack maxW="600px" justify="center" p={6}>
                     <Text fontSize="2xl" fontWeight={600} color="white">
                         1. Post your caption to the Daily Prompt as a Solana Blink on X (Twitter) to earn $BASH. Finish in the Top 3 for a
                         $BASH payout! <br />
