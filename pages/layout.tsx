@@ -22,7 +22,7 @@ const montserrat = Montserrat({
 });
 
 const Layout = ({ children }: PropsWithChildren) => {
-    const { xl } = useResponsive();
+    const { lg, xl } = useResponsive();
     const wallet = useWallet();
     const { handleConnectWallet, handleDisconnectWallet } = UseWalletConnection();
     const isConnected = wallet.publicKey !== null;
@@ -30,11 +30,12 @@ const Layout = ({ children }: PropsWithChildren) => {
 
     return (
         <VStack
+            zIndex={999}
             className={montserrat.className}
             position="relative"
             justify="center"
             style={{
-                height: "100vh",
+                minHeight: "100vh",
                 width: "100vw",
                 background: "linear-gradient(180deg, #5DBBFF 0%, #0076CC 100%)",
             }}
@@ -126,9 +127,10 @@ const Layout = ({ children }: PropsWithChildren) => {
             <Image
                 src="/images/man.png"
                 alt="Builder Character"
-                width={300}
-                height={300}
+                width={275}
+                height={275}
                 style={{ position: "absolute", bottom: 0, left: 0 }}
+                hidden={lg}
             />
         </VStack>
     );
