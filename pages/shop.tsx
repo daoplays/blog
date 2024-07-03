@@ -172,7 +172,7 @@ export default function Shop() {
                 </Td>
                 <Td>{mint.symbol}</Td>
                 <Td>
-                    <HStack spacing={3}>
+                    <HStack spacing={2}>
                         <Text m={0}>{trimAddress(address)}</Text>
 
                         <Tooltip label="Copy Contract Address" hasArrow fontSize="large" offset={[0, 10]}>
