@@ -32,7 +32,7 @@ img {
 }
 
 *::-webkit-scrollbar {
-    width: 7px;
+    width: 8px;
     height: 5px;
 }
 
@@ -42,10 +42,10 @@ img {
 }
 
 *::-webkit-scrollbar-thumb {
-    background: #b0bdd8;
+    background: #818999;
     border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #8893aa;
+    background: #686d77;
 }

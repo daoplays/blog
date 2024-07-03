@@ -34,13 +34,21 @@ const Layout = ({ children }: PropsWithChildren) => {
             className={montserrat.className}
             position="relative"
             justify="center"
-            style={{
-                minHeight: "100vh",
-                width: "100vw",
-                background: "linear-gradient(180deg, #5DBBFF 0%, #0076CC 100%)",
-            }}
+            overflowY="auto"
+            minHeight="100vh"
+            background="linear-gradient(180deg, #5DBBFF 0%, #0076CC 100%)"
         >
-            <HStack h={20} px={5} position="fixed" top={0} w="full" alignItems="center" justify="space-between">
+            <HStack
+                h={20}
+                px={5}
+                position="fixed"
+                top={0}
+                w="full"
+                alignItems="center"
+                justify="space-between"
+                background="linear-gradient(180deg, #5DBBFF 25%, #0076CC 200%)"
+                zIndex={99}
+            >
                 <Link href="/">
                     <Text m={0} color="white" fontSize="5xl" className="font-face-wc">
                         Blink<span style={{ color: "#FFDD56" }}>Bash!</span>
@@ -115,7 +123,9 @@ const Layout = ({ children }: PropsWithChildren) => {
                                 />
                             </MenuButton>
                             <MenuList>
-                                <MenuItem color="red">Disconnect Twitter</MenuItem>
+                                <MenuItem color="red" fontWeight={500}>
+                                    Disconnect Twitter
+                                </MenuItem>
                             </MenuList>
                         </Menu>
                     )}
