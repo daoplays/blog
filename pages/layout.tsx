@@ -127,10 +127,10 @@ const Layout = ({ children }: PropsWithChildren) => {
             <Image
                 src="/images/man.png"
                 alt="Builder Character"
-                width={275}
-                height={275}
-                style={{ position: "absolute", bottom: 0, left: 0 }}
-                hidden={lg}
+                width={300}
+                height={300}
+                style={{ position: "absolute", bottom: 0, left: 0, zIndex: -50 }}
+                hidden={xl}
             />
         </VStack>
     );

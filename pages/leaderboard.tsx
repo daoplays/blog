@@ -129,7 +129,7 @@ const LeaderboardPage = () => {
     return (
         <Layout>
             <HStack bg="#0ab7f2" mx={5} rounded="xl">
-                <VStack w="670px" border="1px solid white" p={4} rounded="xl" shadow="xl">
+                <VStack w="700px" border="1px solid white" p={4} rounded="xl" shadow="xl">
                     <HStack spacing={3} w="full">
                         {["Today", "Global"].map((name, i) => {
                             const isActive = selected === name;
