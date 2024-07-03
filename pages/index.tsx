@@ -39,7 +39,7 @@ import "swiper/css/autoplay";
 import "swiper/css/pagination";
 import { Montserrat } from "next/font/google";
 import { DayRow, TwitterUser } from "../components/state/interfaces";
-import { EntryData } from "../components/state/state";
+import { EntryData, LeaderboardData } from "../components/state/state";
 import { getDatabase, ref, get, Database } from "firebase/database";
 import { PublicKey } from "@solana/web3.js";
 import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common";
@@ -152,15 +152,83 @@ export const GetDaysEntries = async (date : number, database : Database, entryLi
 
 }
 
+export const GetDaysWinners = async (date : number, database : Database, entryList : Map<string, EntryData>, userIDs : Map<number, string>,  leaderboardList : Map<string, LeaderboardData>, twitterList : Map<string, TwitterUser>, setDayRows : Dispatch<SetStateAction<DayRow[]>>) => {
+
+    if (database === null || entryList === null || twitterList === null || userIDs=== null) {
+        setDayRows([]);
+        return
+    }
+    
+    // get the listings
+    const entries_db = await get(ref(database, "BlinkBash/entries/0/"+date));
+    let entries = entries_db.val();
+    if (entries === null) {
+        setDayRows([]);
+        return;
+    }
+    let leaderboard_account = PublicKey.findProgramAddressSync(
+        [uInt8ToLEBytes(0), uInt32ToLEBytes(date), Buffer.from("Leaderboard")],
+        PROGRAM,
+    )[0];
+
+    let leaderboard = leaderboardList.get(leaderboard_account.toString());
+
+    if (leaderboard === null) {
+        setDayRows([]);
+        return;
+    }
+
+    console.log(leaderboard)
+
+    // Sort the indices based on scores (in descending order)
+    const indices = Array.from(leaderboard.scores.keys());
+  
+    // Sort the indices based on scores (in descending order)
+    indices.sort((a, b) => leaderboard.scores[b] - leaderboard.scores[a]);
+    
+    // Use the sorted indices to reorder the entrants
+    const sortedEntrants = indices.map(i => leaderboard.entrants[i]);  
+
+    let day_rows : DayRow[] = [];
+
+    let max_index = Math.min(3, sortedEntrants.length);
+    for (let i = 0; i < max_index; i++) {
+        let key = userIDs.get(sortedEntrants[i]);
+        let json = JSON.parse(entries[key].toString())
+
+        let creator = new PublicKey(key)
+        let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
+        let entry = entryList.get(entry_account.toString());
+        let twitter = twitterList.get(key)
+        if (entry === null || twitter === null) {
+            return
+        }
+
+        let row : DayRow = {
+            key: key,
+            twitter: twitter,
+            score: entry.positive_votes - entry.negative_votes,
+            link: "https://blinkbash.daoplays.org/api/blink?creator="+key+"&game=0&date="+date,
+            entry: json.entry
+        }
+
+        day_rows.push(row)
+    }
+    console.log(day_rows)
+    setDayRows(day_rows);
+
+}
+
 export default function Home() {
     const { xl } = useResponsive();
     const wallet = useWallet();
     const isConnected = wallet.publicKey !== null;
-    const { twitter, database, entryList, twitterList } = useAppRoot();
+    const { twitter, database, userIDs, entryList, twitterList, leaderboardList } = useAppRoot();
 
     const [startDate, setStartDate] = useState<Date>(new Date());
     const [entry, setEntry] = useState<string>("");
     const [entries, setEntries] = useState<DayRow[]>([]);
+    const [day_winners, setWinners] = useState<DayRow[]>([]);
 
     const { isOpen: isStartOpen, onToggle: onToggleStart, onClose: onCloseStart } = useDisclosure();
     const { handleEntry } = useEntry();
@@ -175,11 +243,12 @@ export default function Home() {
 
     // get todays entries on load
     useEffect(() => {
-        if (database === null || entryList === null || twitterList === null) {
+        if (database === null || entryList === null || twitterList === null || leaderboardList === null) {
             return;
         }
 
         GetDaysEntries(Math.floor((new Date().getTime())/(1000*60*60*24)), database, entryList, twitterList, setEntries);
+        GetDaysWinners(Math.floor((new Date().getTime())/(1000*60*60*24)), database, entryList, userIDs, leaderboardList, twitterList, setWinners);
 
     }, [database, entryList, twitterList]);
 

@@ -8,6 +8,7 @@ import { Database } from "firebase/database";
 interface AppRootTypes {
     database: Database,
     userList: Map<string, UserData>;
+    userIDs: Map<number, string>;
     twitterList: Map<string, TwitterUser>;
     listingList: Map<string, ListingData>;
     tokenList: Map<string, MintData>;
@@ -28,6 +29,7 @@ export const AppRootContextProvider = ({
     children,
     database,
     userList,
+    userIDs,
     twitterList,
     listingList,
     tokenList,
@@ -45,6 +47,7 @@ export const AppRootContextProvider = ({
             value={{
                 database,
                 userList,
+                userIDs,
                 twitterList,
                 listingList,
                 tokenList,

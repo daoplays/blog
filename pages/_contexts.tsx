@@ -307,7 +307,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             //console.log(program_data)
             if (data[0] === AccountType.User) {
                 const [user] = UserData.struct.deserialize(data);
-                //console.log("user", user);
+                console.log("user", user);
                 user_data.set(user.user_key.toString(), user);
                 user_ids.set(user.user_id, user.user_key.toString());
                 continue;
@@ -368,6 +368,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         <AppRootContextProvider
             database={database}
             userList={user_data}
+            userIDs={user_ids}
             twitterList={twitter_db}
             listingList={listing_data}
             tokenList={mintData}
