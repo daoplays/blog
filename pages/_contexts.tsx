@@ -368,6 +368,9 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             listingList={listing_data}
             tokenList={mintData}
             nftList={nftData}
+            entryList={entry_data}
+            leaderboardList={leaderboard_data}
+
             currentUserData={current_user_data}
             userBashBalance={userBashBalance}
             userWLBalance={userWLBalance}

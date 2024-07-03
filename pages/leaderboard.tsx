@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Box,
     Flex,
@@ -19,7 +19,10 @@ import {
     Th,
     Tbody,
     Td,
+    Link,
 } from "@chakra-ui/react";
+import { FaExternalLinkAlt } from "react-icons/fa";
+
 import { UserData } from "../components/state/state";
 import useAppRoot from "../components/context/useAppRoot";
 import Head from "next/head";
@@ -32,18 +35,57 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";
 import UseWalletConnection from "../components/blog/apps/commonHooks/useWallet";
 import Layout from "./layout";
-
+import { trimAddress } from "../components/state/utils";
+import { PublicKey } from "@solana/web3.js";
+import { PROGRAM } from "../components/state/constants";
+import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common";
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, get, Database } from "firebase/database";
 interface Header {
     text: string;
     field: string | null;
 }
 
+interface DayRow {
+    key: string;
+    twitter: string;
+    score: number;
+    link:string;
+}
+
+const firebaseConfig = {
+    // ...
+    // The value of `databaseURL` depends on the location of the database
+    databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
+};
+
 const LeaderboardPage = () => {
     const wallet = useWallet();
     const { handleConnectWallet } = UseWalletConnection();
-    const { twitterList, userList, currentUserData } = useAppRoot();
+    const { twitterList, userList, currentUserData, entryList, leaderboardList } = useAppRoot();
     const { xs, sm, lg } = useResponsive();
     const [selected, setSelected] = useState("Today");
+    const [database, setDatabase] = useState<Database | null>(null);
+    const [date, setDate] = useState<number>(Math.floor((new Date().getTime())/(1000*60*60*24)));
+    const [day_rows, setDayRows] = useState<DayRow[]>([]);
+    const [sortedField, setSortedField] = useState<string | null>("votes");
+    const [reverseSort, setReverseSort] = useState<boolean>(true);
+
+
+    useEffect(() => {
+        if (database !== null) {
+            return;
+        }
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+
+        // Initialize Realtime Database and get a reference to the service
+        const db = getDatabase(app);
+        setDatabase(db);
+
+    }, [database]);
+    
 
     let userVec: UserData[] = [];
     if (userList !== null && twitterList !== null) {
@@ -56,16 +98,25 @@ const LeaderboardPage = () => {
         });
     }
 
-    const [sortedField, setSortedField] = useState<string | null>("votes");
-    const [reverseSort, setReverseSort] = useState<boolean>(true);
 
-    const tableHeaders: Header[] = [
+    const tableHeaders: Header[] = selected === "Global" ? 
+    [
         { text: "RANK", field: "rank" },
         { text: "USER", field: "user" },
+        { text: "ADDRESS", field: "address" },
         { text: "WINS", field: "wins" },
         { text: "VOTES", field: "votes" },
         { text: "VOTED", field: "voted" },
-    ];
+    ]
+    :
+    [
+        { text: "RANK", field: "rank" },
+        { text: "USER", field: "user" },
+        { text: "ADDRESS", field: "address" },
+        { text: "SCORE", field: "score" },
+        { text: "VIEW", field: "view" },
+    ]
+    ;
 
     const handleHeaderClick = (field: string | null) => {
         console.log("field", field);
@@ -77,7 +128,6 @@ const LeaderboardPage = () => {
         }
     };
 
-    console.log("user vec", userVec);
 
     const sortedUsers = userVec.sort((a, b) => {
         if (sortedField === "user") {
@@ -100,6 +150,76 @@ const LeaderboardPage = () => {
         return 0;
     });
 
+    async function getDaysRanking(date: number) {
+        console.log("get days ranking", date, database, entryList)
+        if (database === null || entryList === null || twitterList === null) {
+            setDayRows([]);
+            return
+        }
+        
+
+        // get the listings
+        
+
+        const entries_db = await get(ref(database, "BlinkBash/entries/0/"+date));
+        let entries = entries_db.val();
+        if (entries === null) {
+            setDayRows([]);
+            return;
+        }
+
+        let day_rows : DayRow[] = [];
+        Object.entries(entries).forEach(([key, value]) => {
+            let json = JSON.parse(value.toString());
+            let creator = new PublicKey(key)
+            let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
+            let entry = entryList.get(entry_account.toString());
+            let twitter = twitterList.get(key)
+            if (entry === null || twitter === null) {
+                return
+            }
+            console.log(key, json)
+            console.log(entry)
+
+            let row : DayRow = {
+                key: key,
+                twitter: twitter.username,
+                score: entry.positive_votes - entry.negative_votes,
+                link: "https://blinkbash.daoplays.org/api/blink?creator="+key+"&game=0&date="+date
+            }
+
+            day_rows.push(row)
+        });
+        const sortedList = [...day_rows].sort((a, b) => b.score - a.score);
+
+        setDayRows(sortedList);
+    }
+
+    const DayRowCard = ({ row, index }: { row: DayRow; index: number }) => {
+        
+        const isUser = currentUserData === null ? false : row.key === currentUserData.user_key.toString();
+        const rank = index + 1;
+        let address = trimAddress(row.key);
+
+        let colour = isUser ? "yellow" : "white";
+        let link = "https://dial.to/?action=solana-action:" + encodeURIComponent(row.link)
+        return (
+            <Tr>
+                <Td color={colour} py={4}>
+                    {rank}
+                </Td>
+                <Td color={colour}>{row.twitter}</Td>
+                <Td color={colour}>{address}</Td>
+                <Td color={colour}>{row.score}</Td>
+                <Td color={colour}>{
+                <Link href={link} isExternal>
+                    <FaExternalLinkAlt/>                
+                </Link>   
+                }</Td>
+            </Tr>
+        );
+    };
+
     const UserCard = ({ user, index }: { user: UserData; index: number }) => {
         if (twitterList === null) return <></>;
 
@@ -112,19 +232,32 @@ const LeaderboardPage = () => {
         let wins = user.total_wins;
         let votes = user.total_positive_votes - user.total_negative_votes;
         let voted = user.total_positive_voted + user.total_negative_voted;
+        let address = trimAddress(user.user_key.toString());
+
+        let colour = isUser ? "yellow" : "white";
 
         return (
             <Tr>
                 <Td color={isUser ? "yellow" : "white"} py={4}>
                     {rank}
                 </Td>
-                <Td color={isUser ? "yellow" : "white"}>{twitter_id.username}</Td>
-                <Td color={isUser ? "yellow" : "white"}>{wins.toString()}</Td>
-                <Td color={isUser ? "yellow" : "white"}>{votes.toString()}</Td>
-                <Td color={isUser ? "yellow" : "white"}>{voted.toString()}</Td>
+                <Td color={colour}>{twitter_id.username}</Td>
+                <Td color={colour}>{address}</Td>
+                <Td color={colour}>{wins.toString()}</Td>
+                <Td color={colour}>{votes.toString()}</Td>
+                <Td color={colour}>{voted.toString()}</Td>
             </Tr>
         );
     };
+
+    useEffect(() => {
+        if (leaderboardList === null || database === null || entryList === null) {
+            return;
+        }
+
+        getDaysRanking(date);
+
+    }, [date, leaderboardList, entryList, database]);
 
     return (
         <Layout>
@@ -176,23 +309,31 @@ const LeaderboardPage = () => {
                                     {tableHeaders.map((i) => (
                                         <Th
                                             key={i.text}
-                                            style={{ cursor: i.text === "RANK" ? "" : "pointer" }}
+                                            style={{ cursor: i.text === "RANK" || i.text === "LINK" ? "" : "pointer" }}
                                             onClick={() => handleHeaderClick(i.field)}
                                         >
                                             <HStack gap={sm ? 1 : 2}>
                                                 <Text m={0}>{i.text}</Text>
-                                                {i.text === "RANK" ? <></> : <FaSort />}
+                                                {i.text === "RANK" || i.text === "LINK" ? <></> : <FaSort />}
                                             </HStack>
                                         </Th>
                                     ))}
                                 </Tr>
                             </Thead>
 
+                             {selected === "Today" ? (
+                                <Tbody>
+                                    {day_rows.map((row, i) => {
+                                        return <DayRowCard key={row.key} row={row} index={i} />;
+                                    })}
+                                </Tbody>
+                            ) : (       
                             <Tbody>
                                 {sortedUsers.map((user, i) => {
                                     return <UserCard key={user.user_key.toString()} user={user} index={i} />;
                                 })}
                             </Tbody>
+                            )}
                         </Table>
                     </TableContainer>
                 </VStack>

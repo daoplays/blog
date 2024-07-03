@@ -1,7 +1,7 @@
 "use client";
 
 import { PropsWithChildren, createContext, useContext, MutableRefObject, SetStateAction, Dispatch } from "react";
-import { ListingData, UserData } from "../state/state";
+import { EntryData, LeaderboardData, ListingData, UserData } from "../state/state";
 import { MintData, NFTData, TwitterUser } from "../state/interfaces";
 import { AssetV1 } from "@metaplex-foundation/mpl-core";
 interface AppRootTypes {
@@ -10,6 +10,9 @@ interface AppRootTypes {
     listingList: Map<string, ListingData>;
     tokenList: Map<string, MintData>;
     nftList: Map<string, NFTData>;
+    entryList: Map<string, EntryData>;
+    leaderboardList: Map<string, LeaderboardData>;
+
     currentUserData: UserData;
     userBashBalance: number;
     userWLBalance: number;
@@ -26,6 +29,8 @@ export const AppRootContextProvider = ({
     listingList,
     tokenList,
     nftList,
+    entryList,
+    leaderboardList,
     currentUserData,
     userBashBalance,
     userWLBalance,
@@ -40,6 +45,8 @@ export const AppRootContextProvider = ({
                 listingList,
                 tokenList,
                 nftList,
+                entryList,
+                leaderboardList,
                 currentUserData,
                 userBashBalance,
                 userWLBalance,
