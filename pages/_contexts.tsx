@@ -12,7 +12,7 @@ import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, unpackMint } from
 import { bignum_to_num, request_raw_account_data, request_token_amount, TokenAccount, uInt32ToLEBytes } from "../components/blog/apps/common";
 import { MintData, NFTData, TwitterUser } from "../components/state/interfaces";
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, get } from "firebase/database";
+import { getDatabase, ref, get, Database } from "firebase/database";
 import { AssetV1, getAssetV1GpaBuilder, Key } from "@metaplex-foundation/mpl-core";
 import type { RpcAccount, PublicKey as umiKey } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
@@ -24,7 +24,7 @@ const firebaseConfig = {
     databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
 };
 
-const GetProgramData = async (check_program_data, setProgramData, setTwitterDB) => {
+const GetProgramData = async (check_program_data, setProgramData, setTwitterDB, setDatabase) => {
     if (!check_program_data.current) return;
 
     check_program_data.current = false;
@@ -37,6 +37,8 @@ const GetProgramData = async (check_program_data, setProgramData, setTwitterDB) 
 
     // Initialize Realtime Database and get a reference to the service
     const database = getDatabase(app);
+
+    setDatabase(database)
 
     const twitter_users = await get(ref(database, "BlinkBash/twitter"));
     let entry = twitter_users.val();
@@ -125,6 +127,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const { connection } = useConnection();
     const [program_data, setProgramData] = useState<GPAccount[] | null>(null);
 
+    const [database, setDatabase] = useState<Database | null>(null);
     const [user_data, setUserData] = useState<Map<string, UserData> | null>(new Map());
     const [user_ids, setUserIDs] = useState<Map<number, string> | null>(new Map());
     const [listing_data, setListingData] = useState<Map<string, ListingData> | null>(new Map());
@@ -358,11 +361,12 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
         last_program_data_update.current = current_time;
 
-        GetProgramData(check_program_data, setProgramData, setTwitterDB);
+        GetProgramData(check_program_data, setProgramData, setTwitterDB, setDatabase);
     }, []);
 
     return (
         <AppRootContextProvider
+            database={database}
             userList={user_data}
             twitterList={twitter_db}
             listingList={listing_data}

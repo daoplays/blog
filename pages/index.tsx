@@ -18,7 +18,7 @@ import {
     VStack,
     useDisclosure,
 } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import TwitterIntegration from "../components/common/LinkTwitterAccount";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";
@@ -38,6 +38,14 @@ import "swiper/css/effect-cards";
 import "swiper/css/autoplay";
 import "swiper/css/pagination";
 import { Montserrat } from "next/font/google";
+import { DayRow, TwitterUser } from "../components/state/interfaces";
+import { EntryData } from "../components/state/state";
+import { getDatabase, ref, get, Database } from "firebase/database";
+import { PublicKey } from "@solana/web3.js";
+import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common";
+import { PROGRAM } from "../components/state/constants";
+import useVote from "../hooks/useVote";
+
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 const submittedCaptions = [
@@ -98,17 +106,67 @@ const montserrat = Montserrat({
     variable: "--font-montserrat",
 });
 
+const GetDaysEntries = async (database : Database, entryList : Map<string, EntryData>, twitterList : Map<string, TwitterUser>, setDayRows : Dispatch<SetStateAction<DayRow[]>>) => {
+
+    if (database === null || entryList === null || twitterList === null) {
+        setDayRows([]);
+        return
+    }
+
+    let date = Math.floor((new Date().getTime())/(1000*60*60*24))
+    
+    // get the listings
+    const entries_db = await get(ref(database, "BlinkBash/entries/0/"+date));
+    let entries = entries_db.val();
+    if (entries === null) {
+        setDayRows([]);
+        return;
+    }
+
+    let day_rows : DayRow[] = [];
+    Object.entries(entries).forEach(([key, value]) => {
+        let json = JSON.parse(value.toString());
+        let creator = new PublicKey(key)
+        let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
+        let entry = entryList.get(entry_account.toString());
+        let twitter = twitterList.get(key)
+        if (entry === null || twitter === null) {
+            return
+        }
+        console.log(key, json)
+        console.log(entry)
+
+        let row : DayRow = {
+            key: key,
+            twitter: twitter,
+            score: entry.positive_votes - entry.negative_votes,
+            link: "https://blinkbash.daoplays.org/api/blink?creator="+key+"&game=0&date="+date,
+            entry: json.entry
+        }
+
+        console.log(row)
+
+        day_rows.push(row)
+    });
+    const sortedList = [...day_rows].sort((a, b) => b.score - a.score);
+
+    setDayRows(sortedList);
+
+}
+
 export default function Home() {
     const { xl } = useResponsive();
     const wallet = useWallet();
     const isConnected = wallet.publicKey !== null;
-    const { twitter } = useAppRoot();
+    const { twitter, database, entryList, twitterList } = useAppRoot();
 
     const [startDate, setStartDate] = useState<Date>(new Date());
     const [entry, setEntry] = useState<string>("");
+    const [entries, setEntries] = useState<DayRow[]>([]);
 
     const { isOpen: isStartOpen, onToggle: onToggleStart, onClose: onCloseStart } = useDisclosure();
     const { handleEntry } = useEntry();
+    const {Vote} = useVote();
 
     const pagination = {
         clickable: true,
@@ -116,6 +174,17 @@ export default function Home() {
             return '<span class="' + className + '" >' + "</span>";
         },
     };
+
+    // get todays entries on load
+    useEffect(() => {
+        if (database === null || entryList === null || twitterList === null) {
+            return;
+        }
+
+        GetDaysEntries(database, entryList, twitterList, setEntries);
+
+    }, [database, entryList, twitterList]);
+
 
     return (
         <>
@@ -154,9 +223,9 @@ export default function Home() {
                                     }}
                                     className="swiper-container"
                                 >
-                                    {submittedCaptions.map(({ pfp, displayName, username, Caption }, i) => {
+                                    {entries.map((entry, i) => {
                                         return (
-                                            <SwiperSlide key={username} style={{ height: "100%" }}>
+                                            <SwiperSlide key={entry.key} style={{ height: "100%" }}>
                                                 <VStack h="100%" bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
                                                     <HStack w="full" alignItems="start" justifyContent="space-between">
                                                         <HStack alignItems="center" gap={4}>
@@ -169,8 +238,8 @@ export default function Home() {
                                                                 }}
                                                             >
                                                                 <Image
-                                                                    src={pfp}
-                                                                    alt={`${displayName}'s PFP`}
+                                                                    src={entry.twitter.profile_image_url}
+                                                                    alt={`${entry.twitter.username}'s PFP`}
                                                                     fill
                                                                     style={{
                                                                         objectFit: "cover",
@@ -181,10 +250,10 @@ export default function Home() {
 
                                                             <VStack alignItems="start" gap={0} color="white">
                                                                 <Text m={0} fontSize="xl" fontWeight={600}>
-                                                                    {displayName}
+                                                                    {entry.twitter.name}
                                                                 </Text>
                                                                 <Text m={0} fontSize="sm">
-                                                                    {username}
+                                                                    {entry.twitter.username}
                                                                 </Text>
                                                             </VStack>
                                                         </HStack>
@@ -192,7 +261,7 @@ export default function Home() {
                                                         <HStack mt={2} gap={3} style={{ cursor: "pointer" }}>
                                                             <Tooltip label="Upvote" hasArrow fontSize="large" offset={[0, 15]}>
                                                                 <Image
-                                                                    onClick={() => {}}
+                                                                    onClick={() => Vote(new PublicKey(entry.key),0, 1)}
                                                                     src="/images/thumbs-up.svg"
                                                                     width={35}
                                                                     height={35}
@@ -202,7 +271,7 @@ export default function Home() {
 
                                                             <Tooltip label="Downvote" hasArrow fontSize="large" offset={[0, 15]}>
                                                                 <Image
-                                                                    onClick={() => {}}
+                                                                    onClick={() => Vote(new PublicKey(entry.key),0, 2)}
                                                                     src="/images/thumbs-down.svg"
                                                                     width={35}
                                                                     height={35}
@@ -213,7 +282,7 @@ export default function Home() {
                                                     </HStack>
 
                                                     <Text m={0} fontSize="lg" fontWeight={600} color="white">
-                                                        {Caption}
+                                                        {entry.entry}
                                                     </Text>
                                                 </VStack>
                                             </SwiperSlide>

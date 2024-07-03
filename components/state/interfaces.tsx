@@ -23,3 +23,11 @@ export interface NFTData {
     uri: string;
     icon: string;
 }
+
+export interface DayRow {
+    key: string;
+    twitter: TwitterUser;
+    score: number;
+    link:string;
+    entry: string;
+}

@@ -37,27 +37,15 @@ import UseWalletConnection from "../components/blog/apps/commonHooks/useWallet";
 import Layout from "./layout";
 import { trimAddress } from "../components/state/utils";
 import { PublicKey } from "@solana/web3.js";
-import { PROGRAM } from "../components/state/constants";
+import { PROGRAM, firebaseConfig } from "../components/state/constants";
 import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common";
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get, Database } from "firebase/database";
+import { DayRow } from "../components/state/interfaces";
 interface Header {
     text: string;
     field: string | null;
 }
-
-interface DayRow {
-    key: string;
-    twitter: string;
-    score: number;
-    link:string;
-}
-
-const firebaseConfig = {
-    // ...
-    // The value of `databaseURL` depends on the location of the database
-    databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
-};
 
 const LeaderboardPage = () => {
     const wallet = useWallet();
@@ -157,10 +145,7 @@ const LeaderboardPage = () => {
             return
         }
         
-
         // get the listings
-        
-
         const entries_db = await get(ref(database, "BlinkBash/entries/0/"+date));
         let entries = entries_db.val();
         if (entries === null) {
@@ -183,9 +168,10 @@ const LeaderboardPage = () => {
 
             let row : DayRow = {
                 key: key,
-                twitter: twitter.username,
+                twitter: twitter,
                 score: entry.positive_votes - entry.negative_votes,
-                link: "https://blinkbash.daoplays.org/api/blink?creator="+key+"&game=0&date="+date
+                link: "https://blinkbash.daoplays.org/api/blink?creator="+key+"&game=0&date="+date,
+                entry: json.entry
             }
 
             day_rows.push(row)
@@ -208,7 +194,7 @@ const LeaderboardPage = () => {
                 <Td color={colour} py={4}>
                     {rank}
                 </Td>
-                <Td color={colour}>{row.twitter}</Td>
+                <Td color={colour}>{row.twitter.username}</Td>
                 <Td color={colour}>{address}</Td>
                 <Td color={colour}>{row.score}</Td>
                 <Td color={colour}>{

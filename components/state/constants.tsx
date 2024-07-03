@@ -33,3 +33,7 @@ export const DATA_ACCOUNT_SEED = 10399637;
 export const TIMEOUT = 30000;
 
 export let Config = MainNetConfig;
+
+export const firebaseConfig = {
+    databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
+};

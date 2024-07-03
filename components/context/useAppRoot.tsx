@@ -4,7 +4,9 @@ import { PropsWithChildren, createContext, useContext, MutableRefObject, SetStat
 import { EntryData, LeaderboardData, ListingData, UserData } from "../state/state";
 import { MintData, NFTData, TwitterUser } from "../state/interfaces";
 import { AssetV1 } from "@metaplex-foundation/mpl-core";
+import { Database } from "firebase/database";
 interface AppRootTypes {
+    database: Database,
     userList: Map<string, UserData>;
     twitterList: Map<string, TwitterUser>;
     listingList: Map<string, ListingData>;
@@ -24,6 +26,7 @@ export const AppRootContext = createContext<AppRootTypes | null>(null);
 
 export const AppRootContextProvider = ({
     children,
+    database,
     userList,
     twitterList,
     listingList,
@@ -40,6 +43,7 @@ export const AppRootContextProvider = ({
     return (
         <AppRootContext.Provider
             value={{
+                database,
                 userList,
                 twitterList,
                 listingList,
