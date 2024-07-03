@@ -82,10 +82,10 @@ export const GetAddListingInstruction = async (user: PublicKey, item: PublicKey,
         { pubkey: user_item, isSigner: false, isWritable: true },
         { pubkey: collection, isSigner: false, isWritable: true },
 
-        { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
-        { pubkey: CORE, isSigner: false, isWritable: true },
-        { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: true },
-        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: true },
+        { pubkey: SYSTEM_KEY, isSigner: false, isWritable: false },
+        { pubkey: CORE, isSigner: false, isWritable: false },
+        { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
     ];
 
     const list_instruction = new TransactionInstruction({

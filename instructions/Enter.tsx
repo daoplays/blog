@@ -53,9 +53,9 @@ export const GetEnterInstruction = async (user: PublicKey, game: number) => {
         { pubkey: BASH, isSigner: false, isWritable: true },
         { pubkey: user_token, isSigner: false, isWritable: true },
 
-        { pubkey: SYSTEM_KEY, isSigner: false, isWritable: true },
-        { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: true },
-        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: true },
+        { pubkey: SYSTEM_KEY, isSigner: false, isWritable: false },
+        { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
     ];
 
     const list_instruction = new TransactionInstruction({
@@ -69,7 +69,7 @@ export const GetEnterInstruction = async (user: PublicKey, game: number) => {
     let feeMicroLamports = await getRecentPrioritizationFees(Config.PROD);
 
     instructions.push(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: feeMicroLamports }));
-    instructions.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }));
+    instructions.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 100_000 }));
     instructions.push(list_instruction);
 
     return instructions;
