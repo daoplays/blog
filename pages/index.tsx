@@ -25,7 +25,7 @@ import Image from "next/image";
 import { FaCalendarAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { BiSolidLeftArrow } from "react-icons/bi";
+import { FaRetweet } from "react-icons/fa6";
 import useAppRoot from "../components/context/useAppRoot";
 import useEntry from "../hooks/useEnter";
 import Layout from "./layout";
@@ -106,14 +106,12 @@ const montserrat = Montserrat({
     variable: "--font-montserrat",
 });
 
-const GetDaysEntries = async (database : Database, entryList : Map<string, EntryData>, twitterList : Map<string, TwitterUser>, setDayRows : Dispatch<SetStateAction<DayRow[]>>) => {
+export const GetDaysEntries = async (date : number, database : Database, entryList : Map<string, EntryData>, twitterList : Map<string, TwitterUser>, setDayRows : Dispatch<SetStateAction<DayRow[]>>) => {
 
     if (database === null || entryList === null || twitterList === null) {
         setDayRows([]);
         return
     }
-
-    let date = Math.floor((new Date().getTime())/(1000*60*60*24))
     
     // get the listings
     const entries_db = await get(ref(database, "BlinkBash/entries/0/"+date));
@@ -181,7 +179,7 @@ export default function Home() {
             return;
         }
 
-        GetDaysEntries(database, entryList, twitterList, setEntries);
+        GetDaysEntries(Math.floor((new Date().getTime())/(1000*60*60*24)), database, entryList, twitterList, setEntries);
 
     }, [database, entryList, twitterList]);
 
@@ -278,6 +276,12 @@ export default function Home() {
                                                                     alt="Thumbs Down"
                                                                 />
                                                             </Tooltip>
+                                                            <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
+                                                            <button style={{"width": '35px', "height": '35px', color: 'rgba(0,0,0,0.50)'}} onClick={() => {}}>
+                                                                <FaRetweet size={35} />
+                                                            </button>
+                                                            </Tooltip>
+                                                            
                                                         </HStack>
                                                     </HStack>
 

@@ -278,7 +278,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         if (program_ws_id.current === null) {
             program_ws_id.current = connection.onProgramAccountChange(PROGRAM, check_program_update, "confirmed");
         }
-    }, [wallet, connection, check_user_balance, checkUserBalance, check_program_update]);
+    }, [wallet, connection, check_user_balance, checkUserBalance, checkUserWLBalance, check_program_update, check_user_wl_balance]);
 
     useEffect(() => {
         if (program_data === null) return;

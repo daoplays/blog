@@ -42,6 +42,7 @@ import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common"
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get, Database } from "firebase/database";
 import { DayRow } from "../components/state/interfaces";
+import { GetDaysEntries } from "./index";
 interface Header {
     text: string;
     field: string | null;
@@ -138,49 +139,7 @@ const LeaderboardPage = () => {
         return 0;
     });
 
-    async function getDaysRanking(date: number) {
-        console.log("get days ranking", date, database, entryList)
-        if (database === null || entryList === null || twitterList === null) {
-            setDayRows([]);
-            return
-        }
-        
-        // get the listings
-        const entries_db = await get(ref(database, "BlinkBash/entries/0/"+date));
-        let entries = entries_db.val();
-        if (entries === null) {
-            setDayRows([]);
-            return;
-        }
-
-        let day_rows : DayRow[] = [];
-        Object.entries(entries).forEach(([key, value]) => {
-            let json = JSON.parse(value.toString());
-            let creator = new PublicKey(key)
-            let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
-            let entry = entryList.get(entry_account.toString());
-            let twitter = twitterList.get(key)
-            if (entry === null || twitter === null) {
-                return
-            }
-            console.log(key, json)
-            console.log(entry)
-
-            let row : DayRow = {
-                key: key,
-                twitter: twitter,
-                score: entry.positive_votes - entry.negative_votes,
-                link: "https://blinkbash.daoplays.org/api/blink?creator="+key+"&game=0&date="+date,
-                entry: json.entry
-            }
-
-            day_rows.push(row)
-        });
-        const sortedList = [...day_rows].sort((a, b) => b.score - a.score);
-
-        setDayRows(sortedList);
-    }
-
+    
     const DayRowCard = ({ row, index }: { row: DayRow; index: number }) => {
         
         const isUser = currentUserData === null ? false : row.key === currentUserData.user_key.toString();
@@ -237,13 +196,13 @@ const LeaderboardPage = () => {
     };
 
     useEffect(() => {
-        if (leaderboardList === null || database === null || entryList === null) {
+        if (twitterList === null || database === null || entryList === null) {
             return;
         }
 
-        getDaysRanking(date);
+        GetDaysEntries(date, database, entryList, twitterList, setDayRows)
 
-    }, [date, leaderboardList, entryList, database]);
+    }, [date, twitterList, entryList, database]);
 
     return (
         <Layout>
