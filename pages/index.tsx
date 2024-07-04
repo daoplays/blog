@@ -18,7 +18,7 @@ import {
     VStack,
     useDisclosure,
 } from "@chakra-ui/react";
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import TwitterIntegration from "../components/common/LinkTwitterAccount";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";
@@ -49,6 +49,8 @@ import useVote from "../hooks/useVote";
 import { wrapLongWords } from "../components/state/utils";
 import { TbReload } from "react-icons/tb";
 import { BiSolidLeftArrow } from "react-icons/bi";
+import bs58 from "bs58";
+import { toast } from "react-toastify";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -243,15 +245,17 @@ export default function Home() {
     };
 
     // get todays entries on load
+
+    let today_date = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24))
     useEffect(() => {
         if (database === null || entryList === null || twitterList === null || leaderboardList === null) {
             return;
         }
 
         console.log("date", new Date(), new Date().getTime(), Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)));
-        GetDaysEntries(Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)), database, entryList, twitterList, setEntries);
+        GetDaysEntries(today_date, database, entryList, twitterList, setEntries);
         GetDaysWinners(
-            Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)) - 1,
+            today_date - 1,
             database,
             entryList,
             userIDs,
@@ -286,6 +290,43 @@ export default function Home() {
         console.log(random_index);
         setRandomEntry(random_index);
     };
+
+    const shareEntry = useCallback(async (creator: string, date: number) => {
+        console.log("unlinking twitter")
+        try {
+
+            const message = "Sign to share post on X";
+            const encodedMessage = new TextEncoder().encode(message);
+
+            // 2. Sign the message
+            const signature = await wallet.signMessage(encodedMessage);
+            const encodedSignature = bs58.encode(signature);
+
+            let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date
+            let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
+
+            let tweet = "Check out this entry to BlinkBash! " + dial_link;
+
+            let body = JSON.stringify({
+                user_key: wallet.publicKey.toString(),
+                signature: encodedSignature,
+                tweetContent: tweet,
+            });
+            const response = await fetch("/.netlify/functions/shareEntry", {
+                method: "POST",
+                body: body,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            console.log(response)
+            toast.success("Tweet shared successfully!");
+        } catch (error) {
+            console.log("Error fetching user info:", error);
+            toast.error("Error sharing tweet");
+        }
+    }, [wallet]);
 
     return (
         <>
@@ -369,7 +410,7 @@ export default function Home() {
                                                         <FaRetweet
                                                             size={42}
                                                             color="rgba(0,0,0,0.45)"
-                                                            onClick={() => {}}
+                                                            onClick={() => shareEntry(entries[random_entry].key, today_date)}
                                                             style={{ marginTop: -2 }}
                                                         />
                                                     </div>
