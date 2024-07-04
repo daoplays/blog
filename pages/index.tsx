@@ -46,6 +46,7 @@ import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common"
 import { PROGRAM } from "../components/state/constants";
 import useVote from "../hooks/useVote";
 import { wrapLongWords } from "../components/state/utils";
+import { TfiReload } from "react-icons/tfi";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -235,6 +236,7 @@ export default function Home() {
     const [entry, setEntry] = useState<string>("");
     const [entries, setEntries] = useState<DayRow[]>([]);
     const [day_winners, setWinners] = useState<DayRow[]>([]);
+    const [random_entry, setRandomEntry] = useState<number>(0);
 
     const { isOpen: isStartOpen, onToggle: onToggleStart, onClose: onCloseStart } = useDisclosure();
     const { handleEntry } = useEntry();
@@ -259,6 +261,33 @@ export default function Home() {
 
     }, [database, entryList, twitterList]);
 
+    useEffect(() => {
+        if (entries.length === 0) {
+            return;
+        }
+
+        setRandomEntry(0)
+
+    }, [entries]);
+
+    const handleRandomiseEntry = () => {
+        if (entries.length === 0) {
+            return;
+        }
+
+        if (entries.length === 1) {
+            setRandomEntry(0);
+            return;
+        }
+
+        let random_index = Math.floor(Math.random() * entries.length);
+        while (random_index === random_entry) {
+            random_index = Math.floor(Math.random() * entries.length);
+        }
+        console.log(random_index)
+        setRandomEntry(random_index);
+    };
+
 
     return (
         <>
@@ -281,25 +310,8 @@ export default function Home() {
                             </Text>
 
                             <div style={{ width: "100%", height: "100%", position: "relative" }}>
-                                <Swiper
-                                    loop={true}
-                                    slidesPerView={1}
-                                    spaceBetween={10}
-                                    navigation={true}
-                                    speed={1000}
-                                    pagination={pagination}
-                                    modules={[Pagination]}
-                                    autoplay={{
-                                        delay: 3000,
-                                    }}
-                                    style={{
-                                        height: "100%",
-                                    }}
-                                    className="swiper-container"
-                                >
-                                    {entries.map((entry, i) => {
-                                        return (
-                                            <SwiperSlide key={entry.key} style={{ height: "100%" }}>
+                               
+                                        {entries.length > 0 &&
                                                 <VStack h="100%" bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
                                                     <HStack w="full" alignItems="start" justifyContent="space-between">
                                                         <HStack alignItems="center" gap={4}>
@@ -312,8 +324,8 @@ export default function Home() {
                                                                 }}
                                                             >
                                                                 <Image
-                                                                    src={entry.twitter.profile_image_url}
-                                                                    alt={`${entry.twitter.username}'s PFP`}
+                                                                    src={entries[random_entry].twitter.profile_image_url}
+                                                                    alt={`${entries[random_entry].twitter.username}'s PFP`}
                                                                     fill
                                                                     style={{
                                                                         objectFit: "cover",
@@ -324,10 +336,10 @@ export default function Home() {
 
                                                             <VStack alignItems="start" gap={0} color="white">
                                                                 <Text m={0} fontSize="xl" fontWeight={600}>
-                                                                    {entry.twitter.name}
+                                                                    {entries[random_entry].twitter.name}
                                                                 </Text>
                                                                 <Text m={0} fontSize="sm">
-                                                                    {entry.twitter.username}
+                                                                    {entries[random_entry].twitter.username}
                                                                 </Text>
                                                             </VStack>
                                                         </HStack>
@@ -335,7 +347,7 @@ export default function Home() {
                                                         <HStack mt={2} gap={3} style={{ cursor: "pointer" }}>
                                                             <Tooltip label="Upvote" hasArrow fontSize="large" offset={[0, 15]}>
                                                                 <Image
-                                                                    onClick={() => Vote(new PublicKey(entry.key),0, 1)}
+                                                                    onClick={() => Vote(new PublicKey(entries[random_entry].key),0, 1)}
                                                                     src="/images/thumbs-up.svg"
                                                                     width={35}
                                                                     height={35}
@@ -345,7 +357,7 @@ export default function Home() {
 
                                                             <Tooltip label="Downvote" hasArrow fontSize="large" offset={[0, 15]}>
                                                                 <Image
-                                                                    onClick={() => Vote(new PublicKey(entry.key),0, 2)}
+                                                                    onClick={() => Vote(new PublicKey(entries[random_entry].key),0, 2)}
                                                                     src="/images/thumbs-down.svg"
                                                                     width={35}
                                                                     height={35}
@@ -357,18 +369,20 @@ export default function Home() {
                                                                 <FaRetweet size={35} />
                                                             </button>
                                                             </Tooltip>
-                                                            
+                                                            <Tooltip label="Randomise" hasArrow fontSize="large" offset={[0, 15]}>
+                                                            <button style={{"width": '35px', "height": '35px', color: 'rgba(0,0,0,0.50)'}} onClick={() => handleRandomiseEntry()}>
+                                                                <TfiReload size={25} />
+                                                            </button>
+                                                            </Tooltip>
                                                         </HStack>
                                                     </HStack>
 
                                                     <Text m={0} fontSize="lg" fontWeight={600} color="white">
-                                                        {wrapLongWords(entry.entry)}
+                                                        {wrapLongWords(entries[random_entry].entry)}
                                                     </Text>
                                                 </VStack>
-                                            </SwiperSlide>
-                                        );
-                                    })}
-                                </Swiper>
+                                }
+                                        
                             </div>
                         </VStack>
                         <VStack bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
