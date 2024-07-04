@@ -45,6 +45,37 @@ const TwitterIntegration = () => {
         }
     }, [wallet, setTwitter]);
 
+    const unlinkTwitter = useCallback(async () => {
+        try {
+
+            const message = `Unlink Twitter account ${Date.now()}`;
+            const encodedMessage = new TextEncoder().encode(message);
+
+            // 2. Sign the message
+            const signature = await wallet.signMessage(encodedMessage);
+
+
+            let body = JSON.stringify({
+                publicKey: wallet.publicKey.toString(),
+                signature: signature,
+                message: message,
+            });
+            const response: Response = await fetch("/.netlify/functions/postDB?table=entry", {
+                method: "POST",
+                body: body,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            console.log(response)
+            //setTwitter(null);
+            //setIsAuthenticated(false);
+        } catch (error) {
+            console.log("Error fetching user info:", error);
+        }
+    }, [wallet, setTwitter]);
+
     const checkTwitterUser = useCallback(async () => {
         if (check_twitter_user.current) {
             try {
@@ -79,6 +110,12 @@ const TwitterIntegration = () => {
         }
         checkTwitterUser();
     }, [wallet, isAuthenticated, checkTwitterUser]);
+
+    useEffect(() => {
+        if (wallet !== null && wallet.disconnecting) {
+            setIsAuthenticated(false);
+        }
+    }, [wallet])
 
     const initiateTwitterLogin = async () => {
         try {
