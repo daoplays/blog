@@ -2,26 +2,26 @@ const { TwitterApi } = require("twitter-api-v2");
 import admin from "firebase-admin";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey } from "@solana/web3.js";
 
 async function verifySignature(publicKey, signature) {
     const message = "Sign to link Twitter account to BlinkBash";
 
     try {
-      const publicKeyObj = new PublicKey(publicKey);
-      const signatureUint8 = bs58.decode(signature);
-      const messageUint8 = new TextEncoder().encode(message);
-  
-      return nacl.sign.detached.verify(messageUint8, signatureUint8, publicKeyObj.toBytes());
+        const publicKeyObj = new PublicKey(publicKey);
+        const signatureUint8 = bs58.decode(signature);
+        const messageUint8 = new TextEncoder().encode(message);
+
+        return nacl.sign.detached.verify(messageUint8, signatureUint8, publicKeyObj.toBytes());
     } catch (error) {
-      console.error('Error verifying signature:', error);
-      return false;
+        console.error("Error verifying signature:", error);
+        return false;
     }
 }
 
 exports.handler = async function (event, context) {
     // Only allow POST requests
-    if (event.httpMethod !== 'POST') {
+    if (event.httpMethod !== "POST") {
         return {
             statusCode: 405,
             body: JSON.stringify({ error: "Method Not Allowed" }),
@@ -45,13 +45,9 @@ exports.handler = async function (event, context) {
             statusCode: 400,
             body: JSON.stringify({ error: "Missing required parameters" }),
         };
-         
     }
 
-
     try {
-
-
         // Verify the signature
         const isValid = await verifySignature(user_key, signature);
 
@@ -60,7 +56,6 @@ exports.handler = async function (event, context) {
                 statusCode: 400,
                 body: JSON.stringify({ error: "Invalid signature" }),
             };
-            
         }
 
         console.log("in twitterAuth with user", user_key);
@@ -70,7 +65,7 @@ exports.handler = async function (event, context) {
             accessToken: process.env.TWITTER_ACCESS_TOKEN,
             accessSecret: process.env.TWITTER_ACCESS_SECRET,
         });
-        
+
         // Generate authentication URL
         const authLink = await client.generateAuthLink("https://blinkbash.daoplays.org/.netlify/functions/twitterCallback");
 

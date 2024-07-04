@@ -28,6 +28,8 @@ export interface DayRow {
     key: string;
     twitter: TwitterUser;
     score: number;
-    link:string;
+    link: string;
     entry: string;
+    prompt: string;
+    claimed: boolean;
 }

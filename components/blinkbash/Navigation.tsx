@@ -17,19 +17,15 @@ const Navigation = () => {
     const isConnected = wallet.publicKey !== null;
     const { userBashBalance, twitter, setTwitter } = useAppRoot();
 
-
     const unlinkTwitter = useCallback(async () => {
-        console.log("unlinking twitter")
+        console.log("unlinking twitter");
         try {
-
             const message = "Sign to unlink Twitter account from BlinkBash";
             const encodedMessage = new TextEncoder().encode(message);
 
             // 2. Sign the message
             const signature = await wallet.signMessage(encodedMessage);
             const encodedSignature = bs58.encode(signature);
-
-
 
             let body = JSON.stringify({
                 publicKey: wallet.publicKey.toString(),
@@ -44,7 +40,7 @@ const Navigation = () => {
                 },
             });
 
-            console.log(response)
+            console.log(response);
             setTwitter(null);
         } catch (error) {
             console.log("Error fetching user info:", error);
@@ -137,7 +133,13 @@ const Navigation = () => {
                             />
                         </MenuButton>
                         <MenuList>
-                            <MenuItem color="red" fontWeight={500} onClick={() => {unlinkTwitter()}}>
+                            <MenuItem
+                                color="red"
+                                fontWeight={500}
+                                onClick={() => {
+                                    unlinkTwitter();
+                                }}
+                            >
                                 Disconnect Twitter
                             </MenuItem>
                         </MenuList>

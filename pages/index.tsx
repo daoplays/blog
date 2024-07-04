@@ -46,6 +46,7 @@ import { PublicKey } from "@solana/web3.js";
 import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common";
 import { PROGRAM } from "../components/state/constants";
 import useVote from "../hooks/useVote";
+import useClaimPrize from "../hooks/useClaimPrize";
 import { wrapLongWords } from "../components/state/utils";
 import { TbReload } from "react-icons/tb";
 import { BiSolidLeftArrow } from "react-icons/bi";
@@ -54,23 +55,8 @@ import { toast } from "react-toastify";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
-const winners = [
-    { rank: 1, reward: "500 $BASH", color: "#FFD700", winner: "You" },
-    {
-        rank: 2,
-        reward: "250 $BASH",
-        color: "#C2C2C2",
-        winner: "Catventurer",
-        img: "/images/prompt.png",
-    },
-    {
-        rank: 3,
-        reward: "100 $BASH",
-        color: "#D3802E",
-        winner: "VynilVibes",
-        img: "/images/prompt.png",
-    },
-];
+const rewards = ["500 $BASH", "250 $BASH", "100 $BASH"];
+const colours = ["#FFD700", "#C2C2C2", "#D3802E"];
 
 const montserrat = Montserrat({
     weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -108,10 +94,6 @@ export const GetDaysEntries = async (
         let entry = entryList.get(entry_account.toString());
         let twitter = twitterList.get(key);
         if (entry === undefined || twitter === undefined) {
-            console.log("ENTRY");
-            console.log(key, json);
-            console.log(entry);
-
             return;
         }
 
@@ -121,6 +103,8 @@ export const GetDaysEntries = async (
             score: entry.positive_votes - entry.negative_votes,
             link: "https://blinkbash.daoplays.org/api/blink?creator=" + key + "&game=0&date=" + date,
             entry: json.entry,
+            prompt: "/images/prompt.png",
+            claimed: entry.reward_claimed === 1,
         };
 
         day_rows.push(row);
@@ -163,8 +147,6 @@ export const GetDaysWinners = async (
         return;
     }
 
-    console.log(leaderboard);
-
     if (leaderboard.scores.length === 0) {
         setDayRows([]);
         return;
@@ -194,17 +176,24 @@ export const GetDaysWinners = async (
             return;
         }
 
+        if (entry.positive_votes + entry.negative_votes === 0) {
+            // skip if no votes
+            //continue;
+        }
+
         let row: DayRow = {
             key: key,
             twitter: twitter,
             score: entry.positive_votes - entry.negative_votes,
             link: "https://blinkbash.daoplays.org/api/blink?creator=" + key + "&game=0&date=" + date,
             entry: json.entry,
+            prompt: "/images/prompt.png",
+            claimed: entry.reward_claimed === 1,
         };
 
         day_rows.push(row);
     }
-    console.log(day_rows);
+    //console.log(day_rows);
     setDayRows(day_rows);
 };
 
@@ -225,6 +214,7 @@ export default function Home() {
 
     const { isOpen: isStartOpen, onToggle: onToggleStart, onClose: onCloseStart } = useDisclosure();
     const { handleEntry } = useEntry();
+    const { ClaimPrize } = useClaimPrize();
 
     const handlePreviousDay = () => {
         const newDate = new Date(startDate.getTime() - 1000 * 60 * 60 * 24);
@@ -246,23 +236,14 @@ export default function Home() {
 
     // get todays entries on load
 
-    let today_date = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24))
+    let today_date = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24));
     useEffect(() => {
         if (database === null || entryList === null || twitterList === null || leaderboardList === null) {
             return;
         }
 
-        console.log("date", new Date(), new Date().getTime(), Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)));
         GetDaysEntries(today_date, database, entryList, twitterList, setEntries);
-        GetDaysWinners(
-            today_date - 1,
-            database,
-            entryList,
-            userIDs,
-            leaderboardList,
-            twitterList,
-            setWinners,
-        );
+        GetDaysWinners(today_date - 1, database, entryList, userIDs, leaderboardList, twitterList, setWinners);
     }, [database, entryList, twitterList]);
 
     useEffect(() => {
@@ -287,46 +268,46 @@ export default function Home() {
         while (random_index === random_entry) {
             random_index = Math.floor(Math.random() * entries.length);
         }
-        console.log(random_index);
         setRandomEntry(random_index);
     };
 
-    const shareEntry = useCallback(async (creator: string, date: number) => {
-        console.log("unlinking twitter")
-        try {
+    const shareEntry = useCallback(
+        async (creator: string, date: number) => {
+            try {
+                const message = "Sign to share post on X";
+                const encodedMessage = new TextEncoder().encode(message);
 
-            const message = "Sign to share post on X";
-            const encodedMessage = new TextEncoder().encode(message);
+                // 2. Sign the message
+                const signature = await wallet.signMessage(encodedMessage);
+                const encodedSignature = bs58.encode(signature);
 
-            // 2. Sign the message
-            const signature = await wallet.signMessage(encodedMessage);
-            const encodedSignature = bs58.encode(signature);
+                let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date;
+                let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
 
-            let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date
-            let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
+                let tweet = "Check out this entry to BlinkBash! " + dial_link;
 
-            let tweet = "Check out this entry to BlinkBash! " + dial_link;
+                let body = JSON.stringify({
+                    user_key: wallet.publicKey.toString(),
+                    signature: encodedSignature,
+                    tweetContent: tweet,
+                });
+                const response = await fetch("/.netlify/functions/shareEntry", {
+                    method: "POST",
+                    body: body,
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
 
-            let body = JSON.stringify({
-                user_key: wallet.publicKey.toString(),
-                signature: encodedSignature,
-                tweetContent: tweet,
-            });
-            const response = await fetch("/.netlify/functions/shareEntry", {
-                method: "POST",
-                body: body,
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
-            console.log(response)
-            toast.success("Tweet shared successfully!");
-        } catch (error) {
-            console.log("Error fetching user info:", error);
-            toast.error("Error sharing tweet");
-        }
-    }, [wallet]);
+                //console.log(response)
+                toast.success("Tweet shared successfully!");
+            } catch (error) {
+                console.log("Error fetching user info:", error);
+                toast.error("Error sharing tweet");
+            }
+        },
+        [wallet],
+    );
 
     return (
         <>
@@ -552,131 +533,132 @@ export default function Home() {
                     </Popover>
 
                     <VStack w="1150px">
-                        <SimpleGrid w="full" gap={2} columns={3}>
-                            {winners.map(({ rank, color, winner, img, reward }) => (
+                        <SimpleGrid w="full" gap={2} columns={day_winners.length}>
+                            {day_winners.map((entry, index) => (
                                 <VStack
                                     gap={1}
-                                    background={selectedRank === rank ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.20)"}
+                                    background={selectedRank === index ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.20)"}
                                     _hover={{ background: `rgba(0,0,0,0.35)` }}
                                     px={6}
                                     py={4}
                                     rounded="xl"
-                                    key={rank}
+                                    key={index}
                                     cursor="pointer"
-                                    onClick={() => setSelectedRank(rank)}
+                                    onClick={() => setSelectedRank(index)}
                                 >
-                                    <HStack color={color} fontSize="xl" fontWeight={600}>
+                                    <HStack color={colours[index]} fontSize="xl" fontWeight={600}>
                                         <LuCrown size={26} />
                                         <Text m={0}>
-                                            Rank {rank} - {reward}
+                                            Rank {index + 1} - {rewards[index]}
                                         </Text>
                                     </HStack>
                                     <HStack>
-                                        {img && (
-                                            <Box position="relative" h="30px" w="30px" rounded="full">
-                                                <Image
-                                                    src={img}
-                                                    width={30}
-                                                    height={30}
-                                                    alt="Image Frame"
-                                                    style={{
-                                                        backgroundSize: "cover",
-                                                        borderRadius: "100%",
-                                                    }}
-                                                />
-                                            </Box>
-                                        )}
+                                        <Box position="relative" h="30px" w="30px" rounded="full">
+                                            <Image
+                                                src={entry.twitter.profile_image_url}
+                                                width={30}
+                                                height={30}
+                                                alt="Image Frame"
+                                                style={{
+                                                    backgroundSize: "cover",
+                                                    borderRadius: "100%",
+                                                }}
+                                            />
+                                        </Box>
+
                                         <Text m={0} color="white" fontWeight={500} fontSize="lg">
-                                            {winner} {winner === "You" && "| "}
-                                            {winner === "You" && (
-                                                <Text
-                                                    m={0}
-                                                    as="span"
-                                                    _hover={{ textDecoration: "underline" }}
-                                                    onClick={(e) => e.preventDefault()}
-                                                >
-                                                    Claim Prize
-                                                </Text>
-                                            )}
+                                            {entry.twitter.name}{" "}
+                                            {!entry.claimed &&
+                                                wallet !== null &&
+                                                wallet.publicKey !== null &&
+                                                entry.key === wallet.publicKey.toString() &&
+                                                "| "}
+                                            {!entry.claimed &&
+                                                wallet !== null &&
+                                                wallet.publicKey !== null &&
+                                                entry.key === wallet.publicKey.toString() && (
+                                                    <Text
+                                                        m={0}
+                                                        as="span"
+                                                        _hover={{ textDecoration: "underline" }}
+                                                        onClick={() => ClaimPrize(0, today_date - 1)}
+                                                    >
+                                                        Claim Prize
+                                                    </Text>
+                                                )}
                                         </Text>
                                     </HStack>
                                 </VStack>
                             ))}
                         </SimpleGrid>
-
-                        <HStack w="full" gap={2}>
-                            <Box position="relative" minH="200px" minW="200px" border="1px solid white" rounded="xl">
-                                <Image
-                                    src="/images/prompt.png"
-                                    fill
-                                    alt="Image Frame"
-                                    style={{ backgroundSize: "cover", borderRadius: 12 }}
-                                />
-                            </Box>
-                            <HStack
-                                h={200}
-                                w="full"
-                                bg="#0ab7f2"
-                                border="1px solid white"
-                                rounded="xl"
-                                shadow="xl"
-                                alignItems="start"
-                                overflowY="auto"
-                            >
-                                <VStack p={6} w="full" alignItems="start">
-                                    <HStack w="full" justifyContent="space-between">
-                                        <HStack alignItems="start" gap={4}>
-                                            <Box position="relative" w="60px" h="60px" borderRadius="100%">
-                                                <Image
-                                                    src={
-                                                        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?fm=jpg&w=3000&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                                                    }
-                                                    alt={`PFP`}
-                                                    fill
-                                                    style={{
-                                                        objectFit: "cover",
-                                                        borderRadius: "100%",
-                                                    }}
-                                                />
-                                            </Box>
-                                            <VStack alignItems="start" gap={0} color="white">
-                                                <Text m={0} fontSize="xl" fontWeight={600}>
-                                                    Catventurer
-                                                </Text>
-                                                <Text m={0}>@CuriousKitty99</Text>
-                                            </VStack>
-                                        </HStack>
-                                        <HStack gap={3} mt={-2}>
-                                            <HStack gap={1}>
-                                                <Text m={0} fontSize="lg" fontWeight={600} color="white">
-                                                    Votes:
-                                                </Text>
-                                                <Text m={0} fontSize="lg" fontWeight={600} color="#FFD700">
-                                                    895
-                                                </Text>
+                        {day_winners.length > 0 && (
+                            <HStack w="full" gap={2}>
+                                <Box position="relative" minH="200px" minW="200px" border="1px solid white" rounded="xl">
+                                    <Image
+                                        src={day_winners[selectedRank].prompt}
+                                        fill
+                                        alt="Image Frame"
+                                        style={{ backgroundSize: "cover", borderRadius: 12 }}
+                                    />
+                                </Box>
+                                <HStack
+                                    h={200}
+                                    w="full"
+                                    bg="#0ab7f2"
+                                    border="1px solid white"
+                                    rounded="xl"
+                                    shadow="xl"
+                                    alignItems="start"
+                                    overflowY="auto"
+                                >
+                                    <VStack p={6} w="full" alignItems="start">
+                                        <HStack w="full" justifyContent="space-between">
+                                            <HStack alignItems="start" gap={4}>
+                                                <Box position="relative" w="60px" h="60px" borderRadius="100%">
+                                                    <Image
+                                                        src={day_winners[selectedRank].twitter.profile_image_url}
+                                                        alt={`PFP`}
+                                                        fill
+                                                        style={{
+                                                            objectFit: "cover",
+                                                            borderRadius: "100%",
+                                                        }}
+                                                    />
+                                                </Box>
+                                                <VStack alignItems="start" gap={0} color="white">
+                                                    <Text m={0} fontSize="xl" fontWeight={600}>
+                                                        {day_winners[selectedRank].twitter.name}
+                                                    </Text>
+                                                    <Text m={0}>@{day_winners[selectedRank].twitter.username}</Text>
+                                                </VStack>
                                             </HStack>
+                                            <HStack gap={3} mt={-2}>
+                                                <HStack gap={1}>
+                                                    <Text m={0} fontSize="lg" fontWeight={600} color="white">
+                                                        Votes:
+                                                    </Text>
+                                                    <Text m={0} fontSize="lg" fontWeight={600} color="#FFD700">
+                                                        {day_winners[selectedRank].score}
+                                                    </Text>
+                                                </HStack>
 
-                                            <Divider orientation="vertical" h={6} />
+                                                <Divider orientation="vertical" h={6} />
 
-                                            <Button
-                                                shadow="md"
-                                                _active={{ bg: "#FFE376" }}
-                                                _hover={{ opacity: "90%" }}
-                                                bg="#FFE376"
-                                                color="#BA6502"
-                                                rounded="lg"
-                                                w="full"
-                                            >
-                                                View Blink
-                                            </Button>
+                                                <FaRetweet
+                                                    size={42}
+                                                    color="rgba(0,0,0,0.45)"
+                                                    onClick={() => shareEntry(entries[random_entry].key, today_date)}
+                                                    style={{ marginTop: -2 }}
+                                                />
+                                            </HStack>
                                         </HStack>
-                                    </HStack>
-                                    <Text m={0} fontSize="lg" fontWeight={600} color="white">
-                                        My Solana meowster just found the comfiest metaverse nap spot! #felinelife #SolanaCatNFT
-                                    </Text>
-                                </VStack>
+                                        <Text m={0} fontSize="lg" fontWeight={600} color="white">
+                                            {wrapLongWords(day_winners[selectedRank].entry)}
+                                        </Text>
+                                    </VStack>
+                                </HStack>
                             </HStack>
-                        </HStack>
+                        )}
                         <Divider />
                     </VStack>
                 </VStack>

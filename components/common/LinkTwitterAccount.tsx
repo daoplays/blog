@@ -44,7 +44,6 @@ const TwitterIntegration = () => {
         }
     }, [wallet, setTwitter]);
 
-
     const checkTwitterUser = useCallback(async () => {
         if (check_twitter_user.current) {
             try {
@@ -88,10 +87,8 @@ const TwitterIntegration = () => {
         }
     }, [twitter]);
 
-
     const initiateTwitterLogin = async () => {
         try {
-
             const message = "Sign to link Twitter account to BlinkBash";
             const encodedMessage = new TextEncoder().encode(message);
 
@@ -101,7 +98,7 @@ const TwitterIntegration = () => {
 
             let body = JSON.stringify({
                 user_key: wallet.publicKey.toString(),
-                signature: encodedSignature
+                signature: encodedSignature,
             });
 
             const response = await fetch("/.netlify/functions/twitterAuth", {
@@ -112,7 +109,7 @@ const TwitterIntegration = () => {
                 },
             });
             const data = await response.json();
-            console.log(data)
+            console.log(data);
             window.location.href = data.url;
         } catch (error) {
             console.log("Error initiating Twitter login:", error);

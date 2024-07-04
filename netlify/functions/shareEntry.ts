@@ -2,20 +2,20 @@ const { TwitterApi } = require("twitter-api-v2");
 import admin from "firebase-admin";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey } from "@solana/web3.js";
 
 async function verifySignature(publicKey, signature) {
     const message = "Sign to share post on X";
 
     try {
-      const publicKeyObj = new PublicKey(publicKey);
-      const signatureUint8 = bs58.decode(signature);
-      const messageUint8 = new TextEncoder().encode(message);
-  
-      return nacl.sign.detached.verify(messageUint8, signatureUint8, publicKeyObj.toBytes());
+        const publicKeyObj = new PublicKey(publicKey);
+        const signatureUint8 = bs58.decode(signature);
+        const messageUint8 = new TextEncoder().encode(message);
+
+        return nacl.sign.detached.verify(messageUint8, signatureUint8, publicKeyObj.toBytes());
     } catch (error) {
-      console.error('Error verifying signature:', error);
-      return false;
+        console.error("Error verifying signature:", error);
+        return false;
     }
 }
 
@@ -35,8 +35,6 @@ exports.handler = async function (event, context) {
                 body: JSON.stringify({ error: "Invalid signature" }),
             };
         }
-
-        
 
         if (!admin.apps.length) {
             try {
@@ -66,8 +64,6 @@ exports.handler = async function (event, context) {
             accessSecret: twitterData.accessSecret,
         });
 
-        
-    
         await client.v2.tweet(tweetContent);
         return {
             statusCode: 200,

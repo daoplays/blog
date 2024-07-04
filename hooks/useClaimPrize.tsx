@@ -52,7 +52,7 @@ const useClaimPrize = () => {
     }, []);
 
     const ClaimPrize = async (game: number, date: number) => {
-        console.log("in vote");
+        console.log("in claim prize");
 
         if (wallet.signTransaction === undefined) {
             console.log(wallet, "invalid wallet");
@@ -86,7 +86,7 @@ const useClaimPrize = () => {
 
             let signature = transaction_response.result;
 
-            console.log("wrap nft sig: ", signature);
+            console.log("claim prize sig: ", signature);
 
             signature_ws_id.current = connection.onSignature(signature, check_signature_update, "confirmed");
             setTimeout(transaction_failed, 20000);

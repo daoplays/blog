@@ -1,5 +1,5 @@
 const { TwitterApi } = require("twitter-api-v2");
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey } from "@solana/web3.js";
 import admin from "firebase-admin";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
@@ -8,21 +8,20 @@ async function verifySignature(publicKey, signature) {
     const message = "Sign to unlink Twitter account from BlinkBash";
 
     try {
-      const publicKeyObj = new PublicKey(publicKey);
-      const signatureUint8 = bs58.decode(signature);
-      const messageUint8 = new TextEncoder().encode(message);
-  
-      return nacl.sign.detached.verify(messageUint8, signatureUint8, publicKeyObj.toBytes());
+        const publicKeyObj = new PublicKey(publicKey);
+        const signatureUint8 = bs58.decode(signature);
+        const messageUint8 = new TextEncoder().encode(message);
+
+        return nacl.sign.detached.verify(messageUint8, signatureUint8, publicKeyObj.toBytes());
     } catch (error) {
-      console.error('Error verifying signature:', error);
-      return false;
+        console.error("Error verifying signature:", error);
+        return false;
     }
 }
-  
-exports.handler = async function (event, context) {
 
-    console.log("method ", event.httpMethod)
-    if (event.httpMethod !== 'POST') {
+exports.handler = async function (event, context) {
+    console.log("method ", event.httpMethod);
+    if (event.httpMethod !== "POST") {
         return {
             statusCode: 405,
             body: JSON.stringify({ error: "Method Not Allowed" }),
@@ -39,15 +38,14 @@ exports.handler = async function (event, context) {
         };
     }
 
-    console.log(body)
+    console.log(body);
     const { publicKey, signature } = body;
-    console.log(signature)
+    console.log(signature);
     if (!publicKey || !signature) {
         return {
             statusCode: 400,
             body: JSON.stringify({ error: "Missing required parameters" }),
         };
-         
     }
 
     if (!admin.apps.length) {
@@ -65,8 +63,7 @@ exports.handler = async function (event, context) {
         }
     }
 
-    try{
-
+    try {
         // Verify the signature
         const isValid = await verifySignature(publicKey, signature);
 
@@ -75,7 +72,6 @@ exports.handler = async function (event, context) {
                 statusCode: 400,
                 body: JSON.stringify({ error: "Invalid signature" }),
             };
-            
         }
 
         const db = admin.database();
@@ -91,7 +87,6 @@ exports.handler = async function (event, context) {
             accessSecret: twitterData.accessSecret,
         });
 
-   
         await auth_database.remove();
 
         const twitter_database = db.ref("BlinkBash/twitter/" + publicKey);
@@ -101,8 +96,6 @@ exports.handler = async function (event, context) {
             statusCode: 200,
             body: JSON.stringify({ message: "Unlinked Account" }),
         };
-
-
     } catch (error) {
         console.error("Twitter Unlnk error:", error);
         return {

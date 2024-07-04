@@ -23,15 +23,18 @@ export const trimAddress = (address: string) => {
 };
 
 export function wrapLongWords(text, maxCharsPerWord = 25) {
-    return text.split(' ').map(word => {
-      if (word.length <= maxCharsPerWord) {
-        return word;
-      }
-      
-      const chunks = [];
-      for (let i = 0; i < word.length; i += maxCharsPerWord) {
-        chunks.push(word.slice(i, i + maxCharsPerWord));
-      }
-      return chunks.join(' ');
-    }).join(' ');
-  }
+    return text
+        .split(" ")
+        .map((word) => {
+            if (word.length <= maxCharsPerWord) {
+                return word;
+            }
+
+            const chunks = [];
+            for (let i = 0; i < word.length; i += maxCharsPerWord) {
+                chunks.push(word.slice(i, i + maxCharsPerWord));
+            }
+            return chunks.join(" ");
+        })
+        .join(" ");
+}

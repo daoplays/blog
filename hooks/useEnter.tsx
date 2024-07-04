@@ -70,7 +70,7 @@ const useEnter = () => {
 
         if (status !== 200) {
             toast.error("Error posting to DB");
-            return
+            return;
         }
 
         // then enter
