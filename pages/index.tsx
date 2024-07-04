@@ -48,6 +48,7 @@ import { PROGRAM } from "../components/state/constants";
 import useVote from "../hooks/useVote";
 import { wrapLongWords } from "../components/state/utils";
 import { TfiReload } from "react-icons/tfi";
+import { BiSolidLeftArrow } from "react-icons/bi";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
