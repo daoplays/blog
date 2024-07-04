@@ -173,12 +173,17 @@ export const GetDaysWinners = async (date : number, database : Database, entryLi
 
     let leaderboard = leaderboardList.get(leaderboard_account.toString());
 
-    if (leaderboard === null) {
+    if (leaderboard === undefined) {
         setDayRows([]);
         return;
     }
 
     console.log(leaderboard)
+
+    if (leaderboard.scores.length === 0) {
+        setDayRows([]);
+        return;
+    }
 
     // Sort the indices based on scores (in descending order)
     const indices = Array.from(leaderboard.scores.keys());
