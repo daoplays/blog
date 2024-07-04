@@ -47,7 +47,7 @@ import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common"
 import { PROGRAM } from "../components/state/constants";
 import useVote from "../hooks/useVote";
 import { wrapLongWords } from "../components/state/utils";
-import { TfiReload } from "react-icons/tfi";
+import { TbReload } from "react-icons/tb";
 import { BiSolidLeftArrow } from "react-icons/bi";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -346,9 +346,22 @@ export default function Home() {
 
                             <Divider />
 
-                            <Text mb={1} color="white" fontSize="3xl" className="font-face-wc">
-                                Submitted Captions
-                            </Text>
+                            <HStack mb={1} alignItems="center">
+                                <Text mb={0} color="white" fontSize="3xl" className="font-face-wc">
+                                    Submitted Captions{" "}
+                                </Text>
+
+                                <Tooltip label="Randomise" hasArrow fontSize="large" offset={[0, 15]}>
+                                    <div>
+                                        <TbReload
+                                            size={32}
+                                            onClick={() => handleRandomiseEntry()}
+                                            color="white"
+                                            style={{ marginTop: -6, cursor: "pointer" }}
+                                        />
+                                    </div>
+                                </Tooltip>
+                            </HStack>
 
                             <div style={{ width: "100%", height: "100%", position: "relative" }}>
                                 {entries.length > 0 && (
@@ -384,7 +397,17 @@ export default function Home() {
                                                 </VStack>
                                             </HStack>
 
-                                            <HStack mt={2} gap={3} style={{ cursor: "pointer" }}>
+                                            <HStack alignItems="start" mt={2} gap={3} style={{ cursor: "pointer" }}>
+                                                <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
+                                                    <div>
+                                                        <FaRetweet
+                                                            size={42}
+                                                            color="rgba(0,0,0,0.45)"
+                                                            onClick={() => {}}
+                                                            style={{ marginTop: -2 }}
+                                                        />
+                                                    </div>
+                                                </Tooltip>
                                                 <Tooltip label="Upvote" hasArrow fontSize="large" offset={[0, 15]}>
                                                     <Image
                                                         onClick={() => Vote(new PublicKey(entries[random_entry].key), 0, 1)}
@@ -403,22 +426,6 @@ export default function Home() {
                                                         height={35}
                                                         alt="Thumbs Down"
                                                     />
-                                                </Tooltip>
-                                                <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
-                                                    <button
-                                                        style={{ width: "35px", height: "35px", color: "rgba(0,0,0,0.50)" }}
-                                                        onClick={() => {}}
-                                                    >
-                                                        <FaRetweet size={35} />
-                                                    </button>
-                                                </Tooltip>
-                                                <Tooltip label="Randomise" hasArrow fontSize="large" offset={[0, 15]}>
-                                                    <button
-                                                        style={{ width: "35px", height: "35px", color: "rgba(0,0,0,0.50)" }}
-                                                        onClick={() => handleRandomiseEntry()}
-                                                    >
-                                                        <TfiReload size={25} />
-                                                    </button>
                                                 </Tooltip>
                                             </HStack>
                                         </HStack>
