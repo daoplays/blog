@@ -26,7 +26,7 @@ class ClaimPrize_Instruction {
 }
 
 function serialise_ClaimPrize_instruction(game: number, date: number): Buffer {
-    const data = new ClaimPrize_Instruction(BashInstruction.Vote, game, date);
+    const data = new ClaimPrize_Instruction(BashInstruction.ClaimPrize, game, date);
     const [buf] = ClaimPrize_Instruction.struct.serialize(data);
 
     return buf;

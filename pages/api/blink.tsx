@@ -52,16 +52,15 @@ export default async function handler(req, res) {
                 };
                 res.status(200).json(data);
             }
-             
-
 
             let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
-            console.log(current_date, date)
-            let valid_date = date === current_date.toString() 
-            let valid_description =  "Vote on the this entry to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins!  For more info visit blinkbash.daoplays.org!  Todays image is by @Dave_Kayac."
-            let invalid_description = "Voting for this entry has already finished.  Check out blinkbash.daoplays.org for todays entries. Submit responses to the days image and vote on entries to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins! This image was by @Dave_Kayac."
-            let description = valid_date ? valid_description : invalid_description 
-
+            console.log(current_date, date);
+            let valid_date = date === current_date.toString();
+            let valid_description =
+                "Vote on the this entry to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins!  For more info visit blinkbash.daoplays.org!  Todays image is by @Dave_Kayac.";
+            let invalid_description =
+                "Voting for this entry has already finished.  Check out blinkbash.daoplays.org for todays entries. Submit responses to the days image and vote on entries to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins! This image was by @Dave_Kayac.";
+            let description = valid_date ? valid_description : invalid_description;
 
             let location = "BlinkBash/entries/" + game + "/" + current_date.toString() + "/" + creator;
 
@@ -82,20 +81,21 @@ export default async function handler(req, res) {
                 res.status(200).json(data);
             }
 
-            let actions =valid_date ?  [
-                {
-                    label: "Up", // button text
-                    href: "/api/blink?creator=" + creator + "&game=0&vote=1",
-                },
-                {
-                    label: "Down", // button text
-                    href: "/api/blink?creator=" + creator + "&game=0&vote=2",
-                },
-            ]
-            : [];
+            let actions = valid_date
+                ? [
+                      {
+                          label: "Up", // button text
+                          href: "/api/blink?creator=" + creator + "&game=0&vote=1",
+                      },
+                      {
+                          label: "Down", // button text
+                          href: "/api/blink?creator=" + creator + "&game=0&vote=2",
+                      },
+                  ]
+                : [];
 
             let title = "BlinkBash Vote!";
-            let image_link = "http://localhost:8888/api/voteImage?creator="+creator+"&game="+game+"&date="+date;
+            let image_link = "http://localhost:8888/api/voteImage?creator=" + creator + "&game=" + game + "&date=" + date;
 
             // Your data here
             const data = {

@@ -39,7 +39,10 @@ export const GetEnterInstruction = async (user: PublicKey, game: number) => {
     let stats = PublicKey.findProgramAddressSync([uInt32ToLEBytes(DATA_ACCOUNT_SEED)], PROGRAM)[0];
     let entry = PublicKey.findProgramAddressSync([user.toBytes(), uInt8ToLEBytes(game), uInt32ToLEBytes(current_date)], PROGRAM)[0];
     let user_token = getAssociatedTokenAddressSync(BASH, user, true, TOKEN_2022_PROGRAM_ID);
-
+    let leaderboard = PublicKey.findProgramAddressSync(
+        [uInt8ToLEBytes(game), uInt32ToLEBytes(current_date), Buffer.from("Leaderboard")],
+        PROGRAM,
+    )[0];
     const instruction_data = serialise_Enter_instruction(game);
 
     var account_vector = [
@@ -52,6 +55,7 @@ export const GetEnterInstruction = async (user: PublicKey, game: number) => {
         { pubkey: user_data_account, isSigner: false, isWritable: true },
         { pubkey: BASH, isSigner: false, isWritable: true },
         { pubkey: user_token, isSigner: false, isWritable: true },
+        { pubkey: leaderboard, isSigner: false, isWritable: true },
 
         { pubkey: SYSTEM_KEY, isSigner: false, isWritable: false },
         { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: false },

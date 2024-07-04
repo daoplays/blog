@@ -6,7 +6,7 @@ import { MintData, NFTData, TwitterUser } from "../state/interfaces";
 import { AssetV1 } from "@metaplex-foundation/mpl-core";
 import { Database } from "firebase/database";
 interface AppRootTypes {
-    database: Database,
+    database: Database;
     userList: Map<string, UserData>;
     userIDs: Map<number, string>;
     twitterList: Map<string, TwitterUser>;

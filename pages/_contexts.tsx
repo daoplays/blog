@@ -9,7 +9,13 @@ import { useCallback, useEffect, useState, useRef, PropsWithChildren } from "rea
 import { AppRootContextProvider } from "../components/context/useAppRoot";
 import "bootstrap/dist/css/bootstrap.css";
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, unpackMint } from "@solana/spl-token";
-import { bignum_to_num, request_raw_account_data, request_token_amount, TokenAccount, uInt32ToLEBytes } from "../components/blog/apps/common";
+import {
+    bignum_to_num,
+    request_raw_account_data,
+    request_token_amount,
+    TokenAccount,
+    uInt32ToLEBytes,
+} from "../components/blog/apps/common";
 import { MintData, NFTData, TwitterUser } from "../components/state/interfaces";
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get, Database } from "firebase/database";
@@ -38,7 +44,7 @@ const GetProgramData = async (check_program_data, setProgramData, setTwitterDB, 
     // Initialize Realtime Database and get a reference to the service
     const database = getDatabase(app);
 
-    setDatabase(database)
+    setDatabase(database);
 
     const twitter_users = await get(ref(database, "BlinkBash/twitter"));
     let entry = twitter_users.val();
@@ -87,40 +93,36 @@ const GetTokenMintData = async (trade_keys: String[], setMintMap) => {
 };
 
 const GetNFTData = async (nft_keys: String[], setNFTMap) => {
-    
     const umi = createUmi(Config.RPC_NODE, "confirmed");
     let pda = PublicKey.findProgramAddressSync([uInt32ToLEBytes(PDA_ACCOUNT_SEED)], PROGRAM)[0];
 
     let pda_umiKey = publicKey(pda.toString());
 
-    const assets = await getAssetV1GpaBuilder(umi)
-        .whereField("key", Key.AssetV1)
-        .whereField('owner', pda_umiKey)
-        .getDeserialized();
+    const assets = await getAssetV1GpaBuilder(umi).whereField("key", Key.AssetV1).whereField("owner", pda_umiKey).getDeserialized();
 
     let asset_map = new Map<String, NFTData>();
-    await Promise.all(assets.map(async (asset) => {
-        let nftdata: NFTData = {
-            mint: asset,
-            uri: asset.uri,
-            icon: ""
-        };
+    await Promise.all(
+        assets.map(async (asset) => {
+            let nftdata: NFTData = {
+                mint: asset,
+                uri: asset.uri,
+                icon: "",
+            };
 
-        try {
-            const response = await fetchWithTimeout(asset.uri, 3000);
-            const uri_json = await response.json();
-            nftdata.icon = uri_json["image"];
-        } catch (error) {
-            console.error(`Error fetching data for asset ${asset.publicKey}:`, error);
-        }
+            try {
+                const response = await fetchWithTimeout(asset.uri, 3000);
+                const uri_json = await response.json();
+                nftdata.icon = uri_json["image"];
+            } catch (error) {
+                console.error(`Error fetching data for asset ${asset.publicKey}:`, error);
+            }
 
-        asset_map.set(asset.publicKey.toString(), nftdata);
-    }));
+            asset_map.set(asset.publicKey.toString(), nftdata);
+        }),
+    );
 
-    
-    setNFTMap(asset_map)
+    setNFTMap(asset_map);
 };
-
 
 const ContextProviders = ({ children }: PropsWithChildren) => {
     const wallet = useWallet();
@@ -181,7 +183,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             const [listing] = ListingData.struct.deserialize(event_data);
             listing_data.set(listing.item_address.toString(), listing);
             setListingData(new Map(listing_data));
-            
+
             return;
         }
 
@@ -307,7 +309,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             //console.log(program_data)
             if (data[0] === AccountType.User) {
                 const [user] = UserData.struct.deserialize(data);
-                console.log("user", user);
+                //console.log("user", user);
                 user_data.set(user.user_key.toString(), user);
                 user_ids.set(user.user_id, user.user_key.toString());
                 continue;
@@ -341,7 +343,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         setUserData(user_data);
         setUserIDs(user_ids);
         setListingData(listings);
-        setEntryData(entries)
+        setEntryData(entries);
         setLeaderboardData(leaderboards);
 
         if (have_wallet) {
@@ -352,7 +354,6 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
         GetTokenMintData(token_listings, setMintData);
         GetNFTData(nft_listings, setNFTData);
-
     }, [program_data, wallet]);
 
     useEffect(() => {
@@ -363,6 +364,17 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
         GetProgramData(check_program_data, setProgramData, setTwitterDB, setDatabase);
     }, []);
+
+    useEffect(() => {
+        if (wallet !== null && wallet.disconnecting) {
+            setCurrentUserData(null);
+            setUserBashBalance(0);
+            setTwitter(null);
+            setUserWLBalance(0);
+            user_wl_balance_ws_id.current = null;
+            user_balance_ws_id.current = null;
+        }
+    }, [wallet]);
 
     return (
         <AppRootContextProvider
@@ -375,7 +387,6 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             nftList={nftData}
             entryList={entry_data}
             leaderboardList={leaderboard_data}
-
             currentUserData={current_user_data}
             userBashBalance={userBashBalance}
             userWLBalance={userWLBalance}

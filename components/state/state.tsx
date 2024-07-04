@@ -138,7 +138,6 @@ export class EntryData {
         readonly positive_votes: number,
         readonly negative_votes: number,
         readonly reward_claimed: number,
-        
     ) {}
 
     static readonly struct = new FixableBeetStruct<EntryData>(
@@ -147,7 +146,6 @@ export class EntryData {
             ["positive_votes", u32],
             ["negative_votes", u32],
             ["reward_claimed", u8],
-           
         ],
         (args) => new EntryData(args.account_type!, args.positive_votes!, args.negative_votes!, args.reward_claimed!),
         "EntryData",

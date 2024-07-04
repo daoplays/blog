@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, useCallback } from "react";
 import { Button, HStack, Menu, MenuButton, MenuItem, MenuList, Text, VStack } from "@chakra-ui/react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { FaSignOutAlt } from "react-icons/fa";
@@ -9,12 +9,43 @@ import Link from "next/link";
 import { trimAddress } from "../state/utils";
 import useAppRoot from "../context/useAppRoot";
 import UseWalletConnection from "../blog/apps/commonHooks/useWallet";
+import bs58 from "bs58";
 
 const Navigation = () => {
     const wallet = useWallet();
     const { handleConnectWallet, handleDisconnectWallet } = UseWalletConnection();
     const isConnected = wallet.publicKey !== null;
-    const { userBashBalance, twitter } = useAppRoot();
+    const { userBashBalance, twitter, setTwitter } = useAppRoot();
+
+    const unlinkTwitter = useCallback(async () => {
+        console.log("unlinking twitter");
+        try {
+            const message = "Sign to unlink Twitter account from BlinkBash";
+            const encodedMessage = new TextEncoder().encode(message);
+
+            // 2. Sign the message
+            const signature = await wallet.signMessage(encodedMessage);
+            const encodedSignature = bs58.encode(signature);
+
+            let body = JSON.stringify({
+                publicKey: wallet.publicKey.toString(),
+                signature: encodedSignature,
+                message: message,
+            });
+            const response = await fetch("/.netlify/functions/unlinkTwitter", {
+                method: "POST",
+                body: body,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            console.log(response);
+            setTwitter(null);
+        } catch (error) {
+            console.log("Error fetching user info:", error);
+        }
+    }, [wallet, setTwitter]);
 
     return (
         <HStack
@@ -102,7 +133,13 @@ const Navigation = () => {
                             />
                         </MenuButton>
                         <MenuList>
-                            <MenuItem color="red" fontWeight={500}>
+                            <MenuItem
+                                color="red"
+                                fontWeight={500}
+                                onClick={() => {
+                                    unlinkTwitter();
+                                }}
+                            >
                                 Disconnect Twitter
                             </MenuItem>
                         </MenuList>

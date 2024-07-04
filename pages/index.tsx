@@ -18,7 +18,7 @@ import {
     VStack,
     useDisclosure,
 } from "@chakra-ui/react";
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import TwitterIntegration from "../components/common/LinkTwitterAccount";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";
@@ -46,63 +46,17 @@ import { PublicKey } from "@solana/web3.js";
 import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common";
 import { PROGRAM } from "../components/state/constants";
 import useVote from "../hooks/useVote";
+import useClaimPrize from "../hooks/useClaimPrize";
 import { wrapLongWords } from "../components/state/utils";
 import { TbReload } from "react-icons/tb";
 import { BiSolidLeftArrow } from "react-icons/bi";
+import bs58 from "bs58";
+import { toast } from "react-toastify";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
-const submittedCaptions = [
-    {
-        pfp: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?fm=jpg&w=3000&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        username: "@CuriousKitty99",
-        displayName: "Catventurer",
-        Caption: "My Solana meowster just found the comfiest metaverse nap spot! #felinelife #SolanaCatNFT",
-    },
-    {
-        pfp: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?fm=jpg&w=3000&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        username: "@StarryEyedGazer",
-        displayName: "Amelia",
-        Caption: "Lost in the beauty of the cosmos tonight with my cosmic cat NFT. ✨ #astronomylover #SolanaCatNFT #tothemoon",
-    },
-    {
-        pfp: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?fm=jpg&w=3000&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        username: "@VinylVibes78",
-        displayName: "The Spin Doctor",
-        Caption: "My Solana cat NFT gets it. Vinyl vibes are the best vibes.  #recordcollector #oldschoolmusic #SolanaCatNFT",
-    },
-    {
-        pfp: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?fm=jpg&w=3000&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        username: "@TheAdventureSquad",
-        displayName: "The Misfits",
-        Caption: "Making metaverse memories with my Solana cat NFT and the squad! #friendshipgoals #alwayslaughing #SolanaCatNFT #Solana",
-    },
-    {
-        pfp: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?fm=jpg&w=3000&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        username: "@CaffeinatedCoder",
-        displayName: "Java Junkie ☕",
-        Caption:
-            "Coffee in hand, code flowing, cat NFT chilling. Another day in the Solanaverse! #coffeelover #programmerlife #SolanaCatNFT",
-    },
-];
-
-const winners = [
-    { rank: 1, reward: "500 $BASH", color: "#FFD700", winner: "You" },
-    {
-        rank: 2,
-        reward: "250 $BASH",
-        color: "#C2C2C2",
-        winner: "Catventurer",
-        img: "/images/prompt.png",
-    },
-    {
-        rank: 3,
-        reward: "100 $BASH",
-        color: "#D3802E",
-        winner: "VynilVibes",
-        img: "/images/prompt.png",
-    },
-];
+const rewards = ["500 $BASH", "250 $BASH", "100 $BASH"];
+const colours = ["#FFD700", "#C2C2C2", "#D3802E"];
 
 const montserrat = Montserrat({
     weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -140,10 +94,6 @@ export const GetDaysEntries = async (
         let entry = entryList.get(entry_account.toString());
         let twitter = twitterList.get(key);
         if (entry === undefined || twitter === undefined) {
-            console.log("ENTRY");
-            console.log(key, json);
-            console.log(entry);
-
             return;
         }
 
@@ -153,6 +103,8 @@ export const GetDaysEntries = async (
             score: entry.positive_votes - entry.negative_votes,
             link: "https://blinkbash.daoplays.org/api/blink?creator=" + key + "&game=0&date=" + date,
             entry: json.entry,
+            prompt: "/images/prompt.png",
+            claimed: entry.reward_claimed === 1,
         };
 
         day_rows.push(row);
@@ -195,8 +147,6 @@ export const GetDaysWinners = async (
         return;
     }
 
-    console.log(leaderboard);
-
     if (leaderboard.scores.length === 0) {
         setDayRows([]);
         return;
@@ -226,17 +176,24 @@ export const GetDaysWinners = async (
             return;
         }
 
+        if (entry.positive_votes + entry.negative_votes === 0) {
+            // skip if no votes
+            //continue;
+        }
+
         let row: DayRow = {
             key: key,
             twitter: twitter,
             score: entry.positive_votes - entry.negative_votes,
             link: "https://blinkbash.daoplays.org/api/blink?creator=" + key + "&game=0&date=" + date,
             entry: json.entry,
+            prompt: "/images/prompt.png",
+            claimed: entry.reward_claimed === 1,
         };
 
         day_rows.push(row);
     }
-    console.log(day_rows);
+    //console.log(day_rows);
     setDayRows(day_rows);
 };
 
@@ -245,55 +202,66 @@ export default function Home() {
     const wallet = useWallet();
 
     const isConnected = wallet.publicKey !== null;
+    let today_date = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24));
+
     const { twitter, database, userIDs, entryList, twitterList, leaderboardList } = useAppRoot();
 
-    const [selectedRank, setSelectedRank] = useState(1);
+    const [selectedRank, setSelectedRank] = useState(0);
 
-    const [startDate, setStartDate] = useState<Date>(new Date());
+    const [startDate, setStartDate] = useState<Date>(new Date((today_date - 1) * (1000 * 60 * 60 * 24)));
     const [entry, setEntry] = useState<string>("");
     const [entries, setEntries] = useState<DayRow[]>([]);
     const [day_winners, setWinners] = useState<DayRow[]>([]);
     const [random_entry, setRandomEntry] = useState<number>(0);
+    const [winner_date, setWinnerDate] = useState<number>(today_date - 1);
 
     const { isOpen: isStartOpen, onToggle: onToggleStart, onClose: onCloseStart } = useDisclosure();
     const { handleEntry } = useEntry();
+    const { ClaimPrize } = useClaimPrize();
+
+    const handleSetDate = (date: Date) => {
+        setSelectedRank(0);
+        setStartDate(date);
+        let day = date.getTime() / 1000 / 60 / 60 / 24;
+        setWinnerDate(day);
+        console.log(date, day);
+    };
 
     const handlePreviousDay = () => {
-        const newDate = new Date(startDate.getTime() - 1000 * 60 * 60 * 24);
+        let min_win_date = 19907;
+        if (winner_date === min_win_date) {
+            return;
+        }
+        let new_date_time = (winner_date - 1) * 1000 * 60 * 60 * 24;
+
+        const newDate = new Date(new_date_time);
+        setSelectedRank(0);
         setStartDate(newDate);
+        setWinnerDate(today_date - 1);
     };
 
     const handleNextDay = () => {
-        const newDate = new Date(startDate.getTime() + 1000 * 60 * 60 * 24);
+        if (winner_date === today_date - 1) {
+            return;
+        }
+        let new_date_time = (today_date + 1) * 1000 * 60 * 60 * 24;
+        const newDate = new Date(new_date_time);
+        setSelectedRank(0);
         setStartDate(newDate);
+        setWinnerDate(today_date + 1);
     };
     const { Vote } = useVote();
 
-    const pagination = {
-        clickable: true,
-        renderBullet: function (index: number, className: string) {
-            return '<span class="' + className + '" >' + "</span>";
-        },
-    };
-
     // get todays entries on load
+
     useEffect(() => {
         if (database === null || entryList === null || twitterList === null || leaderboardList === null) {
             return;
         }
 
-        console.log("date", new Date(), new Date().getTime(), Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)));
-        GetDaysEntries(Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)), database, entryList, twitterList, setEntries);
-        GetDaysWinners(
-            Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)),
-            database,
-            entryList,
-            userIDs,
-            leaderboardList,
-            twitterList,
-            setWinners,
-        );
-    }, [database, entryList, twitterList]);
+        GetDaysEntries(today_date, database, entryList, twitterList, setEntries);
+        GetDaysWinners(winner_date, database, entryList, userIDs, leaderboardList, twitterList, setWinners);
+    }, [today_date, winner_date, database, entryList, twitterList, leaderboardList, userIDs]);
 
     useEffect(() => {
         if (entries.length === 0) {
@@ -317,9 +285,46 @@ export default function Home() {
         while (random_index === random_entry) {
             random_index = Math.floor(Math.random() * entries.length);
         }
-        console.log(random_index);
         setRandomEntry(random_index);
     };
+
+    const shareEntry = useCallback(
+        async (creator: string, date: number) => {
+            try {
+                const message = "Sign to share post on X";
+                const encodedMessage = new TextEncoder().encode(message);
+
+                // 2. Sign the message
+                const signature = await wallet.signMessage(encodedMessage);
+                const encodedSignature = bs58.encode(signature);
+
+                let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date;
+                let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
+
+                let tweet = "Check out this entry to BlinkBash! " + dial_link;
+
+                let body = JSON.stringify({
+                    user_key: wallet.publicKey.toString(),
+                    signature: encodedSignature,
+                    tweetContent: tweet,
+                });
+                const response = await fetch("/.netlify/functions/shareEntry", {
+                    method: "POST",
+                    body: body,
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                //console.log(response)
+                toast.success("Tweet shared successfully!");
+            } catch (error) {
+                console.log("Error fetching user info:", error);
+                toast.error("Error sharing tweet");
+            }
+        },
+        [wallet],
+    );
 
     return (
         <>
@@ -403,7 +408,7 @@ export default function Home() {
                                                         <FaRetweet
                                                             size={42}
                                                             color="rgba(0,0,0,0.45)"
-                                                            onClick={() => {}}
+                                                            onClick={() => shareEntry(entries[random_entry].key, today_date)}
                                                             style={{ marginTop: -2 }}
                                                         />
                                                     </div>
@@ -530,12 +535,11 @@ export default function Home() {
                             <PopoverHeader h={34} />
                             <PopoverBody>
                                 <DatePicker
-                                    showTimeSelect
-                                    timeFormat="HH:mm"
-                                    timeIntervals={15}
+                                    minDate={new Date(19907 * 1000 * 60 * 60 * 24)}
+                                    maxDate={new Date((today_date - 1) * 1000 * 60 * 60 * 24)}
                                     selected={startDate}
                                     onChange={(date) => {
-                                        setStartDate(date);
+                                        handleSetDate(date);
                                     }}
                                     onClickOutside={() => onCloseStart()}
                                     inline
@@ -545,50 +549,53 @@ export default function Home() {
                     </Popover>
 
                     <VStack w="1150px">
-                        <SimpleGrid w="full" gap={2} columns={3}>
-                            {winners.map(({ rank, color, winner, img, reward }) => (
+                        <SimpleGrid w="full" gap={2} columns={day_winners.length}>
+                            {day_winners.map((entry, index) => (
                                 <VStack
                                     gap={1}
-                                    background={selectedRank === rank ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.20)"}
+                                    background={selectedRank === index ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.20)"}
                                     _hover={{ background: `rgba(0,0,0,0.35)` }}
                                     px={6}
                                     py={4}
                                     rounded="xl"
-                                    key={rank}
+                                    key={index}
                                     cursor="pointer"
-                                    onClick={() => setSelectedRank(rank)}
+                                    onClick={() => setSelectedRank(index)}
                                 >
-                                    <HStack color={color} fontSize="xl" fontWeight={600}>
+                                    <HStack color={colours[index]} fontSize="xl" fontWeight={600}>
                                         <LuCrown size={26} />
                                         <Text m={0}>
-                                            Rank {rank} - {reward}
+                                            Rank {index + 1} - {rewards[index]}
                                         </Text>
                                     </HStack>
                                     <HStack>
-                                        {img && (
-                                            <Box position="relative" h="30px" w="30px" rounded="full">
-                                                <Image
-                                                    src={img}
-                                                    width={30}
-                                                    height={30}
-                                                    alt="Image Frame"
-                                                    style={{
-                                                        backgroundSize: "cover",
-                                                        borderRadius: "100%",
-                                                    }}
-                                                />
-                                            </Box>
-                                        )}
+                                        <Box position="relative" h="30px" w="30px" rounded="full">
+                                            <Image
+                                                src={entry.twitter.profile_image_url}
+                                                width={30}
+                                                height={30}
+                                                alt="Image Frame"
+                                                style={{
+                                                    backgroundSize: "cover",
+                                                    borderRadius: "100%",
+                                                }}
+                                            />
+                                        </Box>
+
                                         <Text m={0} color="white" fontWeight={500} fontSize="lg">
-                                            {winner} {winner === "You" && "| "}
-                                            {winner === "You" && (
+                                            {entry.twitter.name}{" "}
+                                            {wallet !== null &&
+                                                wallet.publicKey !== null &&
+                                                entry.key === wallet.publicKey.toString() &&
+                                                "| "}
+                                            {wallet !== null && wallet.publicKey !== null && entry.key === wallet.publicKey.toString() && (
                                                 <Text
                                                     m={0}
                                                     as="span"
-                                                    _hover={{ textDecoration: "underline" }}
-                                                    onClick={(e) => e.preventDefault()}
+                                                    _hover={{ textDecoration: entry.claimed ? "none" : "underline" }}
+                                                    onClick={() => (entry.claimed ? "" : ClaimPrize(0, today_date - 1))}
                                                 >
-                                                    Claim Prize
+                                                    {!entry.claimed ? "Claim Prize" : "Claimed"}
                                                 </Text>
                                             )}
                                         </Text>
@@ -596,80 +603,78 @@ export default function Home() {
                                 </VStack>
                             ))}
                         </SimpleGrid>
-
-                        <HStack w="full" gap={2}>
-                            <Box position="relative" minH="200px" minW="200px" border="1px solid white" rounded="xl">
-                                <Image
-                                    src="/images/prompt.png"
-                                    fill
-                                    alt="Image Frame"
-                                    style={{ backgroundSize: "cover", borderRadius: 12 }}
-                                />
-                            </Box>
-                            <HStack
-                                h={200}
-                                w="full"
-                                bg="#0ab7f2"
-                                border="1px solid white"
-                                rounded="xl"
-                                shadow="xl"
-                                alignItems="start"
-                                overflowY="auto"
-                            >
-                                <VStack p={6} w="full" alignItems="start">
-                                    <HStack w="full" justifyContent="space-between">
-                                        <HStack alignItems="start" gap={4}>
-                                            <Box position="relative" w="60px" h="60px" borderRadius="100%">
-                                                <Image
-                                                    src={
-                                                        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?fm=jpg&w=3000&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                                                    }
-                                                    alt={`PFP`}
-                                                    fill
-                                                    style={{
-                                                        objectFit: "cover",
-                                                        borderRadius: "100%",
-                                                    }}
-                                                />
-                                            </Box>
-                                            <VStack alignItems="start" gap={0} color="white">
-                                                <Text m={0} fontSize="xl" fontWeight={600}>
-                                                    Catventurer
-                                                </Text>
-                                                <Text m={0}>@CuriousKitty99</Text>
-                                            </VStack>
-                                        </HStack>
-                                        <HStack gap={3} mt={-2}>
-                                            <HStack gap={1}>
-                                                <Text m={0} fontSize="lg" fontWeight={600} color="white">
-                                                    Votes:
-                                                </Text>
-                                                <Text m={0} fontSize="lg" fontWeight={600} color="#FFD700">
-                                                    895
-                                                </Text>
+                        {day_winners.length > 0 && (
+                            <HStack w="full" gap={2}>
+                                <Box position="relative" minH="200px" minW="200px" border="1px solid white" rounded="xl">
+                                    <Image
+                                        src={day_winners[selectedRank].prompt}
+                                        fill
+                                        alt="Image Frame"
+                                        style={{ backgroundSize: "cover", borderRadius: 12 }}
+                                    />
+                                </Box>
+                                <HStack
+                                    h={200}
+                                    w="full"
+                                    bg="#0ab7f2"
+                                    border="1px solid white"
+                                    rounded="xl"
+                                    shadow="xl"
+                                    alignItems="start"
+                                    overflowY="auto"
+                                >
+                                    <VStack p={6} w="full" alignItems="start">
+                                        <HStack w="full" justifyContent="space-between">
+                                            <HStack alignItems="start" gap={4}>
+                                                <Box position="relative" w="60px" h="60px" borderRadius="100%">
+                                                    <Image
+                                                        src={day_winners[selectedRank].twitter.profile_image_url}
+                                                        alt={`PFP`}
+                                                        fill
+                                                        style={{
+                                                            objectFit: "cover",
+                                                            borderRadius: "100%",
+                                                        }}
+                                                    />
+                                                </Box>
+                                                <VStack alignItems="start" gap={0} color="white">
+                                                    <Text m={0} fontSize="xl" fontWeight={600}>
+                                                        {day_winners[selectedRank].twitter.name}
+                                                    </Text>
+                                                    <Text m={0}>@{day_winners[selectedRank].twitter.username}</Text>
+                                                </VStack>
                                             </HStack>
+                                            <HStack gap={3} mt={-2}>
+                                                <HStack gap={1}>
+                                                    <Text m={0} fontSize="lg" fontWeight={600} color="white">
+                                                        Votes:
+                                                    </Text>
+                                                    <Text m={0} fontSize="lg" fontWeight={600} color="#FFD700">
+                                                        {day_winners[selectedRank].score}
+                                                    </Text>
+                                                </HStack>
 
-                                            <Divider orientation="vertical" h={6} />
+                                                <Divider orientation="vertical" h={6} />
 
-                                            <Button
-                                                shadow="md"
-                                                _active={{ bg: "#FFE376" }}
-                                                _hover={{ opacity: "90%" }}
-                                                bg="#FFE376"
-                                                color="#BA6502"
-                                                rounded="lg"
-                                                w="full"
-                                            >
-                                                View Blink
-                                            </Button>
+                                                <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
+                                                    <div>
+                                                        <FaRetweet
+                                                            size={42}
+                                                            color="rgba(0,0,0,0.45)"
+                                                            onClick={() => shareEntry(entries[random_entry].key, today_date)}
+                                                            style={{ marginTop: -2, cursor: "pointer" }}
+                                                        />
+                                                    </div>
+                                                </Tooltip>
+                                            </HStack>
                                         </HStack>
-                                    </HStack>
-                                    <Text m={0} fontSize="lg" fontWeight={600} color="white">
-                                        My Solana meowster just found the comfiest metaverse nap spot! #felinelife #SolanaCatNFT
-                                    </Text>
-                                </VStack>
+                                        <Text m={0} fontSize="lg" fontWeight={600} color="white">
+                                            {wrapLongWords(day_winners[selectedRank].entry)}
+                                        </Text>
+                                    </VStack>
+                                </HStack>
                             </HStack>
-                        </HStack>
+                        )}
                         <Divider />
                     </VStack>
                 </VStack>

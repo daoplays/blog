@@ -5,7 +5,7 @@ import nacl from "tweetnacl";
 import { PublicKey } from "@solana/web3.js";
 
 async function verifySignature(publicKey, signature) {
-    const message = "Sign to link Twitter account to BlinkBash";
+    const message = "Sign to share post on X";
 
     try {
         const publicKeyObj = new PublicKey(publicKey);
@@ -20,35 +20,13 @@ async function verifySignature(publicKey, signature) {
 }
 
 exports.handler = async function (event, context) {
-    // Only allow POST requests
     if (event.httpMethod !== "POST") {
-        return {
-            statusCode: 405,
-            body: JSON.stringify({ error: "Method Not Allowed" }),
-        };
-    }
-
-    let body;
-    try {
-        body = JSON.parse(event.body);
-    } catch (error) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: "Invalid JSON" }),
-        };
-    }
-
-    const { user_key, signature } = body;
-
-    if (!user_key || !signature) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: "Missing required parameters" }),
-        };
+        return { statusCode: 405, body: "Method Not Allowed" };
     }
 
     try {
-        // Verify the signature
+        const { user_key, signature, tweetContent } = JSON.parse(event.body);
+
         const isValid = await verifySignature(user_key, signature);
 
         if (!isValid) {
@@ -57,17 +35,6 @@ exports.handler = async function (event, context) {
                 body: JSON.stringify({ error: "Invalid signature" }),
             };
         }
-
-        console.log("in twitterAuth with user", user_key);
-        const client = new TwitterApi({
-            appKey: process.env.TWITTER_CONSUMER_KEY,
-            appSecret: process.env.TWITTER_CONSUMER_SECRET,
-            accessToken: process.env.TWITTER_ACCESS_TOKEN,
-            accessSecret: process.env.TWITTER_ACCESS_SECRET,
-        });
-
-        // Generate authentication URL
-        const authLink = await client.generateAuthLink("https://blinkbash.daoplays.org/.netlify/functions/twitterCallback");
 
         if (!admin.apps.length) {
             try {
@@ -84,24 +51,28 @@ exports.handler = async function (event, context) {
             }
         }
 
-        let body = JSON.stringify({
-            user_key: user_key,
-            url: authLink.url,
-            oauth_token: authLink.oauth_token,
-            oauth_token_secret: authLink.oauth_token_secret,
-        });
         const db = admin.database();
-        const database = db.ref("twitter_auth/" + authLink.oauth_token);
-        await database.set(body);
+        const database = db.ref("twitter_auth/" + user_key);
 
+        const snapshot2 = await database.get();
+        let twitterData = JSON.parse(snapshot2.val());
+
+        const client = new TwitterApi({
+            appKey: process.env.TWITTER_CONSUMER_KEY,
+            appSecret: process.env.TWITTER_CONSUMER_SECRET,
+            accessToken: twitterData.accessToken,
+            accessSecret: twitterData.accessSecret,
+        });
+
+        await client.v2.tweet(tweetContent);
         return {
             statusCode: 200,
-            body: body,
+            body: JSON.stringify({ message: "Tweet posted successfully" }),
         };
     } catch (error) {
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: "Failed to generate auth link" }),
+            body: JSON.stringify({ error: "Failed to post tweet" }),
         };
     }
 };

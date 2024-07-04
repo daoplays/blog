@@ -7,6 +7,7 @@ import UseWalletConnection from "../blog/apps/commonHooks/useWallet";
 import { Button } from "@chakra-ui/react";
 import { TwitterUser } from "../state/interfaces";
 import useAppRoot from "../context/useAppRoot";
+import bs58 from "bs58";
 
 const firebaseConfig = {
     // ...
@@ -18,7 +19,6 @@ const TwitterIntegration = () => {
     const wallet = useWallet();
     const { handleConnectWallet } = UseWalletConnection();
     const { twitter, setTwitter } = useAppRoot();
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const check_twitter_user = useRef<boolean>(true);
 
     const fetchUserInfo = useCallback(async () => {
@@ -39,7 +39,6 @@ const TwitterIntegration = () => {
                 profile_image_url: userData.profile_image_url,
             };
             setTwitter(twitter_user);
-            setIsAuthenticated(true);
         } catch (error) {
             console.log("Error fetching user info:", error);
         }
@@ -55,6 +54,9 @@ const TwitterIntegration = () => {
                 const database = getDatabase(app);
                 const snapshot = await get(ref(database, "BlinkBash/twitter/" + wallet.publicKey.toString()));
                 let db_entry = JSON.parse(snapshot.val());
+                if (db_entry === null) {
+                    return;
+                }
                 if (db_entry.username) {
                     let twitter_user: TwitterUser = {
                         name: db_entry.name,
@@ -62,7 +64,6 @@ const TwitterIntegration = () => {
                         profile_image_url: db_entry.profile_image_url,
                     };
                     setTwitter(twitter_user);
-                    setIsAuthenticated(true);
                 } else {
                     await fetchUserInfo();
                 }
@@ -74,17 +75,41 @@ const TwitterIntegration = () => {
     }, [wallet, fetchUserInfo, setTwitter]);
 
     useEffect(() => {
-        if (wallet === null || wallet.publicKey === null) {
+        if (wallet === null || wallet.publicKey === null || wallet.disconnecting) {
             return;
         }
         checkTwitterUser();
-    }, [wallet, isAuthenticated, checkTwitterUser]);
+    }, [wallet, checkTwitterUser]);
+
+    useEffect(() => {
+        if (twitter === null) {
+            check_twitter_user.current = true;
+        }
+    }, [twitter]);
 
     const initiateTwitterLogin = async () => {
         try {
-            const response = await fetch("/.netlify/functions/twitterAuth?user_key=" + wallet.publicKey.toString(), { method: "GET" });
-            const data = await response.json();
+            const message = "Sign to link Twitter account to BlinkBash";
+            const encodedMessage = new TextEncoder().encode(message);
 
+            // 2. Sign the message
+            const signature = await wallet.signMessage(encodedMessage);
+            const encodedSignature = bs58.encode(signature);
+
+            let body = JSON.stringify({
+                user_key: wallet.publicKey.toString(),
+                signature: encodedSignature,
+            });
+
+            const response = await fetch("/.netlify/functions/twitterAuth", {
+                method: "POST",
+                body: body,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            const data = await response.json();
+            console.log(data);
             window.location.href = data.url;
         } catch (error) {
             console.log("Error initiating Twitter login:", error);
@@ -107,7 +132,7 @@ const TwitterIntegration = () => {
                     Connect Wallet
                 </Button>
             ) : (
-                !isAuthenticated && (
+                twitter === null && (
                     <Button
                         shadow="md"
                         _active={{ bg: "#FFE376" }}

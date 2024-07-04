@@ -57,8 +57,9 @@
         "react-toastify": "^10.0.5",
         "react-twitch-embed": "^3.0.1",
         "sharp": "^0.32.6",
-        "text-to-svg": "^3.1.5",
         "swiper": "^11.1.4",
+        "text-to-svg": "^3.1.5",
+        "tweetnacl": "^1.0.3",
         "twitter-api-v2": "^1.17.1"
     },
     "engines": {
