@@ -7,6 +7,7 @@ import UseWalletConnection from "../blog/apps/commonHooks/useWallet";
 import { Button } from "@chakra-ui/react";
 import { TwitterUser } from "../state/interfaces";
 import useAppRoot from "../context/useAppRoot";
+import bs58 from "bs58";
 
 const firebaseConfig = {
     // ...
@@ -90,9 +91,28 @@ const TwitterIntegration = () => {
 
     const initiateTwitterLogin = async () => {
         try {
-            const response = await fetch("/.netlify/functions/twitterAuth?user_key=" + wallet.publicKey.toString(), { method: "GET" });
-            const data = await response.json();
 
+            const message = "Sign to link Twitter account to BlinkBash";
+            const encodedMessage = new TextEncoder().encode(message);
+
+            // 2. Sign the message
+            const signature = await wallet.signMessage(encodedMessage);
+            const encodedSignature = bs58.encode(signature);
+
+            let body = JSON.stringify({
+                user_key: wallet.publicKey.toString(),
+                signature: encodedSignature
+            });
+
+            const response = await fetch("/.netlify/functions/twitterAuth", {
+                method: "POST",
+                body: body,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            const data = await response.json();
+            console.log(data)
             window.location.href = data.url;
         } catch (error) {
             console.log("Error initiating Twitter login:", error);

@@ -75,7 +75,7 @@ exports.handler = async function (event, context) {
         return {
             statusCode: 302,
             headers: {
-                Location: `/`,
+                Location: `/?twitter=success`,
             },
             body: "Redirecting...",
         };
