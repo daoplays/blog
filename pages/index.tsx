@@ -219,28 +219,25 @@ export default function Home() {
     const { handleEntry } = useEntry();
     const { ClaimPrize } = useClaimPrize();
 
-    const handleSetDate = (date : Date) => {
-
-        setSelectedRank(0)
+    const handleSetDate = (date: Date) => {
+        setSelectedRank(0);
         setStartDate(date);
         let day = date.getTime() / 1000 / 60 / 60 / 24;
         setWinnerDate(day);
-        console.log(date, day)
-
+        console.log(date, day);
     };
 
     const handlePreviousDay = () => {
-        let min_win_date = 19907
+        let min_win_date = 19907;
         if (winner_date === min_win_date) {
             return;
         }
         let new_date_time = (winner_date - 1) * 1000 * 60 * 60 * 24;
 
         const newDate = new Date(new_date_time);
-        setSelectedRank(0)
+        setSelectedRank(0);
         setStartDate(newDate);
         setWinnerDate(today_date - 1);
-
     };
 
     const handleNextDay = () => {
@@ -249,7 +246,7 @@ export default function Home() {
         }
         let new_date_time = (today_date + 1) * 1000 * 60 * 60 * 24;
         const newDate = new Date(new_date_time);
-        setSelectedRank(0)
+        setSelectedRank(0);
         setStartDate(newDate);
         setWinnerDate(today_date + 1);
     };
@@ -587,24 +584,20 @@ export default function Home() {
 
                                         <Text m={0} color="white" fontWeight={500} fontSize="lg">
                                             {entry.twitter.name}{" "}
-                                            {!entry.claimed &&
-                                                wallet !== null &&
+                                            {wallet !== null &&
                                                 wallet.publicKey !== null &&
                                                 entry.key === wallet.publicKey.toString() &&
                                                 "| "}
-                                            {!entry.claimed &&
-                                                wallet !== null &&
-                                                wallet.publicKey !== null &&
-                                                entry.key === wallet.publicKey.toString() && (
-                                                    <Text
-                                                        m={0}
-                                                        as="span"
-                                                        _hover={{ textDecoration: "underline" }}
-                                                        onClick={() => ClaimPrize(0, today_date - 1)}
-                                                    >
-                                                        Claim Prize
-                                                    </Text>
-                                                )}
+                                            {wallet !== null && wallet.publicKey !== null && entry.key === wallet.publicKey.toString() && (
+                                                <Text
+                                                    m={0}
+                                                    as="span"
+                                                    _hover={{ textDecoration: entry.claimed ? "none" : "underline" }}
+                                                    onClick={() => (entry.claimed ? "" : ClaimPrize(0, today_date - 1))}
+                                                >
+                                                    {!entry.claimed ? "Claim Prize" : "Claimed"}
+                                                </Text>
+                                            )}
                                         </Text>
                                     </HStack>
                                 </VStack>
@@ -669,12 +662,10 @@ export default function Home() {
                                                             size={42}
                                                             color="rgba(0,0,0,0.45)"
                                                             onClick={() => shareEntry(entries[random_entry].key, today_date)}
-                                                            style={{ marginTop: -2, cursor: "pointer"  }}
+                                                            style={{ marginTop: -2, cursor: "pointer" }}
                                                         />
                                                     </div>
                                                 </Tooltip>
-
-                                                
                                             </HStack>
                                         </HStack>
                                         <Text m={0} fontSize="lg" fontWeight={600} color="white">
