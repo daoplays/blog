@@ -18,7 +18,6 @@ const TwitterIntegration = () => {
     const wallet = useWallet();
     const { handleConnectWallet } = UseWalletConnection();
     const { twitter, setTwitter } = useAppRoot();
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const check_twitter_user = useRef<boolean>(true);
 
     const fetchUserInfo = useCallback(async () => {
@@ -39,42 +38,11 @@ const TwitterIntegration = () => {
                 profile_image_url: userData.profile_image_url,
             };
             setTwitter(twitter_user);
-            setIsAuthenticated(true);
         } catch (error) {
             console.log("Error fetching user info:", error);
         }
     }, [wallet, setTwitter]);
 
-    const unlinkTwitter = useCallback(async () => {
-        try {
-
-            const message = `Unlink Twitter account ${Date.now()}`;
-            const encodedMessage = new TextEncoder().encode(message);
-
-            // 2. Sign the message
-            const signature = await wallet.signMessage(encodedMessage);
-
-
-            let body = JSON.stringify({
-                publicKey: wallet.publicKey.toString(),
-                signature: signature,
-                message: message,
-            });
-            const response: Response = await fetch("/.netlify/functions/postDB?table=entry", {
-                method: "POST",
-                body: body,
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
-            console.log(response)
-            //setTwitter(null);
-            //setIsAuthenticated(false);
-        } catch (error) {
-            console.log("Error fetching user info:", error);
-        }
-    }, [wallet, setTwitter]);
 
     const checkTwitterUser = useCallback(async () => {
         if (check_twitter_user.current) {
@@ -86,6 +54,9 @@ const TwitterIntegration = () => {
                 const database = getDatabase(app);
                 const snapshot = await get(ref(database, "BlinkBash/twitter/" + wallet.publicKey.toString()));
                 let db_entry = JSON.parse(snapshot.val());
+                if (db_entry === null) {
+                    return;
+                }
                 if (db_entry.username) {
                     let twitter_user: TwitterUser = {
                         name: db_entry.name,
@@ -93,7 +64,6 @@ const TwitterIntegration = () => {
                         profile_image_url: db_entry.profile_image_url,
                     };
                     setTwitter(twitter_user);
-                    setIsAuthenticated(true);
                 } else {
                     await fetchUserInfo();
                 }
@@ -105,17 +75,18 @@ const TwitterIntegration = () => {
     }, [wallet, fetchUserInfo, setTwitter]);
 
     useEffect(() => {
-        if (wallet === null || wallet.publicKey === null) {
+        if (wallet === null || wallet.publicKey === null || wallet.disconnecting) {
             return;
         }
         checkTwitterUser();
-    }, [wallet, isAuthenticated, checkTwitterUser]);
+    }, [wallet, checkTwitterUser]);
 
     useEffect(() => {
-        if (wallet !== null && wallet.disconnecting) {
-            setIsAuthenticated(false);
+        if (twitter === null) {
+            check_twitter_user.current = true;
         }
-    }, [wallet])
+    }, [twitter]);
+
 
     const initiateTwitterLogin = async () => {
         try {
@@ -144,7 +115,7 @@ const TwitterIntegration = () => {
                     Connect Wallet
                 </Button>
             ) : (
-                !isAuthenticated && (
+                twitter === null && (
                     <Button
                         shadow="md"
                         _active={{ bg: "#FFE376" }}

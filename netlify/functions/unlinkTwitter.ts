@@ -4,7 +4,9 @@ import admin from "firebase-admin";
 import bs58 from "bs58";
 import nacl from "tweetnacl";
 
-async function verifySignature(publicKey, signature, message) {
+async function verifySignature(publicKey, signature) {
+    const message = "Sign to unlink Twitter account from BlinkBash";
+
     try {
       const publicKeyObj = new PublicKey(publicKey);
       const signatureUint8 = bs58.decode(signature);
@@ -15,19 +17,37 @@ async function verifySignature(publicKey, signature, message) {
       console.error('Error verifying signature:', error);
       return false;
     }
-  }
+}
   
-  export default async function handler(req, res) {
+exports.handler = async function (event, context) {
 
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
+    console.log("method ", event.httpMethod)
+    if (event.httpMethod !== 'POST') {
+        return {
+            statusCode: 405,
+            body: JSON.stringify({ error: "Method Not Allowed" }),
+        };
     }
 
+    let body;
+    try {
+        body = JSON.parse(event.body);
+    } catch (error) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Invalid JSON" }),
+        };
+    }
 
-    const { publicKey, signature, message } = req.body;
-
-    if (!publicKey || !signature || !message) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+    console.log(body)
+    const { publicKey, signature } = body;
+    console.log(signature)
+    if (!publicKey || !signature) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Missing required parameters" }),
+        };
+         
     }
 
     if (!admin.apps.length) {
@@ -48,16 +68,20 @@ async function verifySignature(publicKey, signature, message) {
     try{
 
         // Verify the signature
-        const isValid = await verifySignature(publicKey, signature, message);
+        const isValid = await verifySignature(publicKey, signature);
 
         if (!isValid) {
-        return res.status(401).json({ error: 'Invalid signature' });
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: "Invalid signature" }),
+            };
+            
         }
 
         const db = admin.database();
-        const database = db.ref("twitter_auth/" + publicKey);
+        const auth_database = db.ref("twitter_auth/" + publicKey);
 
-        const snapshot2 = await database.get();
+        const snapshot2 = await auth_database.get();
         let twitterData = JSON.parse(snapshot2.val());
 
         const client = new TwitterApi({
@@ -67,13 +91,22 @@ async function verifySignature(publicKey, signature, message) {
             accessSecret: twitterData.accessSecret,
         });
 
-        //await client.revokeOAuth2Token(twitterData.accessToken);
+   
+        await auth_database.remove();
+
+        const twitter_database = db.ref("BlinkBash/twitter/" + publicKey);
+        await twitter_database.remove();
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: "Unlinked Account" }),
+        };
 
 
     } catch (error) {
         console.error("Twitter Unlnk error:", error);
         return {
-            statusCode: 500,
+            statusCode: 400,
             body: JSON.stringify({ error: "Failed to unlink account" }),
         };
     }
