@@ -3,6 +3,7 @@ import TextToSVG from 'text-to-svg';
 import path from 'path';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get } from "firebase/database";
+import { wrapLongWords } from '../../components/state/utils';
 
 const firebaseConfig = {
   // ...
@@ -101,7 +102,7 @@ export default async function handler(req, res) {
 
     
     // Dynamic bottom text
-    const bottomText = entry.entry
+    const bottomText = wrapLongWords(entry.entry)
     const truncatedText = bottomText.slice(0, 250); // Ensure text is no longer than 250 characters
     const maxLineWidth = width - 2 * padding;
     const lines = splitTextIntoLines(truncatedText, maxLineWidth, bottomFontSize, montserratTextToSVG);
