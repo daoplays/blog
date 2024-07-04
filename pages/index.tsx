@@ -107,7 +107,7 @@ const montserrat = Montserrat({
 });
 
 export const GetDaysEntries = async (date : number, database : Database, entryList : Map<string, EntryData>, twitterList : Map<string, TwitterUser>, setDayRows : Dispatch<SetStateAction<DayRow[]>>) => {
-
+    console.log("get days entries")
     if (database === null || entryList === null || twitterList === null) {
         setDayRows([]);
         return
@@ -121,6 +121,8 @@ export const GetDaysEntries = async (date : number, database : Database, entryLi
         return;
     }
 
+    console.log("ENTRIES", entries)
+
     let day_rows : DayRow[] = [];
     Object.entries(entries).forEach(([key, value]) => {
         let json = JSON.parse(value.toString());
@@ -128,9 +130,10 @@ export const GetDaysEntries = async (date : number, database : Database, entryLi
         let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
         let entry = entryList.get(entry_account.toString());
         let twitter = twitterList.get(key)
-        if (entry === null || twitter === null) {
+        if (entry === undefined || twitter === undefined) {
             return
         }
+        console.log("ENTRY")
         console.log(key, json)
         console.log(entry)
 
