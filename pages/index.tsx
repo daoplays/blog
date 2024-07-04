@@ -244,7 +244,7 @@ export default function Home() {
 
         GetDaysEntries(today_date, database, entryList, twitterList, setEntries);
         GetDaysWinners(today_date - 1, database, entryList, userIDs, leaderboardList, twitterList, setWinners);
-    }, [database, entryList, twitterList]);
+    }, [today_date, database, entryList, twitterList, leaderboardList, userIDs]);
 
     useEffect(() => {
         if (entries.length === 0) {
