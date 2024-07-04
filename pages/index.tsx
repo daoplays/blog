@@ -45,6 +45,7 @@ import { PublicKey } from "@solana/web3.js";
 import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common";
 import { PROGRAM } from "../components/state/constants";
 import useVote from "../hooks/useVote";
+import { wrapLongWords } from "../components/state/utils";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -107,7 +108,6 @@ const montserrat = Montserrat({
 });
 
 export const GetDaysEntries = async (date : number, database : Database, entryList : Map<string, EntryData>, twitterList : Map<string, TwitterUser>, setDayRows : Dispatch<SetStateAction<DayRow[]>>) => {
-    console.log("get days entries")
     if (database === null || entryList === null || twitterList === null) {
         setDayRows([]);
         return
@@ -121,8 +121,7 @@ export const GetDaysEntries = async (date : number, database : Database, entryLi
         return;
     }
 
-    console.log("ENTRIES", entries)
-
+   
     let day_rows : DayRow[] = [];
     Object.entries(entries).forEach(([key, value]) => {
         let json = JSON.parse(value.toString());
@@ -131,12 +130,13 @@ export const GetDaysEntries = async (date : number, database : Database, entryLi
         let entry = entryList.get(entry_account.toString());
         let twitter = twitterList.get(key)
         if (entry === undefined || twitter === undefined) {
+            console.log("ENTRY")
+            console.log(key, json)
+            console.log(entry)
+    
             return
         }
-        console.log("ENTRY")
-        console.log(key, json)
-        console.log(entry)
-
+       
         let row : DayRow = {
             key: key,
             twitter: twitter,
@@ -144,8 +144,6 @@ export const GetDaysEntries = async (date : number, database : Database, entryLi
             link: "https://blinkbash.daoplays.org/api/blink?creator="+key+"&game=0&date="+date,
             entry: json.entry
         }
-
-        console.log(row)
 
         day_rows.push(row)
     });
@@ -364,7 +362,7 @@ export default function Home() {
                                                     </HStack>
 
                                                     <Text m={0} fontSize="lg" fontWeight={600} color="white">
-                                                        {entry.entry}
+                                                        {wrapLongWords(entry.entry)}
                                                     </Text>
                                                 </VStack>
                                             </SwiperSlide>
