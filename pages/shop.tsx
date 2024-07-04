@@ -38,9 +38,11 @@ import { getSolscanLink } from "../components/state/utils";
 import { trimAddress } from "../components/state/utils";
 import { MdOutlineContentCopy } from "react-icons/md";
 import { bignum_to_num } from "../components/blog/apps/common";
+import useResponsive from "../components/blog/apps/commonHooks/useResponsive";
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 export default function Shop() {
+    const { xl } = useResponsive();
     const wallet = useWallet();
     const isConnected = wallet.publicKey !== null;
     const [selected, setSelected] = useState("Tokens");

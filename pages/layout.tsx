@@ -12,6 +12,7 @@ import useResponsive from "../components/blog/apps/commonHooks/useResponsive";
 import { Tooltip } from "@chakra-ui/react";
 import useAppRoot from "../components/context/useAppRoot";
 import Link from "next/link";
+import Navigation from "../components/blinkbash/Navigation";
 
 const montserrat = Montserrat({
     weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -38,110 +39,9 @@ const Layout = ({ children }: PropsWithChildren) => {
             minHeight="100vh"
             background="linear-gradient(180deg, #5DBBFF 0%, #0076CC 100%)"
         >
-            <HStack
-                h={20}
-                px={5}
-                position="fixed"
-                top={0}
-                w="full"
-                alignItems="center"
-                justify="space-between"
-                background="linear-gradient(180deg, #5DBBFF 25%, #0076CC 200%)"
-                zIndex={99}
-            >
-                <Link href="/">
-                    <Text m={0} color="white" fontSize="5xl" className="font-face-wc">
-                        Blink<span style={{ color: "#FFDD56" }}>Bash!</span>
-                    </Text>
-                </Link>
-
-                <HStack
-                    gap={10}
-                    alignItems="center"
-                    style={{
-                        position: "absolute",
-                        marginLeft: "auto",
-                        marginRight: "auto",
-                        left: 0,
-                        right: 0,
-                        width: "fit-content",
-                    }}
-                >
-                    <Link href="/">
-                        <Text m={0} color="white" fontSize="2xl" className="font-face-wc">
-                            Play
-                        </Text>
-                    </Link>
-                    <Link href="/shop">
-                        <Text m={0} color="white" fontSize="2xl" className="font-face-wc">
-                            Shop
-                        </Text>
-                    </Link>
-                    <Link href="/leaderboard">
-                        <Text m={0} color="white" fontSize="2xl" className="font-face-wc">
-                            Leaderboard
-                        </Text>
-                    </Link>
-                </HStack>
-
-                <HStack gap={4} alignItems="center">
-                    {isConnected && (
-                        <HStack>
-                            <Image height={30} width={30} src="/images/logo.png" alt="BASH" style={{ background: "transparent" }} />
-                            <Text m={0} fontSize={"2xl"} color="white" fontWeight="semibold">
-                                {userBashBalance / 10}
-                            </Text>
-                        </HStack>
-                    )}
-                    <Button
-                        shadow="md"
-                        _active={{ bg: "#FFE376" }}
-                        _hover={{ opacity: "90%" }}
-                        bg="#FFE376"
-                        color="#BA6502"
-                        rounded="lg"
-                        onClick={isConnected ? handleDisconnectWallet : handleConnectWallet}
-                    >
-                        {isConnected ? (
-                            <HStack align="center" spacing={2}>
-                                <FaSignOutAlt size={18} />
-                                <Text m={0}>{trimAddress(wallet.publicKey.toString())}</Text>
-                            </HStack>
-                        ) : (
-                            "Connect Wallet"
-                        )}
-                    </Button>
-                    {twitter && isConnected && (
-                        <Menu>
-                            <MenuButton>
-                                <Image
-                                    src={twitter.profile_image_url!}
-                                    alt="User Avatar"
-                                    width={45}
-                                    height={45}
-                                    style={{ borderRadius: "50%", cursor: "pointer" }}
-                                />
-                            </MenuButton>
-                            <MenuList>
-                                <MenuItem color="red" fontWeight={500}>
-                                    Disconnect Twitter
-                                </MenuItem>
-                            </MenuList>
-                        </Menu>
-                    )}
-                </HStack>
-            </HStack>
+            <Navigation />
 
             {children}
-
-            <Image
-                src="/images/man.png"
-                alt="Builder Character"
-                width={300}
-                height={300}
-                style={{ position: "absolute", bottom: 0, left: 0, zIndex: -50 }}
-                hidden={xl}
-            />
         </VStack>
     );
 };

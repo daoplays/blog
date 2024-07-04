@@ -52,14 +52,13 @@ const LeaderboardPage = () => {
     const wallet = useWallet();
     const { handleConnectWallet } = UseWalletConnection();
     const { twitterList, userList, currentUserData, entryList, leaderboardList } = useAppRoot();
-    const { xs, sm, lg } = useResponsive();
+    const { xs, sm, lg, xl } = useResponsive();
     const [selected, setSelected] = useState("Today");
     const [database, setDatabase] = useState<Database | null>(null);
-    const [date, setDate] = useState<number>(Math.floor((new Date().getTime())/(1000*60*60*24)));
+    const [date, setDate] = useState<number>(Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)));
     const [day_rows, setDayRows] = useState<DayRow[]>([]);
     const [sortedField, setSortedField] = useState<string | null>("votes");
     const [reverseSort, setReverseSort] = useState<boolean>(true);
-
 
     useEffect(() => {
         if (database !== null) {
@@ -72,9 +71,7 @@ const LeaderboardPage = () => {
         // Initialize Realtime Database and get a reference to the service
         const db = getDatabase(app);
         setDatabase(db);
-
     }, [database]);
-    
 
     let userVec: UserData[] = [];
     if (userList !== null && twitterList !== null) {
@@ -87,26 +84,23 @@ const LeaderboardPage = () => {
         });
     }
 
-
-    const tableHeaders: Header[] = selected === "Global" ? 
-    [
-        { text: "RANK", field: "rank" },
-        { text: "USER", field: "user" },
-        { text: "ADDRESS", field: "address" },
-        { text: "WINS", field: "wins" },
-        { text: "VOTES", field: "votes" },
-        { text: "VOTED", field: "voted" },
-    ]
-    :
-    [
-        { text: "RANK", field: "rank" },
-        { text: "USER", field: "user" },
-        { text: "ADDRESS", field: "address" },
-        { text: "SCORE", field: "score" },
-        { text: "VIEW", field: "view" },
-    ]
-    ;
-
+    const tableHeaders: Header[] =
+        selected === "Global"
+            ? [
+                  { text: "RANK", field: "rank" },
+                  { text: "USER", field: "user" },
+                  { text: "ADDRESS", field: "address" },
+                  { text: "WINS", field: "wins" },
+                  { text: "VOTES", field: "votes" },
+                  { text: "VOTED", field: "voted" },
+              ]
+            : [
+                  { text: "RANK", field: "rank" },
+                  { text: "USER", field: "user" },
+                  { text: "ADDRESS", field: "address" },
+                  { text: "SCORE", field: "score" },
+                  { text: "VIEW", field: "view" },
+              ];
     const handleHeaderClick = (field: string | null) => {
         console.log("field", field);
         if (field === sortedField) {
@@ -116,7 +110,6 @@ const LeaderboardPage = () => {
             setReverseSort(false);
         }
     };
-
 
     const sortedUsers = userVec.sort((a, b) => {
         if (sortedField === "user") {
@@ -139,15 +132,13 @@ const LeaderboardPage = () => {
         return 0;
     });
 
-    
     const DayRowCard = ({ row, index }: { row: DayRow; index: number }) => {
-        
         const isUser = currentUserData === null ? false : row.key === currentUserData.user_key.toString();
         const rank = index + 1;
         let address = trimAddress(row.key);
 
         let colour = isUser ? "yellow" : "white";
-        let link = "https://dial.to/?action=solana-action:" + encodeURIComponent(row.link)
+        let link = "https://dial.to/?action=solana-action:" + encodeURIComponent(row.link);
         return (
             <Tr>
                 <Td color={colour} py={4}>
@@ -156,11 +147,13 @@ const LeaderboardPage = () => {
                 <Td color={colour}>{row.twitter.username}</Td>
                 <Td color={colour}>{address}</Td>
                 <Td color={colour}>{row.score}</Td>
-                <Td color={colour}>{
-                <Link href={link} isExternal>
-                    <FaExternalLinkAlt/>                
-                </Link>   
-                }</Td>
+                <Td color={colour}>
+                    {
+                        <Link href={link} isExternal>
+                            <FaExternalLinkAlt />
+                        </Link>
+                    }
+                </Td>
             </Tr>
         );
     };
@@ -200,8 +193,7 @@ const LeaderboardPage = () => {
             return;
         }
 
-        GetDaysEntries(date, database, entryList, twitterList, setDayRows)
-
+        GetDaysEntries(date, database, entryList, twitterList, setDayRows);
     }, [date, twitterList, entryList, database]);
 
     return (
@@ -266,23 +258,31 @@ const LeaderboardPage = () => {
                                 </Tr>
                             </Thead>
 
-                             {selected === "Today" ? (
+                            {selected === "Today" ? (
                                 <Tbody>
                                     {day_rows.map((row, i) => {
                                         return <DayRowCard key={row.key} row={row} index={i} />;
                                     })}
                                 </Tbody>
-                            ) : (       
-                            <Tbody>
-                                {sortedUsers.map((user, i) => {
-                                    return <UserCard key={user.user_key.toString()} user={user} index={i} />;
-                                })}
-                            </Tbody>
+                            ) : (
+                                <Tbody>
+                                    {sortedUsers.map((user, i) => {
+                                        return <UserCard key={user.user_key.toString()} user={user} index={i} />;
+                                    })}
+                                </Tbody>
                             )}
                         </Table>
                     </TableContainer>
                 </VStack>
             </HStack>
+            <Image
+                src="/images/leaderboard-man.png"
+                alt="Leaderboard Man Character"
+                width={300}
+                height={300}
+                style={{ position: "absolute", bottom: -20, left: 50, zIndex: -50 }}
+                hidden={xl}
+            />
         </Layout>
     );
 };

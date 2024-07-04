@@ -1,4 +1,4 @@
-import { ChakraProvider } from "@chakra-ui/react";
+import { ChakraProvider, HStack, VStack } from "@chakra-ui/react";
 import { theme } from "../chakra";
 import Footer from "../components/Footer";
 import Navigation from "../components/Navigation";
