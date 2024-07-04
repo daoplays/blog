@@ -663,12 +663,18 @@ export default function Home() {
 
                                                 <Divider orientation="vertical" h={6} />
 
-                                                <FaRetweet
-                                                    size={42}
-                                                    color="rgba(0,0,0,0.45)"
-                                                    onClick={() => shareEntry(entries[random_entry].key, today_date)}
-                                                    style={{ marginTop: -2 }}
-                                                />
+                                                <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
+                                                    <div>
+                                                        <FaRetweet
+                                                            size={42}
+                                                            color="rgba(0,0,0,0.45)"
+                                                            onClick={() => shareEntry(entries[random_entry].key, today_date)}
+                                                            style={{ marginTop: -2, cursor: "pointer"  }}
+                                                        />
+                                                    </div>
+                                                </Tooltip>
+
+                                                
                                             </HStack>
                                         </HStack>
                                         <Text m={0} fontSize="lg" fontWeight={600} color="white">
