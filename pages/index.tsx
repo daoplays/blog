@@ -202,49 +202,69 @@ export default function Home() {
     const wallet = useWallet();
 
     const isConnected = wallet.publicKey !== null;
+    let today_date = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24));
+
     const { twitter, database, userIDs, entryList, twitterList, leaderboardList } = useAppRoot();
 
-    const [selectedRank, setSelectedRank] = useState(1);
+    const [selectedRank, setSelectedRank] = useState(0);
 
-    const [startDate, setStartDate] = useState<Date>(new Date());
+    const [startDate, setStartDate] = useState<Date>(new Date((today_date - 1) * (1000 * 60 * 60 * 24)));
     const [entry, setEntry] = useState<string>("");
     const [entries, setEntries] = useState<DayRow[]>([]);
     const [day_winners, setWinners] = useState<DayRow[]>([]);
     const [random_entry, setRandomEntry] = useState<number>(0);
+    const [winner_date, setWinnerDate] = useState<number>(today_date - 1);
 
     const { isOpen: isStartOpen, onToggle: onToggleStart, onClose: onCloseStart } = useDisclosure();
     const { handleEntry } = useEntry();
     const { ClaimPrize } = useClaimPrize();
 
+    const handleSetDate = (date : Date) => {
+
+        setSelectedRank(0)
+        setStartDate(date);
+        let day = date.getTime() / 1000 / 60 / 60 / 24;
+        setWinnerDate(day);
+        console.log(date, day)
+
+    };
+
     const handlePreviousDay = () => {
-        const newDate = new Date(startDate.getTime() - 1000 * 60 * 60 * 24);
+        let min_win_date = 19907
+        if (winner_date === min_win_date) {
+            return;
+        }
+        let new_date_time = (winner_date - 1) * 1000 * 60 * 60 * 24;
+
+        const newDate = new Date(new_date_time);
+        setSelectedRank(0)
         setStartDate(newDate);
+        setWinnerDate(today_date - 1);
+
     };
 
     const handleNextDay = () => {
-        const newDate = new Date(startDate.getTime() + 1000 * 60 * 60 * 24);
+        if (winner_date === today_date - 1) {
+            return;
+        }
+        let new_date_time = (today_date + 1) * 1000 * 60 * 60 * 24;
+        const newDate = new Date(new_date_time);
+        setSelectedRank(0)
         setStartDate(newDate);
+        setWinnerDate(today_date + 1);
     };
     const { Vote } = useVote();
 
-    const pagination = {
-        clickable: true,
-        renderBullet: function (index: number, className: string) {
-            return '<span class="' + className + '" >' + "</span>";
-        },
-    };
-
     // get todays entries on load
 
-    let today_date = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24));
     useEffect(() => {
         if (database === null || entryList === null || twitterList === null || leaderboardList === null) {
             return;
         }
 
         GetDaysEntries(today_date, database, entryList, twitterList, setEntries);
-        GetDaysWinners(today_date - 1, database, entryList, userIDs, leaderboardList, twitterList, setWinners);
-    }, [today_date, database, entryList, twitterList, leaderboardList, userIDs]);
+        GetDaysWinners(winner_date, database, entryList, userIDs, leaderboardList, twitterList, setWinners);
+    }, [today_date, winner_date, database, entryList, twitterList, leaderboardList, userIDs]);
 
     useEffect(() => {
         if (entries.length === 0) {
@@ -518,12 +538,11 @@ export default function Home() {
                             <PopoverHeader h={34} />
                             <PopoverBody>
                                 <DatePicker
-                                    showTimeSelect
-                                    timeFormat="HH:mm"
-                                    timeIntervals={15}
+                                    minDate={new Date(19907 * 1000 * 60 * 60 * 24)}
+                                    maxDate={new Date((today_date - 1) * 1000 * 60 * 60 * 24)}
                                     selected={startDate}
                                     onChange={(date) => {
-                                        setStartDate(date);
+                                        handleSetDate(date);
                                     }}
                                     onClickOutside={() => onCloseStart()}
                                     inline
