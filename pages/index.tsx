@@ -257,7 +257,7 @@ export default function Home() {
 
         console.log("date", new Date(),  new Date().getTime(), Math.floor((new Date().getTime())/(1000*60*60*24)))
         GetDaysEntries(Math.floor((new Date().getTime())/(1000*60*60*24)), database, entryList, twitterList, setEntries);
-        GetDaysWinners(Math.floor((new Date().getTime())/(1000*60*60*24)), database, entryList, userIDs, leaderboardList, twitterList, setWinners);
+        GetDaysWinners(Math.floor((new Date().getTime())/(1000*60*60*24) - 1), database, entryList, userIDs, leaderboardList, twitterList, setWinners);
 
     }, [database, entryList, twitterList]);
 

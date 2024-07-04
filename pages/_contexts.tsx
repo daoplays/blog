@@ -364,6 +364,17 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
         GetProgramData(check_program_data, setProgramData, setTwitterDB, setDatabase);
     }, []);
 
+    useEffect(() => {
+       if (wallet !== null && wallet.disconnecting) {
+        setCurrentUserData(null);
+        setUserBashBalance(0);
+        setTwitter(null);
+        setUserWLBalance(0);
+        user_wl_balance_ws_id.current = null;
+        user_balance_ws_id.current = null;
+       }
+    }, [wallet]);
+
     return (
         <AppRootContextProvider
             database={database}
