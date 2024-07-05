@@ -39,7 +39,7 @@ import "swiper/css/autoplay";
 import "swiper/css/pagination";
 import { Montserrat } from "next/font/google";
 import Navigation from "../components/blinkbash/Navigation";
-import { DayRow, TwitterUser } from "../components/state/interfaces";
+import { DayRow, TwitterUser, default_twitter } from "../components/state/interfaces";
 import { EntryData, LeaderboardData } from "../components/state/state";
 import { getDatabase, ref, get, Database } from "firebase/database";
 import { PublicKey } from "@solana/web3.js";
@@ -86,6 +86,8 @@ export const GetDaysEntries = async (
         return;
     }
 
+    
+
     const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+date));
     let prompt_val = prompt_db.val();
 
@@ -103,8 +105,12 @@ export const GetDaysEntries = async (
         let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
         let entry = entryList.get(entry_account.toString());
         let twitter = twitterList.get(key);
-        if (entry === undefined || twitter === undefined) {
+        if (entry === undefined) {
             return;
+        }
+
+        if (twitter === undefined) {
+            twitter = default_twitter;
         }
 
         let row: DayRow = {
@@ -191,8 +197,12 @@ export const GetDaysWinners = async (
         let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
         let entry = entryList.get(entry_account.toString());
         let twitter = twitterList.get(key);
-        if (entry === null || twitter === null) {
+        if (entry === null) {
             return;
+        }
+        
+        if (twitter === undefined) {
+            twitter = default_twitter;
         }
 
         if (entry.positive_votes + entry.negative_votes === 0) {
@@ -255,7 +265,6 @@ export default function Home() {
         let new_date_time = (winner_date - 1) * 1000 * 60 * 60 * 24;
 
         const newDate = new Date(new_date_time);
-        let  new_day = newDate.getTime() / 1000 / 60 / 60 / 24;
         setSelectedRank(0);
         setStartDate(newDate);
         setWinnerDate(winner_date - 1);
