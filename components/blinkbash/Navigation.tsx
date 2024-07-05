@@ -13,6 +13,8 @@ import bs58 from "bs58";
 import useResponsive from "../../hooks/useResponsive";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { useRouter } from "next/navigation";
+import { FaSquareXTwitter, FaXTwitter } from "react-icons/fa6";
+import { BsDiscord } from "react-icons/bs";
 
 const Navigation = () => {
     const router = useRouter();
@@ -65,7 +67,7 @@ const Navigation = () => {
             background="linear-gradient(180deg, #5DBBFF 25%, #0076CC 200%)"
             zIndex={99}
         >
-            <Link href="/" hidden={md && wallet.connected}>
+            <Link href="/" hidden={md}>
                 <Text m={0} color="white" className="font-face-wc" fontSize={sm ? "2xl" : "5xl"}>
                     Blink<span style={{ color: "#FFDD56" }}>Bash!</span>
                 </Text>
@@ -100,6 +102,16 @@ const Navigation = () => {
                             }}
                         >
                             Leaderboard
+                        </MenuItem>
+                        <MenuItem fontWeight={500}>
+                            <Link href="https://x.com/Blink_Bash" target="_blank">
+                                Twitter
+                            </Link>
+                        </MenuItem>
+                        <MenuItem fontWeight={500}>
+                            <Link href="" target="_blank">
+                                Discord
+                            </Link>
                         </MenuItem>
                     </MenuList>
                 </Menu>
@@ -136,6 +148,16 @@ const Navigation = () => {
             </HStack>
 
             <HStack gap={4} alignItems="center">
+                <VStack _hover={{ opacity: "85%" }} hidden={md}>
+                    <Link href="https://x.com/Blink_Bash" target="_blank">
+                        <FaXTwitter size={28} color="white" style={{ cursor: "pointer" }} />
+                    </Link>
+                </VStack>
+                <VStack _hover={{ opacity: "85%" }} hidden={md}>
+                    <Link href="" target="_blank">
+                        <BsDiscord size={30} color="white" style={{ cursor: "pointer" }} />
+                    </Link>
+                </VStack>
                 {isConnected && (
                     <HStack>
                         <Image height={30} width={30} src="/images/logo.png" alt="BASH" style={{ background: "transparent" }} />

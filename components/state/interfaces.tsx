@@ -8,6 +8,13 @@ export interface TwitterUser {
     profile_image_url: string;
 }
 
+export const default_twitter: TwitterUser = {
+    name: "Anonymous",
+    username: "anonymous",
+    profile_image_url: "/images/anon_profile.png",
+};
+
+
 export interface MintData {
     mint: Mint;
     uri: string;

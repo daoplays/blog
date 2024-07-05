@@ -71,7 +71,7 @@ export default async function handler(req, res) {
     const height = 400;
 
     try {
-        const { game, creator, date } = req.query;
+        const { game } = req.query;
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -79,16 +79,12 @@ export default async function handler(req, res) {
         // Initialize Realtime Database and get a reference to the service
         const database = getDatabase(app);
 
-        let location = "BlinkBash/entries/" + game + "/" + date.toString() + "/" + creator;
-
-        const snapshot = await get(ref(database, location));
-        let entry = JSON.parse(snapshot.val());
+        let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
+       
 
         console.log("Starting image generation with dynamic layout and colored text");
 
         const titleFontSize = 50;
-        const bottomFontSize = 14;
-
         const padding = Math.round(width * 0.005);
 
         // Generate paths for all text elements
@@ -99,39 +95,19 @@ export default async function handler(req, res) {
             "Blink",
             titleFontSize,
             width / 2 - titleWidth / 2,
-            padding + titleFontSize / 2,
+            padding + titleFontSize / 2 + 10,
             whocatsTextToSVG,
         );
         const bashPath = generateTextPath(
             "Bash!",
             titleFontSize,
             width / 2 - titleWidth / 2 + titleWidth2,
-            padding + titleFontSize / 2,
+            padding + titleFontSize / 2 + 10,
             whocatsTextToSVG,
         );
 
-        // Dynamic bottom text
-        const bottomText = wrapLongWords(entry.entry);
-        const truncatedText = bottomText.slice(0, 250); // Ensure text is no longer than 250 characters
-        const maxLineWidth = width - 2 * padding;
-        const lines = splitTextIntoLines(truncatedText, maxLineWidth, bottomFontSize, montserratTextToSVG);
 
-        const lineHeight = bottomFontSize * 1.2; // 20% line spacing
-        // Calculate startY so that the last line is just above the bottom padding
-        let startY = height - lineHeight;
-
-        // If there's more than one line, move the start position up
-        if (lines.length > 1) {
-            startY -= (lines.length - 1) * lineHeight;
-        }
-        const bottomTextPaths = lines.map((line, index) => {
-            const lineWidth = montserratTextToSVG.getMetrics(line, { fontSize: bottomFontSize }).width;
-            const x = (width - lineWidth) / 2; // Center each line
-            const y = startY + index * lineHeight;
-            return generateTextPath(line, bottomFontSize, x, y, montserratTextToSVG);
-        });
-
-        const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+date));
+        const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+current_date));
         let prompt_val = prompt_db.val();
         let json = JSON.parse(prompt_val.toString())
         let image_link = json["url"]
@@ -140,7 +116,7 @@ export default async function handler(req, res) {
         const imageArrayBuffer = await imageResponse.arrayBuffer();
         const imageBuffer = Buffer.from(imageArrayBuffer);
 
-        const centerImageSize = 250; // Adjust this value to change the size of the center image
+        const centerImageSize = 320; // Adjust this value to change the size of the center image
         const resizedImage = await sharp(imageBuffer)
             .resize(centerImageSize, centerImageSize, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
             .toBuffer();
@@ -156,8 +132,6 @@ export default async function handler(req, res) {
         <rect width="100%" height="100%" fill="url(#grad)"/>
         <path d="${blinkPath}" fill="white" />
         <path d="${bashPath}" fill="#FFDD56" />
-        ${bottomTextPaths.map((path) => `<path d="${path}" fill="white" />`).join("\n")}
-
       </svg>
     `;
 
@@ -165,7 +139,7 @@ export default async function handler(req, res) {
             .composite([
                 {
                     input: resizedImage,
-                    top: Math.round((height - centerImageSize) / 2 - 25),
+                    top: Math.round((height - centerImageSize) / 2 + 25),
                     left: Math.round((width - centerImageSize) / 2),
                 },
             ])

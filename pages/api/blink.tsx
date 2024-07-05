@@ -4,6 +4,7 @@ import { getRecentPrioritizationFees, get_current_blockhash } from "../../compon
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get } from "firebase/database";
 import { GetVoteInstruction } from "../../instructions/Vote";
+import { GetEnterInstruction } from "../../instructions/Enter";
 
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://firebase.google.com/docs/web/learn-more#config-object
@@ -12,6 +13,84 @@ const firebaseConfig = {
     // The value of `databaseURL` depends on the location of the database
     databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
 };
+
+
+const getEntryData = () => {
+    let data = {
+        title: "BlinkBash!",
+        icon: "https://blinkbash.daoplays.org/api/enterImage?game=0",
+        description: "Enter a caption for todays BlinkBash prompt!  The caption with the most votes wins!  For more info visit blinkbash.daoplays.org!",
+        label: "Enter",
+        links: {
+            actions: 
+            [
+                {
+                    href: "/api/blink?method=enter&game=0&caption={caption}",
+                    label: 'Enter',
+                    parameters: 
+                    [
+                        {
+                        name: "caption",
+                        label: 'Enter a caption for the image prompt!',
+                        },
+                    ],
+                },
+            ]
+        }
+    };
+
+    return data;
+};
+
+const getEntryPost = async (game : string, caption : string, creator: string) => {
+
+
+    let truncated_caption = caption.slice(0, 250);
+    // first post to the DB
+    let body = JSON.stringify({
+        user_key: creator,
+        game: game,
+        entry: truncated_caption,
+    });
+
+    const response: Response = await fetch("https://blinkbash.daoplays.org/.netlify/functions/postDB?table=entry", {
+        method: "POST",
+        body: body,
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+    let status = response.status;
+
+    if (status !== 200) {
+        return "Error";
+    }
+
+
+ /*   // then share the entry
+    const tweet_response = await fetch("/.netlify/functions/postTweet?user_key="+creator, {
+        method: "GET",
+        body: body,
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+*/
+
+    let creator_key = new PublicKey(creator);
+
+    let instructions = await GetEnterInstruction(creator_key, 0);
+    let txArgs = await get_current_blockhash("");
+
+    let message = new TransactionMessage({ payerKey: creator_key, recentBlockhash: txArgs.blockhash, instructions });
+    let compiled = message.compileToV0Message();
+    let transaction = new VersionedTransaction(compiled);
+    let encoded_transaction = Buffer.from(transaction.serialize()).toString("base64");
+
+    return encoded_transaction
+}
+
 
 export default async function handler(req, res) {
     // Initialize Firebase
@@ -37,7 +116,18 @@ export default async function handler(req, res) {
         res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Encoding, Accept-Encoding");
 
         try {
-            const { creator, game, date } = req.query;
+            const { creator, game, date, method } = req.query;
+
+            
+
+            let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
+
+            if (method === "enter") {
+                console.log("Have enter")
+                let data = getEntryData()
+                res.status(200).json(data);
+                return;
+            }
 
             // todo - if params arnt passed get a random one, for now return error image
             if (game === undefined || creator === undefined) {
@@ -52,17 +142,16 @@ export default async function handler(req, res) {
                 };
                 res.status(200).json(data);
             }
-
-            let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
-            console.log(current_date, date);
-            let valid_date = date === current_date.toString();
+            
+            let db_date = date !== undefined ? date : current_date;
+            let valid_date = db_date === current_date.toString();
             let valid_description =
                 "Vote on the this entry to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins!  For more info visit blinkbash.daoplays.org!  Todays image is by @Dave_Kayac.";
             let invalid_description =
                 "Voting for this entry has already finished.  Check out blinkbash.daoplays.org for todays entries. Submit responses to the days image and vote on entries to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins! This image was by @Dave_Kayac.";
             let description = valid_date ? valid_description : invalid_description;
 
-            let location = "BlinkBash/entries/" + game + "/" + current_date.toString() + "/" + creator;
+            let location = "BlinkBash/entries/" + game + "/" + db_date.toString() + "/" + creator;
 
             const snapshot = await get(ref(database, location));
             let entry = JSON.parse(snapshot.val());
@@ -95,7 +184,7 @@ export default async function handler(req, res) {
                 : [];
 
             let title = "BlinkBash Vote!";
-            let image_link = "http://localhost:8888/api/voteImage?creator=" + creator + "&game=" + game + "&date=" + date;
+            let image_link = "http://localhost:8888/api/voteImage?creator=" + creator + "&game=" + game + "&date=" + db_date;
 
             // Your data here
             const data = {
@@ -124,8 +213,24 @@ export default async function handler(req, res) {
                 console.log("No account found");
                 return res.status(400).json({ error: "Account parameter is required" });
             }
-            console.log("have account", account);
-            const { creator, game, vote } = req.query;
+            const { creator, game, vote, method, caption } = req.query;
+            console.log("have account", account, method);
+
+            if (method == "enter") {
+                console.log("post in enter", req.body);
+                console.log(game, caption, account);
+                let transaction = await getEntryPost(game, caption, account);
+
+                // Process the decoded account (this is a placeholder, replace with your actual logic)
+                const processedData = {
+                transaction: transaction,
+                message:
+                    "Entry sent!  User account will be created if it does not exist.  For more info visit blinkbash.daoplays.org!",
+                };
+
+                res.status(200).json(processedData);
+                return
+            }
 
             let game_val = parseInt(game);
             let vote_val = parseInt(vote);

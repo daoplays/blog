@@ -159,12 +159,18 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const program_ws_id = useRef<number | null>(null);
 
     useEffect(() => {
-        if (update_program_data.current === 0 || new_program_data === null) return;
+        if (update_program_data.current === 0) return;
+
+        if (new_program_data === null) {
+            console.log("data is null" )
+            return
+        }
 
         update_program_data.current -= 1;
 
         let event_data = Buffer.from(new_program_data.accountInfo.data);
         let account_key = new_program_data.accountId;
+        console.log("have progran data", event_data[0])
 
         if (event_data[0] === AccountType.User) {
             const [user] = UserData.struct.deserialize(event_data);
@@ -181,7 +187,14 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             //console.log("updating user data from context");
 
             const [listing] = ListingData.struct.deserialize(event_data);
-            listing_data.set(listing.item_address.toString(), listing);
+
+            console.log("update listing", listing)
+            if (listing.quantity === 0) {
+                listing_data.delete(listing.item_address.toString());
+            }
+            else {
+                listing_data.set(listing.item_address.toString(), listing);
+            }
             setListingData(new Map(listing_data));
 
             return;
@@ -206,6 +219,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
     const check_program_update = useCallback(async (result: any) => {
         update_program_data.current += 1;
+        console.log("program update", result)
         setNewProgramData(result);
     }, []);
 

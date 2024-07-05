@@ -3,7 +3,6 @@ import {
     Button,
     Divider,
     HStack,
-    IconButton,
     Popover,
     PopoverArrow,
     PopoverBody,
@@ -31,15 +30,13 @@ import useEntry from "../hooks/useEnter";
 import Layout from "./layout";
 import useResponsive from "../components/blog/apps/commonHooks/useResponsive";
 import { LuCrown } from "react-icons/lu";
-import { EffectCards, Pagination } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/effect-cards";
 import "swiper/css/autoplay";
 import "swiper/css/pagination";
 import { Montserrat } from "next/font/google";
 import Navigation from "../components/blinkbash/Navigation";
-import { DayRow, TwitterUser } from "../components/state/interfaces";
+import { DayRow, TwitterUser, default_twitter } from "../components/state/interfaces";
 import { EntryData, LeaderboardData } from "../components/state/state";
 import { getDatabase, ref, get, Database } from "firebase/database";
 import { PublicKey } from "@solana/web3.js";
@@ -86,6 +83,16 @@ export const GetDaysEntries = async (
         return;
     }
 
+    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + date));
+    let prompt_val = prompt_db.val();
+
+    if (prompt_val === null) {
+        setDayRows([]);
+        return;
+    }
+    let json = JSON.parse(prompt_val.toString());
+    let prompt_url = json["url"];
+
     let day_rows: DayRow[] = [];
     Object.entries(entries).forEach(([key, value]) => {
         let json = JSON.parse(value.toString());
@@ -93,8 +100,12 @@ export const GetDaysEntries = async (
         let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
         let entry = entryList.get(entry_account.toString());
         let twitter = twitterList.get(key);
-        if (entry === undefined || twitter === undefined) {
+        if (entry === undefined) {
             return;
+        }
+
+        if (twitter === undefined) {
+            twitter = default_twitter;
         }
 
         let row: DayRow = {
@@ -103,7 +114,7 @@ export const GetDaysEntries = async (
             score: entry.positive_votes - entry.negative_votes,
             link: "https://blinkbash.daoplays.org/api/blink?creator=" + key + "&game=0&date=" + date,
             entry: json.entry,
-            prompt: "/images/prompt.png",
+            prompt: prompt_url,
             claimed: entry.reward_claimed === 1,
         };
 
@@ -152,6 +163,15 @@ export const GetDaysWinners = async (
         return;
     }
 
+    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + date));
+    let prompt_val = prompt_db.val();
+
+    if (prompt_val === null) {
+        setDayRows([]);
+        return;
+    }
+    let json = JSON.parse(prompt_val.toString());
+    let prompt_url = json["url"];
     // Sort the indices based on scores (in descending order)
     const indices = Array.from(leaderboard.scores.keys());
 
@@ -172,13 +192,17 @@ export const GetDaysWinners = async (
         let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
         let entry = entryList.get(entry_account.toString());
         let twitter = twitterList.get(key);
-        if (entry === null || twitter === null) {
+        if (entry === null) {
             return;
+        }
+
+        if (twitter === undefined) {
+            twitter = default_twitter;
         }
 
         if (entry.positive_votes + entry.negative_votes === 0) {
             // skip if no votes
-            //continue;
+            continue;
         }
 
         let row: DayRow = {
@@ -187,7 +211,7 @@ export const GetDaysWinners = async (
             score: entry.positive_votes - entry.negative_votes,
             link: "https://blinkbash.daoplays.org/api/blink?creator=" + key + "&game=0&date=" + date,
             entry: json.entry,
-            prompt: "/images/prompt.png",
+            prompt: prompt_url,
             claimed: entry.reward_claimed === 1,
         };
 
@@ -214,6 +238,7 @@ export default function Home() {
     const [day_winners, setWinners] = useState<DayRow[]>([]);
     const [random_entry, setRandomEntry] = useState<number>(0);
     const [winner_date, setWinnerDate] = useState<number>(today_date - 1);
+    const [prompt, setPrompt] = useState<string>("");
 
     const { isOpen: isStartOpen, onToggle: onToggleStart, onClose: onCloseStart } = useDisclosure();
     const { handleEntry } = useEntry();
@@ -237,18 +262,18 @@ export default function Home() {
         const newDate = new Date(new_date_time);
         setSelectedRank(0);
         setStartDate(newDate);
-        setWinnerDate(today_date - 1);
+        setWinnerDate(winner_date - 1);
     };
 
     const handleNextDay = () => {
         if (winner_date === today_date - 1) {
             return;
         }
-        let new_date_time = (today_date + 1) * 1000 * 60 * 60 * 24;
+        let new_date_time = (winner_date + 1) * 1000 * 60 * 60 * 24;
         const newDate = new Date(new_date_time);
         setSelectedRank(0);
         setStartDate(newDate);
-        setWinnerDate(today_date + 1);
+        setWinnerDate(winner_date + 1);
     };
     const { Vote } = useVote();
 
@@ -270,6 +295,31 @@ export default function Home() {
 
         setRandomEntry(0);
     }, [entries]);
+
+    // set the prompt
+
+    const getPrompt = useCallback(async () => {
+        if (database === null) {
+            return;
+        }
+        const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + today_date));
+        let prompt_val = prompt_db.val();
+        if (prompt_val === null) {
+            setPrompt("https://blinkbash.daoplays.org/api/errorImage");
+            return;
+        }
+        let json = JSON.parse(prompt_val.toString());
+        console.log("prompt", today_date, json["url"]);
+        setPrompt(json["url"]);
+    }, [database, today_date]);
+
+    useEffect(() => {
+        if (prompt !== "") {
+            return;
+        }
+
+        getPrompt();
+    }, [prompt, getPrompt]);
 
     const handleRandomiseEntry = () => {
         if (entries.length === 0) {
@@ -405,7 +455,7 @@ export default function Home() {
                                             <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
                                                 <div>
                                                     <FaRetweet
-                                                        size={42}
+                                                        size={sm ? 30 : 42}
                                                         color="rgba(0,0,0,0.45)"
                                                         onClick={() => shareEntry(entries[random_entry].key, today_date)}
                                                         style={{ marginTop: -2 }}
@@ -416,8 +466,8 @@ export default function Home() {
                                                 <Image
                                                     onClick={() => Vote(new PublicKey(entries[random_entry].key), 0, 1)}
                                                     src="/images/thumbs-up.svg"
-                                                    width={35}
-                                                    height={35}
+                                                    width={sm ? 25 : 35}
+                                                    height={sm ? 25 : 35}
                                                     alt="Thumbs Up"
                                                 />
                                             </Tooltip>
@@ -426,8 +476,8 @@ export default function Home() {
                                                 <Image
                                                     onClick={() => Vote(new PublicKey(entries[random_entry].key), 0, 2)}
                                                     src="/images/thumbs-down.svg"
-                                                    width={35}
-                                                    height={35}
+                                                    width={sm ? 25 : 35}
+                                                    height={sm ? 25 : 35}
                                                     alt="Thumbs Down"
                                                 />
                                             </Tooltip>
@@ -456,7 +506,7 @@ export default function Home() {
                         <HStack>
                             <Box position="relative" h="300px" w="300px" border="1px dashed white" rounded="xl">
                                 <Image
-                                    src="/images/prompt.png"
+                                    src={prompt}
                                     width={300}
                                     height={300}
                                     alt="Image Frame"
