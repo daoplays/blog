@@ -184,7 +184,7 @@ export default async function handler(req, res) {
                 : [];
 
             let title = "BlinkBash Vote!";
-            let image_link = "http://localhost:8888/api/voteImage?creator=" + creator + "&game=" + game + "&date=" + db_date;
+            let image_link = "https://blinkbash.daoplays.org/api/voteImage?creator=" + creator + "&game=" + game + "&date=" + db_date;
 
             // Your data here
             const data = {
