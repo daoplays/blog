@@ -11,7 +11,7 @@ export interface TwitterUser {
 export const default_twitter: TwitterUser = {
     name: "Anonymous",
     username: "anonymous",
-    profile_image_url: "/images/anon_profile.png",
+    profile_image_url: "/images/anon_profile.jpg",
 };
 
 
