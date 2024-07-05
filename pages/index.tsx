@@ -86,6 +86,16 @@ export const GetDaysEntries = async (
         return;
     }
 
+    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+date));
+    let prompt_val = prompt_db.val();
+
+    if (prompt_val === null) {
+        setDayRows([]);
+        return;
+    }
+    let json = JSON.parse(prompt_val.toString())
+    let prompt_url = json["url"]
+
     let day_rows: DayRow[] = [];
     Object.entries(entries).forEach(([key, value]) => {
         let json = JSON.parse(value.toString());
@@ -103,7 +113,7 @@ export const GetDaysEntries = async (
             score: entry.positive_votes - entry.negative_votes,
             link: "https://blinkbash.daoplays.org/api/blink?creator=" + key + "&game=0&date=" + date,
             entry: json.entry,
-            prompt: "/images/prompt.png",
+            prompt: prompt_url,
             claimed: entry.reward_claimed === 1,
         };
 
@@ -152,6 +162,15 @@ export const GetDaysWinners = async (
         return;
     }
 
+    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+date));
+    let prompt_val = prompt_db.val();
+
+    if (prompt_val === null) {
+        setDayRows([]);
+        return;
+    }
+    let json = JSON.parse(prompt_val.toString())
+    let prompt_url = json["url"]
     // Sort the indices based on scores (in descending order)
     const indices = Array.from(leaderboard.scores.keys());
 
@@ -187,7 +206,7 @@ export const GetDaysWinners = async (
             score: entry.positive_votes - entry.negative_votes,
             link: "https://blinkbash.daoplays.org/api/blink?creator=" + key + "&game=0&date=" + date,
             entry: json.entry,
-            prompt: "/images/prompt.png",
+            prompt: prompt_url,
             claimed: entry.reward_claimed === 1,
         };
 
@@ -214,6 +233,7 @@ export default function Home() {
     const [day_winners, setWinners] = useState<DayRow[]>([]);
     const [random_entry, setRandomEntry] = useState<number>(0);
     const [winner_date, setWinnerDate] = useState<number>(today_date - 1);
+    const [prompt, setPrompt] = useState<string>("");
 
     const { isOpen: isStartOpen, onToggle: onToggleStart, onClose: onCloseStart } = useDisclosure();
     const { handleEntry } = useEntry();
@@ -235,20 +255,21 @@ export default function Home() {
         let new_date_time = (winner_date - 1) * 1000 * 60 * 60 * 24;
 
         const newDate = new Date(new_date_time);
+        let  new_day = newDate.getTime() / 1000 / 60 / 60 / 24;
         setSelectedRank(0);
         setStartDate(newDate);
-        setWinnerDate(today_date - 1);
+        setWinnerDate(winner_date - 1);
     };
 
     const handleNextDay = () => {
         if (winner_date === today_date - 1) {
             return;
         }
-        let new_date_time = (today_date + 1) * 1000 * 60 * 60 * 24;
+        let new_date_time = (winner_date + 1) * 1000 * 60 * 60 * 24;
         const newDate = new Date(new_date_time);
         setSelectedRank(0);
         setStartDate(newDate);
-        setWinnerDate(today_date + 1);
+        setWinnerDate(winner_date + 1);
     };
     const { Vote } = useVote();
 
@@ -270,6 +291,31 @@ export default function Home() {
 
         setRandomEntry(0);
     }, [entries]);
+
+    // set the prompt
+
+    const getPrompt = useCallback(async () => {
+        if (database === null) {
+            return;
+        }
+        const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+today_date));
+        let prompt_val = prompt_db.val();
+        if (prompt_val === null) {
+            setPrompt("https://blinkbash.daoplays.org/api/errorImage")
+            return;
+        }
+        let json = JSON.parse(prompt_val.toString())
+        console.log("prompt",  today_date, json["url"])
+        setPrompt(json["url"]);
+    }, [database, today_date]);
+
+    useEffect(() => {
+        if (prompt !== "") {
+            return;
+        }
+
+        getPrompt()
+    }, [prompt, getPrompt]);
 
     const handleRandomiseEntry = () => {
         if (entries.length === 0) {
@@ -456,7 +502,7 @@ export default function Home() {
                         <HStack>
                             <Box position="relative" h="300px" w="300px" border="1px dashed white" rounded="xl">
                                 <Image
-                                    src="/images/prompt.png"
+                                    src={prompt}
                                     width={300}
                                     height={300}
                                     alt="Image Frame"
