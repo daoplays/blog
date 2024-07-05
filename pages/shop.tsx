@@ -23,7 +23,7 @@ import {
 } from "@chakra-ui/react";
 import Image from "next/image";
 import { Divider, HStack, Text, TabIndicator, TabList, TabPanel, TabPanels, Tabs, VStack, Button } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import "react-datepicker/dist/react-datepicker.css";
 import Layout from "./layout";
@@ -48,6 +48,14 @@ export default function Shop() {
     const [selected, setSelected] = useState("Tokens");
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { listingList, tokenList, nftList, userWLBalance } = useAppRoot();
+    const [listSize, setListSize] = useState(listingList.size);
+
+    useEffect(() => {
+        if (listingList.size !== listSize) {
+          setListSize(listingList.size);
+        }
+      }, [listingList, listSize]);
+
     const { ListItem } = useListemItem();
     const { BuyItem } = useBuyItem();
 
@@ -82,7 +90,7 @@ export default function Shop() {
         }
     };
 
-    const NFTRow = ({ item }: { item: ListingData }) => {
+    const NFTRow = React.memo(({ item }: { item: ListingData }) => {
         if (nftList === null || item.item_type !== 2 || item.quantity === 0) {
             return <></>;
         }
@@ -147,7 +155,7 @@ export default function Shop() {
                 </Td>
             </Tr>
         );
-    };
+    });
 
     const TokenRow = ({ item }: { item: ListingData }) => {
         if (tokenList === null || item.item_type !== 1 || item.quantity === 0) {
@@ -299,7 +307,7 @@ export default function Shop() {
                                 </Thead>
                                 <Tbody>
                                     {Array.from(listingList).map(([key, item], i) => (
-                                        <TokenRow key={key} item={item} />
+                                        <TokenRow key={`${key}-${listSize}`} item={item} />
                                     ))}
                                 </Tbody>
                             </Table>
@@ -320,7 +328,7 @@ export default function Shop() {
                                 </Thead>
                                 <Tbody>
                                     {Array.from(listingList).map(([key, item], i) => (
-                                        <NFTRow key={key} item={item} />
+                                        <NFTRow key={`${key}-${listSize}`} item={item} />
                                     ))}
                                 </Tbody>
                             </Table>

@@ -75,6 +75,17 @@ const useEnter = () => {
 
         // then enter
         await Enter(game);
+
+        // then share the entry
+        const tweet_response = await fetch("/.netlify/functions/postTweet?user_key="+user.toString(), {
+            method: "GET",
+            body: body,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+
     };
 
     const Enter = async (game: number) => {
