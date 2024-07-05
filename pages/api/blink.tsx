@@ -19,13 +19,13 @@ const getEntryData = () => {
     let data = {
         title: "BlinkBash!",
         icon: "https://blinkbash.daoplays.org/api/enterImage?game=0",
-        description: "Enter a caption for the image for todays BlinkBash prompt!  The creator with the most votes wins!  For more info visit blinkbash.daoplays.org!",
+        description: "Enter a caption for todays BlinkBash prompt!  The caption with the most votes wins!  For more info visit blinkbash.daoplays.org!",
         label: "Enter",
         links: {
             actions: 
             [
                 {
-                    href: "/api/blink?method=enter&caption={caption}",
+                    href: "/api/blink?method=enter&game=0&caption={caption}",
                     label: 'Enter',
                     parameters: 
                     [
@@ -53,7 +53,7 @@ const getEntryPost = async (game : string, caption : string, creator: string) =>
         entry: truncated_caption,
     });
 
-    const response: Response = await fetch("/.netlify/functions/postDB?table=entry", {
+    const response: Response = await fetch("https://blinkbash.daoplays.org/.netlify/functions/postDB?table=entry", {
         method: "POST",
         body: body,
         headers: {
@@ -218,7 +218,7 @@ export default async function handler(req, res) {
 
             if (method == "enter") {
                 console.log("post in enter", req.body);
-                console.log(caption);
+                console.log(game, caption, account);
                 let transaction = await getEntryPost(game, caption, account);
 
                 // Process the decoded account (this is a placeholder, replace with your actual logic)
