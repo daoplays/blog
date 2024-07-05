@@ -3,7 +3,6 @@ import {
     Button,
     Divider,
     HStack,
-    IconButton,
     Popover,
     PopoverArrow,
     PopoverBody,
@@ -31,8 +30,6 @@ import useEntry from "../hooks/useEnter";
 import Layout from "./layout";
 import useResponsive from "../components/blog/apps/commonHooks/useResponsive";
 import { LuCrown } from "react-icons/lu";
-import { EffectCards, Pagination } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/effect-cards";
 import "swiper/css/autoplay";
@@ -200,14 +197,14 @@ export const GetDaysWinners = async (
         if (entry === null) {
             return;
         }
-        
+
         if (twitter === undefined) {
             twitter = default_twitter;
         }
 
         if (entry.positive_votes + entry.negative_votes === 0) {
             // skip if no votes
-            //continue;
+            continue;
         }
 
         let row: DayRow = {
