@@ -198,7 +198,7 @@ export const GetDaysWinners = async (
 };
 
 export default function Home() {
-    const { xl } = useResponsive();
+    const { sm, md, lg, xl } = useResponsive();
     const wallet = useWallet();
 
     const isConnected = wallet.publicKey !== null;
@@ -332,167 +332,172 @@ export default function Home() {
                 zIndex={999}
                 className={montserrat.className}
                 position="relative"
-                justify="center"
-                overflowY="auto"
-                minHeight="90vh"
+                justify={!md && "center"}
+                h={md ? "fit-content" : "90vh"}
+                pb={3}
                 background="linear-gradient(180deg, #5DBBFF 0%, #0076CC 100%)"
             >
                 <Navigation />
-                <VStack mt={50} h="fit-content" w="1200px" mx={5} p={6} gap={6}>
-                    <SimpleGrid w="100%" h={600} columns={2} spacing={5} flexDirection={xl ? "column-reverse" : "row"}>
-                        <VStack spacing={1} background="rgba(0,0,0,0.20)" p={6} rounded="xl" overflowY="auto">
-                            <Text m={0} fontSize="xl" fontWeight={600} color="white">
-                                1. Post your caption to the Daily Prompt as a Solana Blink on X (Twitter) to earn $BASH. Finish in the Top 3
-                                for a $BASH payout! <br />
-                                <br /> 2. Vote on others’ Blinks to earn $BASH. <br />
-                                <br />
-                                3. Spend $BASH on rewards sponsored by your favorite Solana projects!
+                <SimpleGrid mt={85} maxW="1200px" mx={md ? 0 : 5} p={6} gap={6} h="fit-content" w="100%" columns={md ? 1 : 2} spacing={5}>
+                    <VStack h={md ? 600 : ""} spacing={1} background="rgba(0,0,0,0.20)" p={6} rounded="xl" overflowY="auto">
+                        <Text m={0} fontSize={md ? "lg" : "xl"} fontWeight={600} color="white">
+                            1. Post your caption to the Daily Prompt as a Solana Blink on X (Twitter) to earn $BASH. Finish in the Top 3 for
+                            a $BASH payout! <br />
+                            <br /> 2. Vote on others’ Blinks to earn $BASH. <br />
+                            <br />
+                            3. Spend $BASH on rewards sponsored by your favorite Solana projects!
+                        </Text>
+
+                        <Divider />
+
+                        <HStack mb={1} alignItems="center">
+                            <Text mb={0} color="white" fontSize={sm ? "xl" : "3xl"} className="font-face-wc">
+                                Submitted Captions{" "}
                             </Text>
 
-                            <Divider />
+                            <Tooltip label="Randomise" hasArrow fontSize="large" offset={[0, 15]}>
+                                <div>
+                                    <TbReload
+                                        size={md ? 25 : 32}
+                                        onClick={() => handleRandomiseEntry()}
+                                        color="white"
+                                        style={{ marginTop: md ? -3 : -6, cursor: "pointer" }}
+                                    />
+                                </div>
+                            </Tooltip>
+                        </HStack>
 
-                            <HStack mb={1} alignItems="center">
-                                <Text mb={0} color="white" fontSize="3xl" className="font-face-wc">
-                                    Submitted Captions{" "}
-                                </Text>
-
-                                <Tooltip label="Randomise" hasArrow fontSize="large" offset={[0, 15]}>
-                                    <div>
-                                        <TbReload
-                                            size={32}
-                                            onClick={() => handleRandomiseEntry()}
-                                            color="white"
-                                            style={{ marginTop: -6, cursor: "pointer" }}
-                                        />
-                                    </div>
-                                </Tooltip>
-                            </HStack>
-
-                            <div style={{ width: "100%", height: "100%", position: "relative" }}>
-                                {entries.length > 0 && (
-                                    <VStack h="100%" bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
-                                        <HStack w="full" alignItems="start" justifyContent="space-between">
-                                            <HStack alignItems="center" gap={4}>
-                                                <div
+                        <div style={{ width: "100%", height: "100%", position: "relative" }}>
+                            {entries.length > 0 ? (
+                                <VStack h="100%" bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
+                                    <HStack w="full" alignItems="start" justifyContent="space-between">
+                                        <HStack alignItems="center" gap={4}>
+                                            <div
+                                                style={{
+                                                    width: "60px",
+                                                    height: "60px",
+                                                    position: "relative",
+                                                    borderRadius: "100%",
+                                                }}
+                                            >
+                                                <Image
+                                                    src={entries[random_entry].twitter.profile_image_url}
+                                                    alt={`${entries[random_entry].twitter.username}'s PFP`}
+                                                    fill
                                                     style={{
-                                                        width: "60px",
-                                                        height: "60px",
-                                                        position: "relative",
+                                                        objectFit: "cover",
                                                         borderRadius: "100%",
                                                     }}
-                                                >
-                                                    <Image
-                                                        src={entries[random_entry].twitter.profile_image_url}
-                                                        alt={`${entries[random_entry].twitter.username}'s PFP`}
-                                                        fill
-                                                        style={{
-                                                            objectFit: "cover",
-                                                            borderRadius: "100%",
-                                                        }}
-                                                    />
-                                                </div>
+                                                />
+                                            </div>
 
-                                                <VStack alignItems="start" gap={0} color="white">
-                                                    <Text m={0} fontSize="xl" fontWeight={600}>
-                                                        {entries[random_entry].twitter.name}
-                                                    </Text>
-                                                    <Text m={0} fontSize="sm">
-                                                        {entries[random_entry].twitter.username}
-                                                    </Text>
-                                                </VStack>
-                                            </HStack>
-
-                                            <HStack alignItems="start" mt={2} gap={3} style={{ cursor: "pointer" }}>
-                                                <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
-                                                    <div>
-                                                        <FaRetweet
-                                                            size={42}
-                                                            color="rgba(0,0,0,0.45)"
-                                                            onClick={() => shareEntry(entries[random_entry].key, today_date)}
-                                                            style={{ marginTop: -2 }}
-                                                        />
-                                                    </div>
-                                                </Tooltip>
-                                                <Tooltip label="Upvote" hasArrow fontSize="large" offset={[0, 15]}>
-                                                    <Image
-                                                        onClick={() => Vote(new PublicKey(entries[random_entry].key), 0, 1)}
-                                                        src="/images/thumbs-up.svg"
-                                                        width={35}
-                                                        height={35}
-                                                        alt="Thumbs Up"
-                                                    />
-                                                </Tooltip>
-
-                                                <Tooltip label="Downvote" hasArrow fontSize="large" offset={[0, 15]}>
-                                                    <Image
-                                                        onClick={() => Vote(new PublicKey(entries[random_entry].key), 0, 2)}
-                                                        src="/images/thumbs-down.svg"
-                                                        width={35}
-                                                        height={35}
-                                                        alt="Thumbs Down"
-                                                    />
-                                                </Tooltip>
-                                            </HStack>
+                                            <VStack alignItems="start" gap={0} color="white">
+                                                <Text m={0} fontSize="xl" fontWeight={600}>
+                                                    {entries[random_entry].twitter.name}
+                                                </Text>
+                                                <Text m={0} fontSize="sm">
+                                                    {entries[random_entry].twitter.username}
+                                                </Text>
+                                            </VStack>
                                         </HStack>
 
-                                        <Text m={0} fontSize="lg" fontWeight={600} color="white">
-                                            {wrapLongWords(entries[random_entry].entry)}
-                                        </Text>
-                                    </VStack>
-                                )}
-                            </div>
-                        </VStack>
-                        <VStack bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
-                            <Text m={0} color="white" fontSize="4xl" className="font-face-wc">
-                                Daily Prompt
-                            </Text>
+                                        <HStack alignItems="start" mt={2} gap={3} style={{ cursor: "pointer" }}>
+                                            <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
+                                                <div>
+                                                    <FaRetweet
+                                                        size={42}
+                                                        color="rgba(0,0,0,0.45)"
+                                                        onClick={() => shareEntry(entries[random_entry].key, today_date)}
+                                                        style={{ marginTop: -2 }}
+                                                    />
+                                                </div>
+                                            </Tooltip>
+                                            <Tooltip label="Upvote" hasArrow fontSize="large" offset={[0, 15]}>
+                                                <Image
+                                                    onClick={() => Vote(new PublicKey(entries[random_entry].key), 0, 1)}
+                                                    src="/images/thumbs-up.svg"
+                                                    width={35}
+                                                    height={35}
+                                                    alt="Thumbs Up"
+                                                />
+                                            </Tooltip>
 
-                            <HStack>
-                                <Box position="relative" h="300px" w="300px" border="1px dashed white" rounded="xl">
-                                    <Image
-                                        src="/images/prompt.png"
-                                        width={300}
-                                        height={300}
-                                        alt="Image Frame"
-                                        style={{ backgroundSize: "cover", borderRadius: 12 }}
-                                    />
-                                </Box>
-                            </HStack>
+                                            <Tooltip label="Downvote" hasArrow fontSize="large" offset={[0, 15]}>
+                                                <Image
+                                                    onClick={() => Vote(new PublicKey(entries[random_entry].key), 0, 2)}
+                                                    src="/images/thumbs-down.svg"
+                                                    width={35}
+                                                    height={35}
+                                                    alt="Thumbs Down"
+                                                />
+                                            </Tooltip>
+                                        </HStack>
+                                    </HStack>
 
-                            <Textarea
-                                mt={2}
-                                maxLength={250}
-                                rows={5}
-                                placeholder="Enter your Caption Here"
-                                color="white"
-                                _placeholder={{ color: "gray.300" }}
-                                _active={{ border: "1px solid white" }}
-                                _focus={{ border: "1px solid white" }}
-                                value={entry}
-                                onChange={(e) => {
-                                    setEntry(e.target.value);
-                                }}
-                            />
-
-                            {twitter && isConnected ? (
-                                <Button
-                                    shadow="md"
-                                    _active={{ bg: "#FFE376" }}
-                                    _hover={{ opacity: "90%" }}
-                                    bg="#FFE376"
-                                    color="#BA6502"
-                                    rounded="lg"
-                                    w="full"
-                                    onClick={() => handleEntry(wallet.publicKey, 0, entry)}
-                                >
-                                    Submit
-                                </Button>
+                                    <Text m={0} fontSize="lg" fontWeight={600} color="white">
+                                        {wrapLongWords(entries[random_entry].entry)}
+                                    </Text>
+                                </VStack>
                             ) : (
-                                <TwitterIntegration />
+                                <VStack h="100%" alignItems="center" justifyContent="center">
+                                    <Text mb={0} color="white" fontWeight={500} fontSize={md ? "lg" : "xl"} opacity="50%" mt={-12}>
+                                        No Entries Yet.
+                                    </Text>
+                                </VStack>
                             )}
-                        </VStack>
-                    </SimpleGrid>
-                </VStack>
+                        </div>
+                    </VStack>
+
+                    <VStack bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
+                        <Text m={0} color="white" fontSize="4xl" className="font-face-wc">
+                            Daily Prompt
+                        </Text>
+
+                        <HStack>
+                            <Box position="relative" h="300px" w="300px" border="1px dashed white" rounded="xl">
+                                <Image
+                                    src="/images/prompt.png"
+                                    width={300}
+                                    height={300}
+                                    alt="Image Frame"
+                                    style={{ backgroundSize: "cover", borderRadius: 12 }}
+                                />
+                            </Box>
+                        </HStack>
+
+                        <Textarea
+                            mt={2}
+                            maxLength={250}
+                            rows={5}
+                            placeholder="Enter your Caption Here"
+                            color="white"
+                            _placeholder={{ color: "gray.300" }}
+                            _active={{ border: "1px solid white" }}
+                            _focus={{ border: "1px solid white" }}
+                            value={entry}
+                            onChange={(e) => {
+                                setEntry(e.target.value);
+                            }}
+                        />
+
+                        {twitter && isConnected ? (
+                            <Button
+                                shadow="md"
+                                _active={{ bg: "#FFE376" }}
+                                _hover={{ opacity: "90%" }}
+                                bg="#FFE376"
+                                color="#BA6502"
+                                rounded="lg"
+                                w="full"
+                                onClick={() => handleEntry(wallet.publicKey, 0, entry)}
+                            >
+                                Submit
+                            </Button>
+                        ) : (
+                            <TwitterIntegration />
+                        )}
+                    </VStack>
+                </SimpleGrid>
                 <Image
                     src="/images/man.png"
                     alt="Solana Man Character"
@@ -503,26 +508,40 @@ export default function Home() {
                 />
             </VStack>
 
-            <VStack justifyContent="center" h={75} bg="linear-gradient(180deg, #FFBC0F 49.61%, #B76300 100%)">
+            <VStack justifyContent="center" h={75} bg="linear-gradient(180deg, #FFBC0F 49.61%, #B76300 100%)" hidden={md}>
                 <Text m={0} color="white" fontSize="5xl" className="font-face-wc">
                     Past Winners
                 </Text>
             </VStack>
 
-            <VStack className={montserrat.className} background="linear-gradient(180deg, #0076CC 100%, #5DBBFF 0%)">
+            <VStack
+                pt={md ? 45 : 0}
+                px={10}
+                className={montserrat.className}
+                background="linear-gradient(180deg, #0076CC 100%, #5DBBFF 0%)"
+            >
+                <Text m={0} color="white" fontSize={sm ? "4xl" : "5xl"} className="font-face-wc" hidden={!md}>
+                    Past Winners
+                </Text>
+
                 <VStack gap={10} mt={35} mb={50}>
                     <Popover isOpen={isStartOpen} onClose={onCloseStart} placement="bottom" closeOnBlur={false}>
                         <PopoverTrigger>
-                            <HStack spacing={4} color="white" align="center">
-                                <BiSolidLeftArrow size={28} color="white" style={{ cursor: "pointer" }} onClick={handlePreviousDay} />
+                            <HStack mt={md && -5} spacing={4} color="white" align="center">
+                                <BiSolidLeftArrow
+                                    size={sm ? 24 : 28}
+                                    color="white"
+                                    style={{ cursor: "pointer" }}
+                                    onClick={handlePreviousDay}
+                                />
                                 <HStack onClick={onToggleStart} style={{ cursor: "pointer" }}>
-                                    <Text m={0} color="white" className="font-face-kg" fontSize="xl">
+                                    <Text m={0} color="white" className="font-face-kg" fontSize={sm ? "lg" : "xl"}>
                                         {startDate.toLocaleDateString()}
                                     </Text>
-                                    <FaCalendarAlt size={28} style={{ marginTop: -2 }} />
+                                    <FaCalendarAlt size={sm ? 24 : 28} style={{ marginTop: -2 }} />
                                 </HStack>
                                 <BiSolidLeftArrow
-                                    size={28}
+                                    size={sm ? 24 : 28}
                                     color="white"
                                     style={{ rotate: "180deg", cursor: "pointer" }}
                                     onClick={handleNextDay}
@@ -548,8 +567,8 @@ export default function Home() {
                         </PopoverContent>
                     </Popover>
 
-                    <VStack w="1150px">
-                        <SimpleGrid w="full" gap={2} columns={day_winners.length}>
+                    <VStack w={xl ? "full" : "1150px"}>
+                        <SimpleGrid w="full" gap={2} columns={sm ? 1 : day_winners.length}>
                             {day_winners.map((entry, index) => (
                                 <VStack
                                     gap={1}
@@ -603,9 +622,10 @@ export default function Home() {
                                 </VStack>
                             ))}
                         </SimpleGrid>
+
                         {day_winners.length > 0 && (
                             <HStack w="full" gap={2}>
-                                <Box position="relative" minH="200px" minW="200px" border="1px solid white" rounded="xl">
+                                <Box position="relative" minH="200px" minW="200px" border="1px solid white" rounded="xl" hidden={md}>
                                     <Image
                                         src={day_winners[selectedRank].prompt}
                                         fill
@@ -659,7 +679,7 @@ export default function Home() {
                                                 <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
                                                     <div>
                                                         <FaRetweet
-                                                            size={42}
+                                                            size={sm ? 30 : 42}
                                                             color="rgba(0,0,0,0.45)"
                                                             onClick={() => shareEntry(entries[random_entry].key, today_date)}
                                                             style={{ marginTop: -2, cursor: "pointer" }}
