@@ -52,7 +52,7 @@ const LeaderboardPage = () => {
     const wallet = useWallet();
     const { handleConnectWallet } = UseWalletConnection();
     const { twitterList, userList, currentUserData, entryList, leaderboardList } = useAppRoot();
-    const { xs, sm, lg, xl } = useResponsive();
+    const { md, sm, lg, xl } = useResponsive();
     const [selected, setSelected] = useState("Today");
     const [database, setDatabase] = useState<Database | null>(null);
     const [date, setDate] = useState<number>(Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)));
@@ -198,9 +198,9 @@ const LeaderboardPage = () => {
 
     return (
         <Layout>
-            <HStack bg="#0ab7f2" mx={5} rounded="xl">
-                <VStack w="700px" border="1px solid white" p={4} rounded="xl" shadow="xl">
-                    <HStack spacing={3} w="full">
+            <HStack w={sm ? "100%" : "700px"} bg="#0ab7f2" spacing={8} mx={5} rounded="xl">
+                <VStack w={sm ? "100%" : "700px"} border="1px solid white" p={4} rounded="xl" shadow="xl">
+                    <HStack justifyContent="space-between" w="full">
                         {["Today", "Global"].map((name, i) => {
                             const isActive = selected === name;
 

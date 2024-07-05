@@ -10,12 +10,18 @@ import { trimAddress } from "../state/utils";
 import useAppRoot from "../context/useAppRoot";
 import UseWalletConnection from "../blog/apps/commonHooks/useWallet";
 import bs58 from "bs58";
+import useResponsive from "../../hooks/useResponsive";
+import { RxHamburgerMenu } from "react-icons/rx";
+import { useRouter } from "next/navigation";
 
 const Navigation = () => {
+    const router = useRouter();
     const wallet = useWallet();
     const { handleConnectWallet, handleDisconnectWallet } = UseWalletConnection();
     const isConnected = wallet.publicKey !== null;
     const { userBashBalance, twitter, setTwitter } = useAppRoot();
+
+    const { sm, md, xl } = useResponsive();
 
     const unlinkTwitter = useCallback(async () => {
         console.log("unlinking twitter");
@@ -55,17 +61,52 @@ const Navigation = () => {
             top={0}
             w="full"
             alignItems="center"
-            justify="space-between"
+            justify={"space-between"}
             background="linear-gradient(180deg, #5DBBFF 25%, #0076CC 200%)"
             zIndex={99}
         >
-            <Link href="/">
-                <Text m={0} color="white" fontSize="5xl" className="font-face-wc">
+            <Link href="/" hidden={md && wallet.connected}>
+                <Text m={0} color="white" className="font-face-wc" fontSize={sm ? "2xl" : "5xl"}>
                     Blink<span style={{ color: "#FFDD56" }}>Bash!</span>
                 </Text>
             </Link>
 
+            {md && (
+                <Menu>
+                    <MenuButton>
+                        <RxHamburgerMenu size={35} />
+                    </MenuButton>
+                    <MenuList>
+                        <MenuItem
+                            fontWeight={500}
+                            onClick={() => {
+                                router.push("/");
+                            }}
+                        >
+                            Play
+                        </MenuItem>
+                        <MenuItem
+                            fontWeight={500}
+                            onClick={() => {
+                                router.push("/shop");
+                            }}
+                        >
+                            Shop
+                        </MenuItem>
+                        <MenuItem
+                            fontWeight={500}
+                            onClick={() => {
+                                router.push("/leaderboard");
+                            }}
+                        >
+                            Leaderboard
+                        </MenuItem>
+                    </MenuList>
+                </Menu>
+            )}
+
             <HStack
+                hidden={md}
                 gap={10}
                 alignItems="center"
                 style={{

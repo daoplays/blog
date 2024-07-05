@@ -42,7 +42,7 @@ import useResponsive from "../components/blog/apps/commonHooks/useResponsive";
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 export default function Shop() {
-    const { xl } = useResponsive();
+    const { lg, md, sm } = useResponsive();
     const wallet = useWallet();
     const isConnected = wallet.publicKey !== null;
     const [selected, setSelected] = useState("Tokens");
@@ -191,7 +191,13 @@ export default function Shop() {
 
                         <Tooltip label="View in explorer" hasArrow fontSize="large" offset={[0, 10]}>
                             <Link href={getSolscanLink(item.item_address, "Token")} target="_blank" onClick={(e) => e.stopPropagation()}>
-                                <Image src="/images/solscan.png" width={20} height={20} alt="Solscan icon" />
+                                <Image
+                                    src="/images/solscan.png"
+                                    style={{ minWidth: "20px", minHeight: "20px" }}
+                                    width={20}
+                                    height={20}
+                                    alt="Solscan icon"
+                                />
                             </Link>
                         </Tooltip>
                     </HStack>
@@ -219,8 +225,8 @@ export default function Shop() {
 
     return (
         <Layout>
-            <HStack bg="#0ab7f2" spacing={8} mx={5} rounded="xl">
-                <VStack w="700px" border="1px solid white" p={4} rounded="xl" shadow="xl">
+            <HStack w={sm ? "100%" : "700px"} bg="#0ab7f2" spacing={8} mx={5} rounded="xl">
+                <VStack w={sm ? "100%" : "700px"} border="1px solid white" p={4} rounded="xl" shadow="xl">
                     <HStack justifyContent="space-between" w="full">
                         <HStack spacing={3}>
                             {["Tokens", "NFTs"].map((name, i) => {
@@ -434,6 +440,15 @@ export default function Shop() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+
+            <Image
+                src="/images/shop-man.png"
+                alt="Shop Man Character"
+                width={300}
+                height={300}
+                style={{ position: "absolute", bottom: -0, left: 50, zIndex: -50 }}
+                hidden={lg}
+            />
         </Layout>
     );
 }
