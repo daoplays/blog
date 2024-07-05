@@ -52,7 +52,6 @@ const useEnter = () => {
 
     const handleEntry = async (user: PublicKey, game: number, entry: string) => {
         // first post to the DB
-
         let body = JSON.stringify({
             user_key: user.toString(),
             game: game.toString(),
@@ -79,7 +78,6 @@ const useEnter = () => {
         // then share the entry
         const tweet_response = await fetch("/.netlify/functions/postTweet?user_key="+user.toString(), {
             method: "GET",
-            body: body,
             headers: {
                 "Content-Type": "application/json",
             },
