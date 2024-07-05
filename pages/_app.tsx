@@ -16,13 +16,12 @@ import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react
 import { Config } from "../components/state/constants";
 import { useMemo } from "react";
 import { ConnectionConfig } from "@solana/web3.js";
-import NavigationBonk from "../components/bonkathon/topNav";
-import { bonkathonLinks } from "./bonkathon2024";
+import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adapter-wallets";
 
 function MyApp({ Component, pageProps }) {
     const pathname = usePathname();
 
-    const wallets = useMemo(() => [], []);
+    const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], []);
 
     const connectionConfig: ConnectionConfig = {
         wsEndpoint: Config.WSS_NODE,
