@@ -49,6 +49,7 @@ import { TbReload } from "react-icons/tb";
 import { BiSolidLeftArrow } from "react-icons/bi";
 import bs58 from "bs58";
 import { toast } from "react-toastify";
+import Link from "next/link";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -421,32 +422,34 @@ export default function Home() {
                             {entries.length > 0 ? (
                                 <VStack h="100%" bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
                                     <HStack w="full" alignItems="start" justifyContent="space-between">
-                                        <HStack alignItems="center" gap={4}>
-                                            <div
-                                                style={{
-                                                    width: "60px",
-                                                    height: "60px",
-                                                    position: "relative",
-                                                    borderRadius: "100%",
-                                                }}
-                                            >
-                                                <Image
-                                                    src={entries[random_entry].twitter.profile_image_url}
-                                                    alt={`${entries[random_entry].twitter.username}'s PFP`}
-                                                    fill
+                                        <HStack alignItems="center" gap={2}>
+                                            <Link href={`https://x.com/${entries[random_entry].twitter.username}`} target="_blank">
+                                                <div
                                                     style={{
-                                                        objectFit: "cover",
+                                                        width: "60px",
+                                                        height: "60px",
+                                                        position: "relative",
                                                         borderRadius: "100%",
                                                     }}
-                                                />
-                                            </div>
+                                                >
+                                                    <Image
+                                                        src={entries[random_entry].twitter.profile_image_url}
+                                                        alt={`${entries[random_entry].twitter.username}'s PFP`}
+                                                        fill
+                                                        style={{
+                                                            objectFit: "cover",
+                                                            borderRadius: "100%",
+                                                        }}
+                                                    />
+                                                </div>
+                                            </Link>
 
                                             <VStack alignItems="start" gap={0} color="white">
                                                 <Text m={0} fontSize="xl" fontWeight={600}>
                                                     {entries[random_entry].twitter.name}
                                                 </Text>
                                                 <Text m={0} fontSize="sm">
-                                                    {entries[random_entry].twitter.username}
+                                                    @{entries[random_entry].twitter.username}
                                                 </Text>
                                             </VStack>
                                         </HStack>
@@ -483,7 +486,6 @@ export default function Home() {
                                             </Tooltip>
                                         </HStack>
                                     </HStack>
-
                                     <Text m={0} fontSize="lg" fontWeight={600} color="white">
                                         {wrapLongWords(entries[random_entry].entry)}
                                     </Text>
