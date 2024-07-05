@@ -109,7 +109,7 @@ const Navigation = () => {
                             </Link>
                         </MenuItem>
                         <MenuItem fontWeight={500}>
-                            <Link href="" target="_blank">
+                            <Link href="https://discord.gg/QHzfCRb68t" target="_blank">
                                 Discord
                             </Link>
                         </MenuItem>
@@ -154,7 +154,7 @@ const Navigation = () => {
                     </Link>
                 </VStack>
                 <VStack _hover={{ opacity: "85%" }} hidden={md}>
-                    <Link href="" target="_blank">
+                    <Link href="https://discord.gg/QHzfCRb68t" target="_blank">
                         <BsDiscord size={30} color="white" style={{ cursor: "pointer" }} />
                     </Link>
                 </VStack>
