@@ -350,10 +350,16 @@ export default function Home() {
                 const signature = await wallet.signMessage(encodedMessage);
                 const encodedSignature = bs58.encode(signature);
 
+                let twitter = twitterList.get(creator);
+
                 let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date;
                 let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
 
                 let tweet = "Check out this entry to BlinkBash! " + dial_link;
+
+                if (twitter !== undefined) {
+                    tweet =  "Check out this entry from @" + twitter.username +" to BlinkBash! " + dial_link;
+                }
 
                 let body = JSON.stringify({
                     user_key: wallet.publicKey.toString(),
@@ -375,7 +381,7 @@ export default function Home() {
                 toast.error("Error sharing tweet");
             }
         },
-        [wallet],
+        [wallet, twitterList],
     );
 
     return (
