@@ -15,27 +15,39 @@ const firebaseConfig = {
 };
 
 
-const getEntryData = () => {
-    let data = {
-        title: "BlinkBash!",
-        icon: "https://blinkbash.daoplays.org/api/enterImage?game=0",
-        description: "Enter a caption for todays BlinkBash prompt!  The caption with the most votes wins!  For more info visit blinkbash.daoplays.org!",
-        label: "Enter",
-        links: {
-            actions: 
+const getEntryData = (date : string) => {
+    let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
+    let valid_date = date === current_date.toString();
+    let valid_description =
+        "Enter a caption for todays BlinkBash prompt!  The caption with the most votes wins!  For more info visit blinkbash.daoplays.org!";
+    let invalid_description =
+        "This round has now closed!.  Check out blinkbash.daoplays.org for todays game. Submit responses to the days image and vote on entries to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins! This image was by @Dave_Kayac.";
+    let description = valid_date ? valid_description : invalid_description;
+
+    let actions = valid_date ? 
+    [
+        {
+            href: "/api/blink?method=enter&game=0&caption={caption}",
+            label: 'Enter',
+            parameters: 
             [
                 {
-                    href: "/api/blink?method=enter&game=0&caption={caption}",
-                    label: 'Enter',
-                    parameters: 
-                    [
-                        {
-                        name: "caption",
-                        label: 'Enter a caption for the image prompt!',
-                        },
-                    ],
+                name: "caption",
+                label: 'Enter a caption for the image prompt!',
                 },
-            ]
+            ],
+        },
+    ]
+    :
+    []
+
+    let data = {
+        title: "BlinkBash!",
+        icon: "https://blinkbash.daoplays.org/api/enterImage?game=0&date="+date,
+        description: description,
+        label: "Enter",
+        links: {
+            actions: actions
         }
     };
 
@@ -121,10 +133,11 @@ export default async function handler(req, res) {
             
 
             let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
+            let db_date = date !== undefined ? date : current_date;
 
             if (method === "enter") {
                 console.log("Have enter")
-                let data = getEntryData()
+                let data = getEntryData(db_date)
                 res.status(200).json(data);
                 return;
             }
@@ -143,12 +156,11 @@ export default async function handler(req, res) {
                 res.status(200).json(data);
             }
             
-            let db_date = date !== undefined ? date : current_date;
             let valid_date = db_date === current_date.toString();
             let valid_description =
-                "Vote on the this entry to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins!  For more info visit blinkbash.daoplays.org!  Todays image is by @Dave_Kayac.";
+                "Vote on the this entry to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins!  For more info visit blinkbash.daoplays.org!  ";
             let invalid_description =
-                "Voting for this entry has already finished.  Check out blinkbash.daoplays.org for todays entries. Submit responses to the days image and vote on entries to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins! This image was by @Dave_Kayac.";
+                "Voting for this entry has already finished.  Check out blinkbash.daoplays.org for todays entries. Submit responses to the days image and vote on entries to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins!"
             let description = valid_date ? valid_description : invalid_description;
 
             let location = "BlinkBash/entries/" + game + "/" + db_date.toString() + "/" + creator;

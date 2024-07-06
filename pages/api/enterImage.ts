@@ -71,7 +71,7 @@ export default async function handler(req, res) {
     const height = 400;
 
     try {
-        const { game } = req.query;
+        const { game, date } = req.query;
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
         // Initialize Realtime Database and get a reference to the service
         const database = getDatabase(app);
 
-        let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
+        let current_date = date;
        
 
         console.log("Starting image generation with dynamic layout and colored text");
