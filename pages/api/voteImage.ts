@@ -131,10 +131,10 @@ export default async function handler(req, res) {
             return generateTextPath(line, bottomFontSize, x, y, montserratTextToSVG);
         });
 
-        const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+date));
+        const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + date));
         let prompt_val = prompt_db.val();
-        let json = JSON.parse(prompt_val.toString())
-        let image_link = json["url"]
+        let json = JSON.parse(prompt_val.toString());
+        let image_link = json["url"];
 
         const imageResponse = await fetch(image_link);
         const imageArrayBuffer = await imageResponse.arrayBuffer();

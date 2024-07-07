@@ -63,8 +63,7 @@ export default function Upload() {
     const [startDate, setStartDate] = useState<Date>(new Date((today_date + 1) * (1000 * 60 * 60 * 24)));
     const { isOpen: isStartOpen, onToggle: onToggleStart, onClose: onCloseStart } = useDisclosure();
 
-
-    const handleSetDate = (date : Date) => {
+    const handleSetDate = (date: Date) => {
         setStartDate(date);
     };
 
@@ -99,10 +98,7 @@ export default function Upload() {
             <div>
                 <label className={styles.label}>
                     <input id="file" type="file" onChange={handleFileChange} />
-                    <span
-                        className={styles.browse}
-                        style={{ cursor: "pointer", padding: "5px 10px" }}
-                    >
+                    <span className={styles.browse} style={{ cursor: "pointer", padding: "5px 10px" }}>
                         BROWSE
                     </span>
                 </label>
@@ -113,10 +109,8 @@ export default function Upload() {
         </HStack>
     );
 
-    const handleUpload = async() => {
-
-        if (prompt === null)
-            return;
+    const handleUpload = async () => {
+        if (prompt === null) return;
 
         const irys_wallet = { name: "phantom", provider: wallet };
         const irys = new WebIrys({
@@ -159,17 +153,13 @@ export default function Upload() {
 
             console.log(fund_check, fund_check.data["confirmed"]);
 
-            toast.success( "Your account has been successfully funded.");
-            
+            toast.success("Your account has been successfully funded.");
         } catch (error) {
-
             toast.error("Oops! Something went wrong during funding. Please try again later. ");
             return;
         }
 
-        const tags: Tag[] = [
-            { name: "Content-Type", value:prompt.type },
-        ];
+        const tags: Tag[] = [{ name: "Content-Type", value: prompt.type }];
 
         const uploadToArweave = toast.info("Sign to upload images on Arweave.");
 
@@ -188,7 +178,6 @@ export default function Upload() {
                 autoClose: 2000,
             });
         } catch (error) {
-
             toast.error(`Failed to upload images, please try again later.`);
 
             return;
@@ -206,12 +195,11 @@ export default function Upload() {
         const signature = await wallet.signMessage(encodedMessage);
         const encodedSignature = bs58.encode(signature);
 
-        
         let body = JSON.stringify({
             user_key: wallet.publicKey.toString(),
             signature: encodedSignature,
             image_url: icon_url,
-            date: startDate.getTime() / 1000 / 60 / 60 / 24
+            date: startDate.getTime() / 1000 / 60 / 60 / 24,
         });
         const response = await fetch("/.netlify/functions/addImage", {
             method: "POST",
@@ -223,10 +211,8 @@ export default function Upload() {
 
         //console.log(response)
         toast.success("Image uploaded successfully!");
-    }
+    };
 
-    
-        
     return (
         <>
             <VStack
@@ -241,56 +227,52 @@ export default function Upload() {
                 <Navigation />
                 <VStack mt={50} h="fit-content" w="1200px" mx={5} p={6} gap={15}>
                     <SimpleGrid w="100%" h={200} columns={1} spacing={15} flexDirection={xl ? "column-reverse" : "row"}>
-                        
                         <VStack bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
                             <Text m={0} color="white" fontSize="4xl" className="font-face-wc">
                                 Prompt Upload
                             </Text>
 
-                            
-                        <Popover isOpen={isStartOpen} onClose={onCloseStart} placement="bottom" closeOnBlur={false}>
-                        <PopoverTrigger>
-                            <HStack spacing={4} color="white" align="center">
-                                <HStack onClick={onToggleStart} style={{ cursor: "pointer" }}>
-                                    <Text m={0} color="white" className="font-face-kg" fontSize="xl">
-                                        {startDate.toLocaleDateString()}
-                                    </Text>
-                                    <FaCalendarAlt size={28} style={{ marginTop: -2 }} />
-                                </HStack>
-                                
-                            </HStack>
-                        </PopoverTrigger>
-                        <PopoverContent width="fit-content">
-                            <PopoverArrow />
-                            <PopoverCloseButton />
-                            <PopoverHeader h={34} />
-                            <PopoverBody>
-                                <DatePicker
-                                    selected={startDate}
-                                    onChange={(date) => {
-                                        handleSetDate(date);
-                                    }}
-                                    onClickOutside={() => onCloseStart()}
-                                    inline
-                                />
-                            </PopoverBody>
-                        </PopoverContent>
-                    </Popover>
-                    <Browse />
+                            <Popover isOpen={isStartOpen} onClose={onCloseStart} placement="bottom" closeOnBlur={false}>
+                                <PopoverTrigger>
+                                    <HStack spacing={4} color="white" align="center">
+                                        <HStack onClick={onToggleStart} style={{ cursor: "pointer" }}>
+                                            <Text m={0} color="white" className="font-face-kg" fontSize="xl">
+                                                {startDate.toLocaleDateString()}
+                                            </Text>
+                                            <FaCalendarAlt size={28} style={{ marginTop: -2 }} />
+                                        </HStack>
+                                    </HStack>
+                                </PopoverTrigger>
+                                <PopoverContent width="fit-content">
+                                    <PopoverArrow />
+                                    <PopoverCloseButton />
+                                    <PopoverHeader h={34} />
+                                    <PopoverBody>
+                                        <DatePicker
+                                            selected={startDate}
+                                            onChange={(date) => {
+                                                handleSetDate(date);
+                                            }}
+                                            onClickOutside={() => onCloseStart()}
+                                            inline
+                                        />
+                                    </PopoverBody>
+                                </PopoverContent>
+                            </Popover>
+                            <Browse />
 
-                        <Button
-                            shadow="md"
-                            _active={{ bg: "#FFE376" }}
-                            _hover={{ opacity: "90%" }}
-                            bg="#FFE376"
-                            color="#BA6502"
-                            rounded="lg"
-                            w="full"
-                            onClick={() => handleUpload()}
-                        >
-                            Submit
-                        </Button>
-                            
+                            <Button
+                                shadow="md"
+                                _active={{ bg: "#FFE376" }}
+                                _hover={{ opacity: "90%" }}
+                                bg="#FFE376"
+                                color="#BA6502"
+                                rounded="lg"
+                                w="full"
+                                onClick={() => handleUpload()}
+                            >
+                                Submit
+                            </Button>
                         </VStack>
                     </SimpleGrid>
                 </VStack>
@@ -303,10 +285,6 @@ export default function Upload() {
                     hidden={xl}
                 />
             </VStack>
-
-            
-
-            
         </>
     );
 }

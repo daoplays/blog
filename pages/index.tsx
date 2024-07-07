@@ -50,6 +50,8 @@ import { BiSolidLeftArrow } from "react-icons/bi";
 import bs58 from "bs58";
 import { toast } from "react-toastify";
 import Link from "next/link";
+import TweetEditModal from "../components/state/modals";
+import DialectCTA from "../components/blinkbash/dialect";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -242,8 +244,33 @@ export default function Home() {
     const [prompt, setPrompt] = useState<string>("");
 
     const { isOpen: isStartOpen, onToggle: onToggleStart, onClose: onCloseStart } = useDisclosure();
+    const { isOpen: isRetweetOpen, onOpen: onRetweetOpen, onClose: onRetweetClose } = useDisclosure();
+    const [retweet_text, setRetweetText] = useState<string>("");
+
     const { handleEntry } = useEntry();
     const { ClaimPrize } = useClaimPrize();
+
+    const handleOpenRetweetModal = (creator: string, date: number) => {
+        let twitter = twitterList.get(creator);
+
+        let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date;
+        let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
+
+        let tweet = "Check out this entry to @Blink_Bash! " + dial_link;
+
+        if (twitter !== undefined) {
+            tweet = "Check out this entry from @" + twitter.username + " to @Blink_Bash! " + dial_link;
+        }
+        setRetweetText(tweet);
+        console.log(tweet);
+        onRetweetOpen();
+    };
+
+    const handleReTweet = (tweetText) => {
+        shareEntry(tweetText);
+
+        onRetweetClose();
+    };
 
     const handleSetDate = (date: Date) => {
         setSelectedRank(0);
@@ -340,7 +367,7 @@ export default function Home() {
     };
 
     const shareEntry = useCallback(
-        async (creator: string, date: number) => {
+        async (tweet: string) => {
             try {
                 const message = "Sign to share post on X";
                 const encodedMessage = new TextEncoder().encode(message);
@@ -348,11 +375,6 @@ export default function Home() {
                 // 2. Sign the message
                 const signature = await wallet.signMessage(encodedMessage);
                 const encodedSignature = bs58.encode(signature);
-
-                let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date;
-                let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
-
-                let tweet = "Check out this entry to BlinkBash! " + dial_link;
 
                 let body = JSON.stringify({
                     user_key: wallet.publicKey.toString(),
@@ -374,7 +396,7 @@ export default function Home() {
                 toast.error("Error sharing tweet");
             }
         },
-        [wallet],
+        [wallet, twitterList],
     );
 
     return (
@@ -460,7 +482,7 @@ export default function Home() {
                                                     <FaRetweet
                                                         size={sm ? 30 : 42}
                                                         color="rgba(0,0,0,0.45)"
-                                                        onClick={() => shareEntry(entries[random_entry].key, today_date)}
+                                                        onClick={() => handleOpenRetweetModal(entries[random_entry].key, today_date)}
                                                         style={{ marginTop: -2 }}
                                                     />
                                                 </div>
@@ -486,7 +508,7 @@ export default function Home() {
                                             </Tooltip>
                                         </HStack>
                                     </HStack>
-                                    <Text m={0} fontSize="lg" fontWeight={600} color="white">
+                                    <Text m={0} fontSize="lg" fontWeight={600} color="white" w="full">
                                         {wrapLongWords(entries[random_entry].entry)}
                                     </Text>
                                 </VStack>
@@ -733,7 +755,9 @@ export default function Home() {
                                                         <FaRetweet
                                                             size={sm ? 30 : 42}
                                                             color="rgba(0,0,0,0.45)"
-                                                            onClick={() => shareEntry(entries[random_entry].key, today_date)}
+                                                            onClick={() =>
+                                                                handleOpenRetweetModal(day_winners[selectedRank].key, winner_date)
+                                                            }
                                                             style={{ marginTop: -2, cursor: "pointer" }}
                                                         />
                                                     </div>
@@ -751,6 +775,9 @@ export default function Home() {
                     </VStack>
                 </VStack>
             </VStack>
+            <TweetEditModal isOpen={isRetweetOpen} onClose={onRetweetClose} onSendTweet={handleReTweet} initialText={retweet_text} />
+
+            <DialectCTA />
         </>
     );
 }

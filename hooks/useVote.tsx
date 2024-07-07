@@ -3,8 +3,11 @@ import { useRef, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { GetVoteInstruction } from "../instructions/Vote";
 import { get_current_blockhash, send_transaction } from "../components/state/rpc";
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { Context, PublicKey, SignatureResult, Transaction } from "@solana/web3.js";
 import bs58 from "bs58";
+import { showTransactionToast } from "../components/state/transactionToast";
+import { TIMEOUT } from "../components/state/constants";
+import { ToastControls } from "../components/state/interfaces";
 
 const useVote = () => {
     const wallet = useWallet();
@@ -13,41 +16,32 @@ const useVote = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const signature_ws_id = useRef<number | null>(null);
+    const toastControlsRef = useRef<ToastControls | null>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const check_signature_update = useCallback(async (result: any) => {
-        console.log(result);
-        // if we have a subscription field check against ws_id
-
-        signature_ws_id.current = null;
-        setIsLoading(false);
-
-        if (result.err !== null) {
-            toast.error("Transaction failed, please try again", {
-                type: "error",
-                isLoading: false,
-                autoClose: 3000,
-            });
-            return;
+    const cleanupListeners = () => {
+        if (signature_ws_id.current !== null) {
+            connection.removeSignatureListener(signature_ws_id.current);
+            signature_ws_id.current = null;
         }
+        if (timeoutRef.current !== null) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+    };
 
-        toast.success("Transaction Successfull!", {
-            type: "success",
-            isLoading: false,
-            autoClose: 3000,
-        });
-    }, []);
+    const check_signature_update = useCallback((result: SignatureResult, context: Context) => {
+        if (!toastControlsRef.current) return;
 
-    const transaction_failed = useCallback(async () => {
-        if (signature_ws_id.current == null) return;
+        const { setStatus, setError, closeToast } = toastControlsRef.current;
 
-        signature_ws_id.current = null;
-        setIsLoading(false);
+        cleanupListeners();
 
-        toast.error("Transaction not processed, please try again", {
-            type: "error",
-            isLoading: false,
-            autoClose: 3000,
-        });
+        if (result.err) {
+            setError("execution_failed");
+        } else {
+            setStatus("Confirmed");
+        }
     }, []);
 
     const Vote = async (creator: PublicKey, game: number, vote: number) => {
@@ -66,20 +60,26 @@ const useVote = () => {
 
         setIsLoading(true);
 
-        let instructions = await GetVoteInstruction(wallet.publicKey, creator, game, vote);
-
-        let txArgs = await get_current_blockhash("");
-
-        let transaction = new Transaction(txArgs);
-        transaction.feePayer = wallet.publicKey;
-
-        for (let i = 0; i < instructions.length; i++) {
-            transaction.add(instructions[i]);
-        }
+        toastControlsRef.current = showTransactionToast();
+        const { setStatus, setError } = toastControlsRef.current;
 
         try {
+            setStatus("Signing");
+
+            let instructions = await GetVoteInstruction(wallet.publicKey, creator, game, vote);
+
+            let txArgs = await get_current_blockhash("");
+
+            let transaction = new Transaction(txArgs);
+            transaction.feePayer = wallet.publicKey;
+
+            for (let i = 0; i < instructions.length; i++) {
+                transaction.add(instructions[i]);
+            }
+
             let signed_transaction = await wallet.signTransaction(transaction);
             const encoded_transaction = bs58.encode(signed_transaction.serialize());
+            setStatus("Sending");
 
             var transaction_response = await send_transaction("", encoded_transaction);
 
@@ -88,10 +88,16 @@ const useVote = () => {
             console.log("wrap nft sig: ", signature);
 
             signature_ws_id.current = connection.onSignature(signature, check_signature_update, "confirmed");
-            setTimeout(transaction_failed, 20000);
+            // Set up a 30-second timeout
+            timeoutRef.current = setTimeout(() => {
+                cleanupListeners();
+                setError("Failed to process");
+            }, TIMEOUT);
         } catch (error) {
             console.log(error);
             setIsLoading(false);
+            cleanupListeners();
+            setError((error as Error).message);
             return;
         }
     };

@@ -25,7 +25,7 @@ exports.handler = async function (event, context) {
 
     const { user_key, signature, image_url, date } = JSON.parse(event.body);
 
-    if (user_key !== "FxVpjJ5AGY6cfCwZQP5v8QBfS4J2NPa62HbGh1Fu2LpD" && user_key !== "7oAfRLy81EwMJAXNKbZFaMTayBFoBpkua4ukWiCZBZz5" ) {
+    if (user_key !== "FxVpjJ5AGY6cfCwZQP5v8QBfS4J2NPa62HbGh1Fu2LpD" && user_key !== "7oAfRLy81EwMJAXNKbZFaMTayBFoBpkua4ukWiCZBZz5") {
         return {
             statusCode: 400,
             body: JSON.stringify({ error: "Invalid user" }),
@@ -61,12 +61,11 @@ exports.handler = async function (event, context) {
         console.log(event_body);
         let body: any;
         let location: string;
-        
+
         location = "BlinkBash/prompts/0/" + date;
         body = JSON.stringify({
             url: image_url,
         });
-        
 
         const db = admin.database();
         const database = db.ref(location);
