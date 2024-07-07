@@ -757,7 +757,7 @@ export default function Home() {
                                                         <FaRetweet
                                                             size={sm ? 30 : 42}
                                                             color="rgba(0,0,0,0.45)"
-                                                            onClick={() => handleOpenRetweetModal(entries[random_entry].key, winner_date)}
+                                                            onClick={() => handleOpenRetweetModal(day_winners[selectedRank].key, winner_date)}
                                                             style={{ marginTop: -2, cursor: "pointer" }}
                                                         />
                                                     </div>
