@@ -14,7 +14,6 @@ export const default_twitter: TwitterUser = {
     profile_image_url: "/images/anon_profile.jpg",
 };
 
-
 export interface MintData {
     mint: Mint;
     uri: string;
@@ -39,4 +38,10 @@ export interface DayRow {
     entry: string;
     prompt: string;
     claimed: boolean;
+}
+
+export interface ToastControls {
+    setStatus: (status: string) => void;
+    setError: (error: string) => void;
+    closeToast: () => void;
 }

@@ -83,17 +83,15 @@ export const GetDaysEntries = async (
         return;
     }
 
-    
-
-    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+date));
+    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + date));
     let prompt_val = prompt_db.val();
 
     if (prompt_val === null) {
         setDayRows([]);
         return;
     }
-    let json = JSON.parse(prompt_val.toString())
-    let prompt_url = json["url"]
+    let json = JSON.parse(prompt_val.toString());
+    let prompt_url = json["url"];
 
     let day_rows: DayRow[] = [];
     Object.entries(entries).forEach(([key, value]) => {
@@ -165,15 +163,15 @@ export const GetDaysWinners = async (
         return;
     }
 
-    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+date));
+    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + date));
     let prompt_val = prompt_db.val();
 
     if (prompt_val === null) {
         setDayRows([]);
         return;
     }
-    let json = JSON.parse(prompt_val.toString())
-    let prompt_url = json["url"]
+    let json = JSON.parse(prompt_val.toString());
+    let prompt_url = json["url"];
     // Sort the indices based on scores (in descending order)
     const indices = Array.from(leaderboard.scores.keys());
 
@@ -304,14 +302,14 @@ export default function Home() {
         if (database === null) {
             return;
         }
-        const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+today_date));
+        const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + today_date));
         let prompt_val = prompt_db.val();
         if (prompt_val === null) {
-            setPrompt("https://blinkbash.daoplays.org/api/errorImage")
+            setPrompt("https://blinkbash.daoplays.org/api/errorImage");
             return;
         }
-        let json = JSON.parse(prompt_val.toString())
-        console.log("prompt",  today_date, json["url"])
+        let json = JSON.parse(prompt_val.toString());
+        console.log("prompt", today_date, json["url"]);
         setPrompt(json["url"]);
     }, [database, today_date]);
 
@@ -320,7 +318,7 @@ export default function Home() {
             return;
         }
 
-        getPrompt()
+        getPrompt();
     }, [prompt, getPrompt]);
 
     const handleRandomiseEntry = () => {
@@ -358,7 +356,7 @@ export default function Home() {
                 let tweet = "Check out this entry to BlinkBash! " + dial_link;
 
                 if (twitter !== undefined) {
-                    tweet =  "Check out this entry from @" + twitter.username +" to BlinkBash! " + dial_link;
+                    tweet = "Check out this entry from @" + twitter.username + " to BlinkBash! " + dial_link;
                 }
 
                 let body = JSON.stringify({

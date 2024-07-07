@@ -35,7 +35,6 @@ exports.handler = async function (event, context) {
         accessToken: twitterData.accessToken,
         accessSecret: twitterData.accessSecret,
     });
-    
 
     let today_date = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24));
     const entry_db = db.ref("BlinkBash/entries/0/" + today_date.toString() + "/" + user_key);
@@ -56,13 +55,11 @@ exports.handler = async function (event, context) {
         };
     }
 
-    
-
     let link = "https://blinkbash.daoplays.org/api/blink?creator=" + user_key + "&game=0&date=" + today_date;
     let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
 
-    let tweet_content = "Check out my entry to BlinkBash! " + dial_link;
-    console.log(tweet_content)
+    let tweet_content = "Check out my entry to @Blink_Bash! " + dial_link;
+    console.log(tweet_content);
 
     try {
         entry_json.tweeted = true;
