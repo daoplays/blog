@@ -49,6 +49,7 @@ import { TbReload } from "react-icons/tb";
 import { BiSolidLeftArrow } from "react-icons/bi";
 import bs58 from "bs58";
 import { toast } from "react-toastify";
+import Link from "next/link";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -83,17 +84,15 @@ export const GetDaysEntries = async (
         return;
     }
 
-    
-
-    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+date));
+    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + date));
     let prompt_val = prompt_db.val();
 
     if (prompt_val === null) {
         setDayRows([]);
         return;
     }
-    let json = JSON.parse(prompt_val.toString())
-    let prompt_url = json["url"]
+    let json = JSON.parse(prompt_val.toString());
+    let prompt_url = json["url"];
 
     let day_rows: DayRow[] = [];
     Object.entries(entries).forEach(([key, value]) => {
@@ -165,15 +164,15 @@ export const GetDaysWinners = async (
         return;
     }
 
-    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+date));
+    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + date));
     let prompt_val = prompt_db.val();
 
     if (prompt_val === null) {
         setDayRows([]);
         return;
     }
-    let json = JSON.parse(prompt_val.toString())
-    let prompt_url = json["url"]
+    let json = JSON.parse(prompt_val.toString());
+    let prompt_url = json["url"];
     // Sort the indices based on scores (in descending order)
     const indices = Array.from(leaderboard.scores.keys());
 
@@ -304,14 +303,14 @@ export default function Home() {
         if (database === null) {
             return;
         }
-        const prompt_db = await get(ref(database, "BlinkBash/prompts/0/"+today_date));
+        const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + today_date));
         let prompt_val = prompt_db.val();
         if (prompt_val === null) {
-            setPrompt("https://blinkbash.daoplays.org/api/errorImage")
+            setPrompt("https://blinkbash.daoplays.org/api/errorImage");
             return;
         }
-        let json = JSON.parse(prompt_val.toString())
-        console.log("prompt",  today_date, json["url"])
+        let json = JSON.parse(prompt_val.toString());
+        console.log("prompt", today_date, json["url"]);
         setPrompt(json["url"]);
     }, [database, today_date]);
 
@@ -320,7 +319,7 @@ export default function Home() {
             return;
         }
 
-        getPrompt()
+        getPrompt();
     }, [prompt, getPrompt]);
 
     const handleRandomiseEntry = () => {
@@ -429,32 +428,34 @@ export default function Home() {
                             {entries.length > 0 ? (
                                 <VStack h="100%" bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
                                     <HStack w="full" alignItems="start" justifyContent="space-between">
-                                        <HStack alignItems="center" gap={4}>
-                                            <div
-                                                style={{
-                                                    width: "60px",
-                                                    height: "60px",
-                                                    position: "relative",
-                                                    borderRadius: "100%",
-                                                }}
-                                            >
-                                                <Image
-                                                    src={entries[random_entry].twitter.profile_image_url}
-                                                    alt={`${entries[random_entry].twitter.username}'s PFP`}
-                                                    fill
+                                        <HStack alignItems="center" gap={2}>
+                                            <Link href={`https://x.com/${entries[random_entry].twitter.username}`} target="_blank">
+                                                <div
                                                     style={{
-                                                        objectFit: "cover",
+                                                        width: "60px",
+                                                        height: "60px",
+                                                        position: "relative",
                                                         borderRadius: "100%",
                                                     }}
-                                                />
-                                            </div>
+                                                >
+                                                    <Image
+                                                        src={entries[random_entry].twitter.profile_image_url}
+                                                        alt={`${entries[random_entry].twitter.username}'s PFP`}
+                                                        fill
+                                                        style={{
+                                                            objectFit: "cover",
+                                                            borderRadius: "100%",
+                                                        }}
+                                                    />
+                                                </div>
+                                            </Link>
 
                                             <VStack alignItems="start" gap={0} color="white">
                                                 <Text m={0} fontSize="xl" fontWeight={600}>
                                                     {entries[random_entry].twitter.name}
                                                 </Text>
                                                 <Text m={0} fontSize="sm">
-                                                    {entries[random_entry].twitter.username}
+                                                    @{entries[random_entry].twitter.username}
                                                 </Text>
                                             </VStack>
                                         </HStack>
@@ -463,7 +464,7 @@ export default function Home() {
                                             <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
                                                 <div>
                                                     <FaRetweet
-                                                        size={42}
+                                                        size={sm ? 30 : 42}
                                                         color="rgba(0,0,0,0.45)"
                                                         onClick={() => shareEntry(entries[random_entry].key, today_date)}
                                                         style={{ marginTop: -2 }}
@@ -474,8 +475,8 @@ export default function Home() {
                                                 <Image
                                                     onClick={() => Vote(new PublicKey(entries[random_entry].key), 0, 1)}
                                                     src="/images/thumbs-up.svg"
-                                                    width={35}
-                                                    height={35}
+                                                    width={sm ? 25 : 35}
+                                                    height={sm ? 25 : 35}
                                                     alt="Thumbs Up"
                                                 />
                                             </Tooltip>
@@ -484,14 +485,13 @@ export default function Home() {
                                                 <Image
                                                     onClick={() => Vote(new PublicKey(entries[random_entry].key), 0, 2)}
                                                     src="/images/thumbs-down.svg"
-                                                    width={35}
-                                                    height={35}
+                                                    width={sm ? 25 : 35}
+                                                    height={sm ? 25 : 35}
                                                     alt="Thumbs Down"
                                                 />
                                             </Tooltip>
                                         </HStack>
                                     </HStack>
-
                                     <Text m={0} fontSize="lg" fontWeight={600} color="white">
                                         {wrapLongWords(entries[random_entry].entry)}
                                     </Text>
