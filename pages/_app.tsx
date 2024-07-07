@@ -15,6 +15,8 @@ import { Config } from "../components/state/constants";
 import { useMemo } from "react";
 import { ConnectionConfig } from "@solana/web3.js";
 import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adapter-wallets";
+import { Text } from "@chakra-ui/react";
+import Link from "next/link";
 
 function MyApp({ Component, pageProps }) {
     const pathname = usePathname();

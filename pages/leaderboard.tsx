@@ -43,6 +43,7 @@ import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get, Database } from "firebase/database";
 import { DayRow } from "../components/state/interfaces";
 import { GetDaysEntries } from "./index";
+import DialectCTA from "../components/blinkbash/dialect";
 interface Header {
     text: string;
     field: string | null;
@@ -283,6 +284,8 @@ const LeaderboardPage = () => {
                 style={{ position: "absolute", bottom: -20, left: 50, zIndex: -50 }}
                 hidden={xl}
             />
+
+            <DialectCTA />
         </Layout>
     );
 };
