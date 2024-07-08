@@ -39,6 +39,7 @@ import { trimAddress } from "../components/state/utils";
 import { MdOutlineContentCopy } from "react-icons/md";
 import { bignum_to_num } from "../components/blog/apps/common";
 import useResponsive from "../components/blog/apps/commonHooks/useResponsive";
+import DialectCTA from "../components/blinkbash/dialect";
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 export default function Shop() {
@@ -449,6 +450,8 @@ export default function Shop() {
                 style={{ position: "absolute", bottom: -0, left: 50, zIndex: -50 }}
                 hidden={lg}
             />
+
+            <DialectCTA />
         </Layout>
     );
 }

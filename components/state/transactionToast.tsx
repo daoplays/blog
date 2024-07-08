@@ -33,8 +33,8 @@ const TransactionToast: React.FC<{
 
     return (
         <Box p={3} bg="white" borderRadius="md" boxShadow="md" width="300px">
-            <VStack align="stretch" spacing={3}>
-                <Flex align="center">
+            <VStack align="stretch" spacing={6}>
+                <Flex alignItems="center">
                     <Box width="24px" height="24px" display="flex" alignItems="center" justifyContent="center" marginRight="8px">
                         {error ? (
                             <FaTimesCircle color="red" size="24px" />
@@ -44,12 +44,14 @@ const TransactionToast: React.FC<{
                             <Box as={FaSpinner} animation={`${spinAnimation} 1s linear infinite`} size="24px" />
                         )}
                     </Box>
-                    <Text fontWeight="bold" fontSize="md">
+                    <Text m={0} fontWeight="bold" fontSize="md">
                         {error ? "Transaction Failed" : "Transaction Progress"}
                     </Text>
                 </Flex>
                 <Progress value={progress} size="sm" colorScheme="blue" />
-                <Text fontSize="sm">Status: {statusText}</Text>
+                <Text m={0} fontSize="sm">
+                    Status: {statusText}
+                </Text>
             </VStack>
         </Box>
     );
