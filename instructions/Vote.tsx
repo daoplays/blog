@@ -72,6 +72,9 @@ export const GetVoteInstruction = async (user: PublicKey, creator: PublicKey, ga
         { pubkey: SYSTEM_KEY, isSigner: false, isWritable: false },
         { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: false },
         { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: ref, isSigner: false, isWritable: true },
+        { pubkey: ref_bash, isSigner: false, isWritable: true },
+
     ];
 
     const list_instruction = new TransactionInstruction({
