@@ -253,9 +253,15 @@ export default function Home() {
     const handleOpenRetweetModal = (creator: string, date: number, mode : number) => {
         let twitter = twitterList.get(creator);
         let tweet : string;
-
+        let ref_string : string = ""
+         // add referral
+         if (wallet !== null && wallet.publicKey !== null) {
+            let referral = wallet.publicKey.toString();
+            ref_string = "&ref=" + referral;
+        }
         if (mode === 0) {
-            let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date;
+            let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date + ref_string;
+            
             let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
             tweet = "Check out this entry to @Blink_Bash! " + dial_link;
 
@@ -264,17 +270,12 @@ export default function Home() {
             }
         }
         else {
-            let link = "https://blinkbash.daoplays.org/api/blink?method=enter&game=0&date=" + date;
+            let link = "https://blinkbash.daoplays.org/api/blink?method=enter&game=0&date=" + date + ref_string;
             let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
             tweet = "Enter a caption to todays @Blink_Bash prompt to earn $BASH! " + dial_link;
         }
 
-        // add referral
-        if (wallet !== null && wallet.publicKey !== null) {
-            let referral = wallet.publicKey.toString();
-            tweet += "&ref=" + referral;
-        }
-
+       
         
         setRetweetText(tweet);
         console.log(tweet);

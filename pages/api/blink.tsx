@@ -27,6 +27,7 @@ const getEntryData = (date: string, ref : string) => {
     if (ref !== undefined) {
         valid_href = "/api/blink?method=enter&game=0&ref=" + ref +"&caption={caption}"
     }
+    console.log("getting entry data", valid_href)
     let actions = valid_date
         ? [
               {
@@ -133,7 +134,7 @@ export default async function handler(req, res) {
 
             let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
             let db_date = date !== undefined ? date : current_date;
-
+            console.log("get args")
             if (method === "enter") {
                 console.log("Have enter");
                 let data = getEntryData(db_date, ref);
