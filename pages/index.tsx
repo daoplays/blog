@@ -434,7 +434,9 @@ export default function Home() {
                             a $BASH payout! <br />
                             <br /> 2. Vote on others’ Blinks to earn $BASH. <br />
                             <br />
-                            3. Spend $BASH on rewards sponsored by your favorite Solana projects!
+                            3. Share todays entries, or the prompt, and if people use your blinks you get $BASH!
+                            <br/><br/>
+                            4. Spend $BASH on rewards sponsored by your favorite Solana projects!
                         </Text>
 
                         <Divider />
@@ -493,7 +495,7 @@ export default function Home() {
                                         </HStack>
 
                                         <HStack alignItems="start" mt={2} gap={3} style={{ cursor: "pointer" }}>
-                                            <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
+                                            <Tooltip label="Share and Earn!" hasArrow fontSize="large" offset={[0, 15]}>
                                                 <div>
                                                     <FaRetweet
                                                         size={sm ? 30 : 42}
