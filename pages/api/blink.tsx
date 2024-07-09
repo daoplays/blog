@@ -2,7 +2,7 @@ import { ComputeBudgetProgram, PublicKey, TransactionInstruction, TransactionMes
 import { Config, PROGRAM, SYSTEM_KEY } from "../../components/state/constants";
 import { getRecentPrioritizationFees, get_current_blockhash } from "../../components/state/rpc";
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, get } from "firebase/database";
+import { getDatabase, ref as dbRef, get } from "firebase/database";
 import { GetVoteInstruction } from "../../instructions/Vote";
 import { GetEnterInstruction } from "../../instructions/Enter";
 
@@ -134,7 +134,7 @@ export default async function handler(req, res) {
 
             let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
             let db_date = date !== undefined ? date : current_date;
-            console.log("get args")
+            console.log("get args", creator, game, date, method, ref);
             if (method === "enter") {
                 console.log("Have enter");
                 let data = getEntryData(db_date, ref);
@@ -164,10 +164,8 @@ export default async function handler(req, res) {
             let description = valid_date ? valid_description : invalid_description;
 
             let location = "BlinkBash/entries/" + game + "/" + db_date.toString() + "/" + creator;
-
-            const snapshot = await get(ref(database, location));
+            const snapshot = await get(dbRef(database, location));
             let entry = JSON.parse(snapshot.val());
-
             if (entry === null) {
                 // Your data here
                 const data = {
@@ -215,6 +213,7 @@ export default async function handler(req, res) {
             };
             res.status(200).json(data);
         } catch (error) {
+            console.log(error)
             res.status(400).json({ error: "Invalid entry" });
         }
     } else if (req.method === "POST") {
@@ -235,7 +234,7 @@ export default async function handler(req, res) {
 
             if (method == "enter") {
                 console.log("post in enter", req.body);
-                console.log(game, caption, account);
+                console.log(game, caption, account, ref);
                 let transaction = await getEntryPost(game, caption, account, ref);
 
                 // Process the decoded account (this is a placeholder, replace with your actual logic)
