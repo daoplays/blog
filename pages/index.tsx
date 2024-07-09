@@ -264,7 +264,7 @@ export default function Home() {
             }
         }
         else {
-            let link = "https://blinkbash.daoplays.org/api/blink?mode=enter&game=0&date=" + date;
+            let link = "https://blinkbash.daoplays.org/api/blink?method=enter&game=0&date=" + date;
             let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
             tweet = "Enter a caption to todays @Blink_Bash prompt to earn $BASH! " + dial_link;
         }
