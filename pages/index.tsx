@@ -250,17 +250,32 @@ export default function Home() {
     const { handleEntry } = useEntry();
     const { ClaimPrize } = useClaimPrize();
 
-    const handleOpenRetweetModal = (creator: string, date: number) => {
+    const handleOpenRetweetModal = (creator: string, date: number, mode : number) => {
         let twitter = twitterList.get(creator);
+        let tweet : string;
 
-        let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date;
-        let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
+        if (mode === 0) {
+            let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date;
+            let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
+            tweet = "Check out this entry to @Blink_Bash! " + dial_link;
 
-        let tweet = "Check out this entry to @Blink_Bash! " + dial_link;
-
-        if (twitter !== undefined) {
-            tweet = "Check out this entry from @" + twitter.username + " to @Blink_Bash! " + dial_link;
+            if (twitter !== undefined) {
+                tweet = "Check out this entry from @" + twitter.username + " to @Blink_Bash! " + dial_link;
+            }
         }
+        else {
+            let link = "https://blinkbash.daoplays.org/api/blink?mode=enter&game=0&date=" + date;
+            let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
+            tweet = "Enter a caption to todays @Blink_Bash prompt to earn $BASH! " + dial_link;
+        }
+
+        // add referral
+        if (wallet !== null && wallet.publicKey !== null) {
+            let referral = wallet.publicKey.toString();
+            tweet += "&ref=" + referral;
+        }
+
+        
         setRetweetText(tweet);
         console.log(tweet);
         onRetweetOpen();
@@ -482,7 +497,7 @@ export default function Home() {
                                                     <FaRetweet
                                                         size={sm ? 30 : 42}
                                                         color="rgba(0,0,0,0.45)"
-                                                        onClick={() => handleOpenRetweetModal(entries[random_entry].key, today_date)}
+                                                        onClick={() => handleOpenRetweetModal(entries[random_entry].key, today_date, 0)}
                                                         style={{ marginTop: -2 }}
                                                     />
                                                 </div>
@@ -523,10 +538,21 @@ export default function Home() {
                     </VStack>
 
                     <VStack bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
-                        <Text m={0} color="white" fontSize="4xl" className="font-face-wc">
-                            Daily Prompt
-                        </Text>
-
+                        <HStack>                       
+                            <Text m={0} color="white" fontSize="4xl" className="font-face-wc">
+                                Daily Prompt
+                            </Text>
+                            <Tooltip label="Share & Earn!" hasArrow fontSize="large" offset={[0, 15]}>
+                                <div>
+                                    <FaRetweet
+                                        size={sm ? 30 : 42}
+                                        color="rgba(0,0,0,0.45)"
+                                        onClick={() => handleOpenRetweetModal(entries[random_entry].key, today_date, 1)}
+                                        style={{ marginTop: -2 }}
+                                    />
+                                </div>
+                            </Tooltip>
+                        </HStack>
                         <HStack>
                             <Box position="relative" h="300px" w="300px" border="1px dashed white" rounded="xl">
                                 <Image
@@ -756,7 +782,7 @@ export default function Home() {
                                                             size={sm ? 30 : 42}
                                                             color="rgba(0,0,0,0.45)"
                                                             onClick={() =>
-                                                                handleOpenRetweetModal(day_winners[selectedRank].key, winner_date)
+                                                                handleOpenRetweetModal(day_winners[selectedRank].key, winner_date, 0)
                                                             }
                                                             style={{ marginTop: -2, cursor: "pointer" }}
                                                         />

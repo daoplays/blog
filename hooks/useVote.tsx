@@ -6,7 +6,7 @@ import { get_current_blockhash, send_transaction } from "../components/state/rpc
 import { Context, PublicKey, SignatureResult, Transaction } from "@solana/web3.js";
 import bs58 from "bs58";
 import { showTransactionToast } from "../components/state/transactionToast";
-import { TIMEOUT } from "../components/state/constants";
+import { PROGRAM, TIMEOUT } from "../components/state/constants";
 import { ToastControls } from "../components/state/interfaces";
 
 const useVote = () => {
@@ -66,7 +66,7 @@ const useVote = () => {
         try {
             setStatus("Signing");
 
-            let instructions = await GetVoteInstruction(wallet.publicKey, creator, game, vote);
+            let instructions = await GetVoteInstruction(wallet.publicKey, creator, game, vote, PROGRAM);
 
             let txArgs = await get_current_blockhash("");
 
