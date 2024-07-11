@@ -68,7 +68,6 @@ const montserrat = Montserrat({
     variable: "--font-montserrat",
 });
 
-
 export default function Home() {
     const { sm, md, lg, xl } = useResponsive();
     const wallet = useWallet();
@@ -97,34 +96,30 @@ export default function Home() {
     const getDaysWinners = useGetDaysWinners();
     const getDaysEntries = useGetDayEntries();
 
-
-    const handleOpenRetweetModal = (creator: string, date: number, mode : number) => {
+    const handleOpenRetweetModal = (creator: string, date: number, mode: number) => {
         let twitter = twitterList.get(creator);
-        let tweet : string;
-        let ref_string : string = ""
-         // add referral
-         if (wallet !== null && wallet.publicKey !== null) {
+        let tweet: string;
+        let ref_string: string = "";
+        // add referral
+        if (wallet !== null && wallet.publicKey !== null) {
             let referral = wallet.publicKey.toString();
             ref_string = "&ref=" + referral;
         }
         if (mode === 0) {
             let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date + ref_string;
-            
+
             let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
             tweet = "Check out this entry to @Blink_Bash! " + dial_link;
 
             if (twitter !== undefined) {
                 tweet = "Check out this entry from @" + twitter.username + " to @Blink_Bash! " + dial_link;
             }
-        }
-        else {
+        } else {
             let link = "https://blinkbash.daoplays.org/api/blink?method=enter&game=0&date=" + date + ref_string;
             let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
             tweet = "Enter a caption to todays @Blink_Bash prompt to earn $BASH! " + dial_link;
         }
 
-       
-        
         setRetweetText(tweet);
         console.log(tweet);
         onRetweetOpen();
@@ -171,7 +166,6 @@ export default function Home() {
     // get todays entries on load
 
     useEffect(() => {
-       
         getDaysEntries(today_date, setEntries);
         getDaysWinners(winner_date, setWinners);
     }, [today_date, winner_date, getDaysEntries, getDaysWinners]);
@@ -279,7 +273,8 @@ export default function Home() {
                             <br /> 2. Vote on others’ Blinks to earn $BASH. <br />
                             <br />
                             3. Share todays entries, or the prompt, and if people use your blinks you get $BASH!
-                            <br/><br/>
+                            <br />
+                            <br />
                             4. Spend $BASH on rewards sponsored by your favorite Solana projects!
                         </Text>
 
@@ -385,7 +380,7 @@ export default function Home() {
                     </VStack>
 
                     <VStack bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
-                        <HStack>                       
+                        <HStack>
                             <Text m={0} color="white" fontSize="4xl" className="font-face-wc">
                                 Daily Prompt
                             </Text>

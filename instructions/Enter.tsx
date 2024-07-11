@@ -44,10 +44,9 @@ export const GetEnterInstruction = async (user: PublicKey, game: number, ref: Pu
         PROGRAM,
     )[0];
 
-    let ref_bash : PublicKey = PROGRAM;
+    let ref_bash: PublicKey = PROGRAM;
     if (!ref.equals(PROGRAM)) {
-        ref_bash =  getAssociatedTokenAddressSync(BASH, ref, true, TOKEN_2022_PROGRAM_ID);
-
+        ref_bash = getAssociatedTokenAddressSync(BASH, ref, true, TOKEN_2022_PROGRAM_ID);
     }
 
     const instruction_data = serialise_Enter_instruction(game);

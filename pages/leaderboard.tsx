@@ -138,7 +138,7 @@ const LeaderboardPage = () => {
         const isUser = currentUserData === null ? false : row.key === currentUserData.user_key.toString();
         const rank = index + 1;
         let address = trimAddress(row.key);
-        console.log("day row ", row.twitter.username, row.score)
+        console.log("day row ", row.twitter.username, row.score);
         let colour = isUser ? "yellow" : "white";
         let link = "https://dial.to/?action=solana-action:" + encodeURIComponent(row.link);
         return (
@@ -191,7 +191,6 @@ const LeaderboardPage = () => {
     };
 
     useEffect(() => {
-        
         getDaysEntries(date, setDayRows);
     }, [date, getDaysEntries]);
 

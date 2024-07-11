@@ -14,7 +14,7 @@ const firebaseConfig = {
     databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
 };
 
-const getEntryData = (date: string, ref : string) => {
+const getEntryData = (date: string, ref: string) => {
     let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
     let valid_date = date === current_date.toString();
     let valid_description =
@@ -23,11 +23,11 @@ const getEntryData = (date: string, ref : string) => {
         "This round has now closed!.  Check out blinkbash.daoplays.org for todays game. Submit responses to the days image and vote on entries to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins! This image was by @Dave_Kayac.";
     let description = valid_date ? valid_description : invalid_description;
 
-    let valid_href = "/api/blink?method=enter&game=0&caption={caption}"
+    let valid_href = "/api/blink?method=enter&game=0&caption={caption}";
     if (ref !== undefined) {
-        valid_href = "/api/blink?method=enter&game=0&ref=" + ref +"&caption={caption}"
+        valid_href = "/api/blink?method=enter&game=0&ref=" + ref + "&caption={caption}";
     }
-    console.log("getting entry data", valid_href)
+    console.log("getting entry data", valid_href);
     let actions = valid_date
         ? [
               {
@@ -92,7 +92,7 @@ const getEntryPost = async (game: string, caption: string, creator: string, ref:
     let creator_key = new PublicKey(creator);
     let ref_key = PROGRAM;
     if (ref !== undefined) {
-        ref_key = new PublicKey(ref)
+        ref_key = new PublicKey(ref);
     }
 
     let instructions = await GetEnterInstruction(creator_key, 0, ref_key);
@@ -180,9 +180,9 @@ export default async function handler(req, res) {
                 res.status(200).json(data);
             }
 
-            let ref_string = ""
+            let ref_string = "";
             if (ref !== undefined) {
-                ref_string = "&ref="+ref;
+                ref_string = "&ref=" + ref;
             }
 
             let actions = valid_date
@@ -213,7 +213,7 @@ export default async function handler(req, res) {
             };
             res.status(200).json(data);
         } catch (error) {
-            console.log(error)
+            console.log(error);
             res.status(400).json({ error: "Invalid entry" });
         }
     } else if (req.method === "POST") {

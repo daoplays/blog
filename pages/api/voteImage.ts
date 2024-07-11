@@ -19,6 +19,7 @@ export const config = {
 
 let whocatsTextToSVG;
 let montserratTextToSVG;
+let chineseFontTextToSVG;
 
 const initializeTextToSVG = async () => {
     if (!whocatsTextToSVG) {
@@ -26,6 +27,9 @@ const initializeTextToSVG = async () => {
     }
     if (!montserratTextToSVG) {
         montserratTextToSVG = TextToSVG.loadSync(path.join(process.cwd(), "public", "fonts", "Montserrat-Regular.ttf"));
+    }
+    if (!chineseFontTextToSVG) {
+        chineseFontTextToSVG = TextToSVG.loadSync(path.join(process.cwd(), "public", "fonts", "NotoSansSC-Regular.otf"));
     }
 };
 
@@ -50,9 +54,18 @@ const splitTextIntoLines = (text, maxWidth, fontSize, font) => {
     return lines;
 };
 
+// Modified generateTextPath function
 const generateTextPath = (text, fontSize, x, y, font, anchor = "left middle") => {
     const options = { x, y, fontSize, anchor };
-    return font.getD(text, options);
+
+    // Check if the text contains Chinese characters
+    if (/[\u4E00-\u9FFF]/.test(text)) {
+        // Use the Chinese font for Chinese characters
+        return chineseFontTextToSVG.getD(text, options);
+    } else {
+        // Use the original font for non-Chinese text
+        return font.getD(text, options);
+    }
 };
 
 export default async function handler(req, res) {
@@ -84,7 +97,7 @@ export default async function handler(req, res) {
         const snapshot = await get(ref(database, location));
         let entry = JSON.parse(snapshot.val());
 
-        console.log("Starting image generation with dynamic layout and colored text");
+        console.log("Starting image generation with dynamic layout and colored text", entry);
 
         const titleFontSize = 50;
         const bottomFontSize = 14;
@@ -125,7 +138,9 @@ export default async function handler(req, res) {
             startY -= (lines.length - 1) * lineHeight;
         }
         const bottomTextPaths = lines.map((line, index) => {
-            const lineWidth = montserratTextToSVG.getMetrics(line, { fontSize: bottomFontSize }).width;
+            const lineWidth = /[\u4E00-\u9FFF]/.test(line)
+                ? chineseFontTextToSVG.getMetrics(line, { fontSize: bottomFontSize }).width
+                : montserratTextToSVG.getMetrics(line, { fontSize: bottomFontSize }).width;
             const x = (width - lineWidth) / 2; // Center each line
             const y = startY + index * lineHeight;
             return generateTextPath(line, bottomFontSize, x, y, montserratTextToSVG);

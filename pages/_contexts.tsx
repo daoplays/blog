@@ -173,12 +173,12 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
             if (event_data[0] === AccountType.User) {
                 const [user] = UserData.struct.deserialize(event_data);
-                
-                setUserData(prevMap => {
+
+                setUserData((prevMap) => {
                     const newMap = new Map(prevMap);
                     newMap.set(account_key.toString(), user);
                     return newMap;
-                })
+                });
                 if (wallet.publicKey !== null && user.user_key.equals(wallet.publicKey)) {
                     setCurrentUserData(user);
                 }
@@ -192,43 +192,42 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
                 console.log("update listing", listing);
                 if (listing.quantity === 0) {
-                    setListingData(prevMap => {
+                    setListingData((prevMap) => {
                         const newMap = new Map(prevMap);
                         newMap.delete(account_key.toString());
                         return newMap;
-                    })
+                    });
                 } else {
-                    setListingData(prevMap => {
+                    setListingData((prevMap) => {
                         const newMap = new Map(prevMap);
                         newMap.set(account_key.toString(), listing);
                         return newMap;
-                    })
+                    });
                 }
-                
 
                 continue;
             }
 
             if (event_data[0] === AccountType.Entry) {
                 const [entry] = EntryData.struct.deserialize(event_data);
-                console.log("update entry", entry)
-                setEntryData(prevMap => {
+                console.log("update entry", entry);
+                setEntryData((prevMap) => {
                     const newMap = new Map(prevMap);
                     newMap.set(account_key.toString(), entry);
                     return newMap;
-                })
+                });
 
                 continue;
             }
 
             if (event_data[0] === AccountType.Leaderboard) {
                 const [leaderboard] = LeaderboardData.struct.deserialize(event_data);
-                setLeaderboardData(prevMap => {
+                setLeaderboardData((prevMap) => {
                     const newMap = new Map(prevMap);
                     newMap.set(account_key.toString(), leaderboard);
                     return newMap;
-                })
-                
+                });
+
                 continue;
             }
         }
@@ -237,7 +236,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
     const check_program_update = useCallback(async (result: any) => {
         update_program_data.current += 1;
-        setNewProgramData(prevData => [...prevData, result]);
+        setNewProgramData((prevData) => [...prevData, result]);
 
         //console.log("program update", result);
     }, []);
