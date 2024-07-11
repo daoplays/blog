@@ -148,7 +148,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const [userBashBalance, setUserBashBalance] = useState<number>(0);
     const [userWLBalance, setUserWLBalance] = useState<number>(0);
 
-    const [new_program_data, setNewProgramData] = useState<any>(null);
+    const [new_program_data, setNewProgramData] = useState<any[]>([]);
 
     const update_program_data = useRef<number>(0);
     const check_program_data = useRef<boolean>(true);
@@ -159,67 +159,87 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const program_ws_id = useRef<number | null>(null);
 
     useEffect(() => {
-        if (update_program_data.current === 0) return;
+        if (new_program_data.length === 0) return;
 
         if (new_program_data === null) {
             console.log("data is null");
             return;
         }
 
-        update_program_data.current -= 1;
+        for (let i = 0; i < new_program_data.length; i++) {
+            let event_data = Buffer.from(new_program_data[i].accountInfo.data);
+            let account_key = new_program_data[i].accountId;
+            console.log("have program data", event_data[0]);
 
-        let event_data = Buffer.from(new_program_data.accountInfo.data);
-        let account_key = new_program_data.accountId;
-        console.log("have progran data", event_data[0]);
-
-        if (event_data[0] === AccountType.User) {
-            const [user] = UserData.struct.deserialize(event_data);
-
-            user_data.set(user.user_key.toString(), user);
-            setUserData(new Map(user_data));
-            if (wallet.publicKey !== null && user.user_key.equals(wallet.publicKey)) {
-                setCurrentUserData(user);
+            if (event_data[0] === AccountType.User) {
+                const [user] = UserData.struct.deserialize(event_data);
+                
+                setUserData(prevMap => {
+                    const newMap = new Map(prevMap);
+                    newMap.set(account_key.toString(), user);
+                    return newMap;
+                })
+                if (wallet.publicKey !== null && user.user_key.equals(wallet.publicKey)) {
+                    setCurrentUserData(user);
+                }
+                continue;
             }
-            return;
-        }
 
-        if (event_data[0] === AccountType.Listing) {
-            //console.log("updating user data from context");
+            if (event_data[0] === AccountType.Listing) {
+                //console.log("updating user data from context");
 
-            const [listing] = ListingData.struct.deserialize(event_data);
+                const [listing] = ListingData.struct.deserialize(event_data);
 
-            console.log("update listing", listing);
-            if (listing.quantity === 0) {
-                listing_data.delete(listing.item_address.toString());
-            } else {
-                listing_data.set(listing.item_address.toString(), listing);
+                console.log("update listing", listing);
+                if (listing.quantity === 0) {
+                    setListingData(prevMap => {
+                        const newMap = new Map(prevMap);
+                        newMap.delete(account_key.toString());
+                        return newMap;
+                    })
+                } else {
+                    setListingData(prevMap => {
+                        const newMap = new Map(prevMap);
+                        newMap.set(account_key.toString(), listing);
+                        return newMap;
+                    })
+                }
+                
+
+                continue;
             }
-            setListingData(new Map(listing_data));
 
-            return;
+            if (event_data[0] === AccountType.Entry) {
+                const [entry] = EntryData.struct.deserialize(event_data);
+                console.log("update entry", entry)
+                setEntryData(prevMap => {
+                    const newMap = new Map(prevMap);
+                    newMap.set(account_key.toString(), entry);
+                    return newMap;
+                })
+
+                continue;
+            }
+
+            if (event_data[0] === AccountType.Leaderboard) {
+                const [leaderboard] = LeaderboardData.struct.deserialize(event_data);
+                setLeaderboardData(prevMap => {
+                    const newMap = new Map(prevMap);
+                    newMap.set(account_key.toString(), leaderboard);
+                    return newMap;
+                })
+                
+                continue;
+            }
         }
-
-        if (event_data[0] === AccountType.Entry) {
-            const [entry] = EntryData.struct.deserialize(event_data);
-            entry_data.set(account_key.toString(), entry);
-            setEntryData(new Map(entry_data));
-
-            return;
-        }
-
-        if (event_data[0] === AccountType.Leaderboard) {
-            const [leaderboard] = LeaderboardData.struct.deserialize(event_data);
-            leaderboard_data.set(account_key.toString(), leaderboard);
-            setLeaderboardData(new Map(leaderboard_data));
-
-            return;
-        }
-    }, [new_program_data, wallet, user_data, listing_data, entry_data, leaderboard_data]);
+        setNewProgramData([]);
+    }, [new_program_data, wallet]);
 
     const check_program_update = useCallback(async (result: any) => {
         update_program_data.current += 1;
-        console.log("program update", result);
-        setNewProgramData(result);
+        setNewProgramData(prevData => [...prevData, result]);
+
+        //console.log("program update", result);
     }, []);
 
     const checkUserBalance = useCallback(async () => {

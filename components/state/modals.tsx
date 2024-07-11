@@ -29,7 +29,6 @@ const TweetEditModal = ({ isOpen, onClose, onSendTweet, initialText }: TweetEdit
         setTweetText(initialText);
     }, [initialText]);
 
-    console.log("dfault", initialText);
     const handleSendTweet = () => {
         onSendTweet(tweetText);
         onClose();
