@@ -141,7 +141,6 @@ export default function Home() {
         setStartDate(date);
         let day = date.getTime() / 1000 / 60 / 60 / 24;
         setWinnerDate(day);
-        console.log(date, day);
     };
 
     const handlePreviousDay = () => {
@@ -560,7 +559,7 @@ export default function Home() {
                                                     m={0}
                                                     as="span"
                                                     _hover={{ textDecoration: entry.claimed ? "none" : "underline" }}
-                                                    onClick={() => (entry.claimed ? "" : ClaimPrize(0, today_date - 1))}
+                                                    onClick={() => (entry.claimed ? "" : ClaimPrize(0, winner_date))}
                                                 >
                                                     {!entry.claimed ? "Claim Prize" : "Claimed"}
                                                 </Text>

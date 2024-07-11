@@ -40,6 +40,7 @@ export const GetClaimPrizeInstruction = async (user: PublicKey, game: number, da
     )[0];
     let entry = PublicKey.findProgramAddressSync([user.toBytes(), uInt8ToLEBytes(game), uInt32ToLEBytes(date)], PROGRAM)[0];
 
+    console.log("entry in claim priz", entry.toString(), date, game, user.toString())
     let pda = PublicKey.findProgramAddressSync([uInt32ToLEBytes(PDA_ACCOUNT_SEED)], PROGRAM)[0];
     let user_token = getAssociatedTokenAddressSync(BASH, user, true, TOKEN_2022_PROGRAM_ID);
     const instruction_data = serialise_ClaimPrize_instruction(game, date);

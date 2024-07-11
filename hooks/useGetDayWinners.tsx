@@ -68,6 +68,7 @@ export const useGetDaysWinners = () => {
             let creator = new PublicKey(key);
             let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
             let entry = entryList.get(entry_account.toString());
+            console.log("entry in get winners", entry_account.toString(), entry, creator.toString(), date)
             let twitter = twitterList.get(key);
             if (entry === null) {
                 return;
