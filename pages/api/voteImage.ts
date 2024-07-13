@@ -49,6 +49,11 @@ const getEmojiSvg = async (emoji: string): Promise<string> => {
     }
 };
 
+const stripFormatting = (text: string): string => {
+    // Remove newline characters and other whitespace
+    return text.replace(/[\n\r\t\f\v]/g, ' ').replace(/\s+/g, ' ').trim();
+};
+
 const splitTextAndEmojis = (text: string): { type: 'text' | 'emoji', content: string }[] => {
     const regex = emojiRegex();
     const parts: { type: 'text' | 'emoji', content: string }[] = [];
@@ -195,7 +200,7 @@ export default async function handler(req, res) {
         );
 
         // Dynamic bottom text
-        const bottomText = wrapLongWords(entry.entry);
+        const bottomText = stripFormatting(wrapLongWords(entry.entry));
 
         const truncatedText = bottomText.slice(0, 250);
         const maxLineWidth = width - 2 * padding;
