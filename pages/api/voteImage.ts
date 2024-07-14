@@ -37,7 +37,7 @@ const getEmojiSvg = async (emoji: string): Promise<string> => {
         console.error(`No Twemoji found for emoji: ${emoji}`);
         return "";
     }
-    const fileName = path.basename(entities[0].url, '.png');
+    const fileName = path.basename(entities[0].url, ".png");
     const url = `https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/${fileName}`;
     try {
         const response = await fetch(url);
@@ -51,34 +51,37 @@ const getEmojiSvg = async (emoji: string): Promise<string> => {
 
 const stripFormatting = (text: string): string => {
     // Remove newline characters and other whitespace
-    return text.replace(/[\n\r\t\f\v]/g, ' ').replace(/\s+/g, ' ').trim();
+    return text
+        .replace(/[\n\r\t\f\v]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 };
 
-const splitTextAndEmojis = (text: string): { type: 'text' | 'emoji', content: string }[] => {
+const splitTextAndEmojis = (text: string): { type: "text" | "emoji"; content: string }[] => {
     const regex = emojiRegex();
-    const parts: { type: 'text' | 'emoji', content: string }[] = [];
+    const parts: { type: "text" | "emoji"; content: string }[] = [];
     let lastIndex = 0;
     let match: RegExpExecArray | null;
-    
+
     while ((match = regex.exec(text)) !== null) {
         if (match.index > lastIndex) {
-            parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
+            parts.push({ type: "text", content: text.slice(lastIndex, match.index) });
         }
-        parts.push({ type: 'emoji', content: match[0] });
+        parts.push({ type: "emoji", content: match[0] });
         lastIndex = regex.lastIndex;
     }
-    
+
     if (lastIndex < text.length) {
-        parts.push({ type: 'text', content: text.slice(lastIndex) });
+        parts.push({ type: "text", content: text.slice(lastIndex) });
     }
-    
+
     return parts;
 };
 
 const splitTextIntoLines = (text: string, maxWidth: number, fontSize: number): string[] => {
-    const words = text.split(' ');
+    const words = text.split(" ");
     const lines: string[] = [];
-    let currentLine = '';
+    let currentLine = "";
 
     for (const word of words) {
         const testLine = currentLine ? `${currentLine} ${word}` : word;
@@ -104,10 +107,10 @@ const generateTextElements = async (text: string, fontSize: number, x: number, y
     let currentX = x;
     const elements: string[] = [];
     const parts = splitTextAndEmojis(text);
-    
+
     for (let i = 0; i < parts.length; i++) {
         const part = parts[i];
-        if (part.type === 'text') {
+        if (part.type === "text") {
             const metrics = notoTextToSVG.getMetrics(part.content, { fontSize });
             const path = notoTextToSVG.getD(part.content, { x: currentX, y, fontSize, anchor: "left middle" });
             elements.push(`<path d="${path}" fill="white" />`);
@@ -118,31 +121,31 @@ const generateTextElements = async (text: string, fontSize: number, x: number, y
             const emojiY = y - fontSize / 2 + emojiSize / 2;
             elements.push(`<g transform="translate(${currentX}, ${emojiY}) scale(${emojiSize / 64})">${emojiSvg}</g>`);
             currentX += emojiSize;
-            
+
             // Add spacing after emoji, but only if it's not the last element
             // and the next element is also an emoji
             if (i < parts.length - 1) {
-                console.log("add more spacing")
-                currentX += emojiSize*6; // Add 25% of emoji size as spacing
+                console.log("add more spacing");
+                currentX += emojiSize * 6; // Add 25% of emoji size as spacing
             }
         }
     }
-    
-    return elements.join('');
+
+    return elements.join("");
 };
 
 const calculateLineWidth = (line: string, fontSize: number): number => {
     const parts = splitTextAndEmojis(line);
     let totalWidth = 0;
-    
+
     for (let i = 0; i < parts.length; i++) {
         const part = parts[i];
-        if (part.type === 'text') {
+        if (part.type === "text") {
             totalWidth += notoTextToSVG.getMetrics(part.content, { fontSize }).width;
         } else {
             const emojiSize = fontSize * 0.2;
             totalWidth += emojiSize;
-            
+
             // Add spacing after emoji if it's not the last element
             // and the next element is also an emoji
             if (i < parts.length - 1) {
@@ -150,7 +153,7 @@ const calculateLineWidth = (line: string, fontSize: number): number => {
             }
         }
     }
-    
+
     return totalWidth;
 };
 
@@ -190,14 +193,18 @@ export default async function handler(req, res) {
         const titleWidth = whocatsTextToSVG.getMetrics("BlinkBash!", { fontSize: titleFontSize }).width;
         const titleWidth2 = whocatsTextToSVG.getMetrics("Blink", { fontSize: titleFontSize }).width;
 
-        const blinkPath = whocatsTextToSVG.getD(
-            "Blink",
-            { fontSize: titleFontSize, x: width / 2 - titleWidth / 2, y: padding + titleFontSize / 2, anchor : "left middle" }
-        );
-        const bashPath = whocatsTextToSVG.getD(
-            "Bash!",
-            { fontSize: titleFontSize, x: width / 2 - titleWidth / 2 + titleWidth2, y: padding + titleFontSize / 2, anchor : "left middle"  }
-        );
+        const blinkPath = whocatsTextToSVG.getD("Blink", {
+            fontSize: titleFontSize,
+            x: width / 2 - titleWidth / 2,
+            y: padding + titleFontSize / 2,
+            anchor: "left middle",
+        });
+        const bashPath = whocatsTextToSVG.getD("Bash!", {
+            fontSize: titleFontSize,
+            x: width / 2 - titleWidth / 2 + titleWidth2,
+            y: padding + titleFontSize / 2,
+            anchor: "left middle",
+        });
 
         // Dynamic bottom text
         const bottomText = stripFormatting(wrapLongWords(entry.entry));
@@ -214,12 +221,14 @@ export default async function handler(req, res) {
             startY -= (lines.length - 1) * lineHeight;
         }
 
-        const bottomTextElements = await Promise.all(lines.map(async (line, index) => {
-            const lineWidth = calculateLineWidth(line, bottomFontSize);
-            const x = (width - lineWidth) / 2;
-            const y = startY + index * lineHeight;
-            return generateTextElements(line, bottomFontSize, x, y);
-        }));
+        const bottomTextElements = await Promise.all(
+            lines.map(async (line, index) => {
+                const lineWidth = calculateLineWidth(line, bottomFontSize);
+                const x = (width - lineWidth) / 2;
+                const y = startY + index * lineHeight;
+                return generateTextElements(line, bottomFontSize, x, y);
+            }),
+        );
 
         const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + date));
         let prompt_val = prompt_db.val();
@@ -246,7 +255,7 @@ export default async function handler(req, res) {
             <rect width="100%" height="100%" fill="url(#grad)"/>
             <path d="${blinkPath}" fill="white" />
             <path d="${bashPath}" fill="#FFDD56" />
-            ${bottomTextElements.join('\n')}
+            ${bottomTextElements.join("\n")}
         </svg>
         `;
 
