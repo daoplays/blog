@@ -47,8 +47,8 @@ export const GetBuyItemInstruction = async (user: PublicKey, item: PublicKey, it
     if (item_type === 1) {
         let mint = await setMintData(item.toString());
         item_decimals = Math.pow(10, mint.mint.decimals);
-        user_item = getAssociatedTokenAddressSync(item, user, false, TOKEN_2022_PROGRAM_ID);
-        pda_item = getAssociatedTokenAddressSync(item, pda, true, TOKEN_2022_PROGRAM_ID);
+        user_item = getAssociatedTokenAddressSync(item, user, false, mint.token_program);
+        pda_item = getAssociatedTokenAddressSync(item, pda, true, mint.token_program);
         listing_tp = mint.token_program
     }
 
