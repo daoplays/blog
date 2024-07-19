@@ -44,13 +44,15 @@ export const GetAddListingInstruction = async (user: PublicKey, item: PublicKey,
 
     let user_item = SYSTEM_KEY;
     let pda_item = SYSTEM_KEY;
+    let listing_tp = SYSTEM_KEY;
 
     let item_decimals = 1;
     if (item_type === 1) {
         let mint = await setMintData(item.toString());
         item_decimals = Math.pow(10, mint.mint.decimals);
-        user_item = getAssociatedTokenAddressSync(item, user, false, TOKEN_2022_PROGRAM_ID);
-        pda_item = getAssociatedTokenAddressSync(item, pda, true, TOKEN_2022_PROGRAM_ID);
+        user_item = getAssociatedTokenAddressSync(item, user, false, mint.token_program);
+        pda_item = getAssociatedTokenAddressSync(item, pda, true, mint.token_program);
+        listing_tp = mint.token_program
     }
 
     let collection = SYSTEM_KEY;
@@ -86,6 +88,8 @@ export const GetAddListingInstruction = async (user: PublicKey, item: PublicKey,
         { pubkey: CORE, isSigner: false, isWritable: false },
         { pubkey: TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: false },
         { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: listing_tp, isSigner: false, isWritable: false },
+
     ];
 
     const list_instruction = new TransactionInstruction({
