@@ -151,7 +151,7 @@ export default function Shop() {
     };
 
     const TokenRow = ({ item }: { item: ListingData }) => {
-        if (tokenList === null || item.item_type !== 1 || item.quantity === 0) {
+        if (tokenList === null || item.item_type !== 1 || bignum_to_num(item.quantity) === 0) {
             return <></>;
         }
         let address = item.item_address.toString();
