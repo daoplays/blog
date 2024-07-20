@@ -28,6 +28,7 @@ export interface NFTData {
     mint: AssetV1;
     uri: string;
     icon: string;
+    name: string;
 }
 
 export interface DayRow {

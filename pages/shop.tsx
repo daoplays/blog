@@ -84,12 +84,12 @@ export default function Shop() {
     };
 
     const NFTRow = ({ item }: { item: ListingData }) => {
-        if (nftList === null || item.item_type !== 2 || item.quantity === 0) {
+        if (nftList === null || (item.item_type !== 2 && item.item_type !== 3) || item.quantity === 0) {
             return <></>;
         }
 
         let address = item.item_address.toString();
-        let mint = nftList.get(address);
+        let mint = item.item_type === 2 ? nftList.get(address) : tokenList.get(address);
         if (mint === undefined) {
             return <></>;
         }
@@ -106,7 +106,7 @@ export default function Shop() {
                         style={{ borderRadius: "8px", backgroundSize: "cover" }}
                     />
                 </Td>
-                <Td>{mint.mint.name}</Td>
+                <Td>{mint.name}</Td>
                 <Td>
                     <HStack spacing={3}>
                         <Text m={0}>{trimAddress(address)}</Text>

@@ -107,6 +107,7 @@ const GetNFTData = async (nft_keys: String[], setNFTMap) => {
                 mint: asset,
                 uri: asset.uri,
                 icon: "",
+                name: asset.name
             };
 
             try {
@@ -350,7 +351,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
             if (data[0] === AccountType.Listing) {
                 const [listing] = ListingData.struct.deserialize(data);
                 listings.set(listing.item_address.toString(), listing);
-                if (listing.item_type === 1) {
+                if (listing.item_type === 1 || listing.item_type === 3) {
                     token_listings.push(listing.item_address.toString());
                 }
                 if (listing.item_type === 2) {

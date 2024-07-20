@@ -45,18 +45,27 @@ export const GetAddListingInstruction = async (user: PublicKey, item: PublicKey,
     let user_item = SYSTEM_KEY;
     let pda_item = SYSTEM_KEY;
     let listing_tp = SYSTEM_KEY;
+    let collection = SYSTEM_KEY;
+    // chck if its a token or mplex nft
+    let mint = await setMintData(item.toString());
 
     let item_decimals = 1;
-    if (item_type === 1) {
-        let mint = await setMintData(item.toString());
+    let listing_type : number;
+    if (mint !== null) {
+        
+        if (mint.mint.supply.toString() == "1") {
+            listing_type = 3
+        }
+        else {
+            listing_type = 1
+        }
         item_decimals = Math.pow(10, mint.mint.decimals);
         user_item = getAssociatedTokenAddressSync(item, user, false, mint.token_program);
         pda_item = getAssociatedTokenAddressSync(item, pda, true, mint.token_program);
         listing_tp = mint.token_program
     }
-
-    let collection = SYSTEM_KEY;
-    if (item_type === 2) {
+    else {
+        
         const umi = createUmi(Config.RPC_NODE, "confirmed");
 
         let umiKey = publicKey(item.toString());
@@ -64,10 +73,14 @@ export const GetAddListingInstruction = async (user: PublicKey, item: PublicKey,
         const asset = await fetchAssetV1(umi, umiKey);
         let try_collection = collectionAddress(asset);
         if (try_collection !== undefined) collection = new PublicKey(try_collection.toString());
+        listing_type = 2
+
     }
 
+    console.log("listing type", listing_type)
+
     let user_token = getAssociatedTokenAddressSync(WHITELIST, user, true, TOKEN_2022_PROGRAM_ID);
-    const instruction_data = serialise_AddListing_instruction(item_type, quantity * item_decimals, price * 10);
+    const instruction_data = serialise_AddListing_instruction(listing_type, quantity * item_decimals, price * 10);
 
     var account_vector = [
         { pubkey: user, isSigner: true, isWritable: true },

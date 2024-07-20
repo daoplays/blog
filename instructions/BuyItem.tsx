@@ -42,18 +42,21 @@ export const GetBuyItemInstruction = async (user: PublicKey, item: PublicKey, it
     let user_item = SYSTEM_KEY;
     let pda_item = SYSTEM_KEY;
     let listing_tp = SYSTEM_KEY;
+    let collection = SYSTEM_KEY;
+
+    // chck if its a token or mplex nft
+    let mint = await setMintData(item.toString());
+
 
     let item_decimals = 1;
-    if (item_type === 1) {
-        let mint = await setMintData(item.toString());
+    if (mint !== null) {
         item_decimals = Math.pow(10, mint.mint.decimals);
         user_item = getAssociatedTokenAddressSync(item, user, false, mint.token_program);
         pda_item = getAssociatedTokenAddressSync(item, pda, true, mint.token_program);
         listing_tp = mint.token_program
     }
 
-    let collection = SYSTEM_KEY;
-    if (item_type === 2) {
+   else {
         const umi = createUmi(Config.RPC_NODE, "confirmed");
 
         let umiKey = publicKey(item.toString());
