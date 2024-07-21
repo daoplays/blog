@@ -44,7 +44,7 @@ export const GetAddListingInstruction = async (user: PublicKey, item: PublicKey,
 
     let user_item = SYSTEM_KEY;
     let pda_item = SYSTEM_KEY;
-    let listing_tp = SYSTEM_KEY;
+    let listing_tp = TOKEN_2022_PROGRAM_ID;
     let collection = SYSTEM_KEY;
     // chck if its a token or mplex nft
     let mint = await setMintData(item.toString());
@@ -52,7 +52,7 @@ export const GetAddListingInstruction = async (user: PublicKey, item: PublicKey,
     let item_decimals = 1;
     let listing_type : number;
     if (mint !== null) {
-        
+        console.log("mint wasn't null", mint)
         if (mint.mint.supply.toString() == "1") {
             listing_type = 3
         }
