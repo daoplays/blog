@@ -177,7 +177,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
                 setUserData((prevMap) => {
                     const newMap = new Map(prevMap);
-                    newMap.set(account_key.toString(), user);
+                    newMap.set(user.user_key.toString(), user);
                     return newMap;
                 });
                 if (wallet.publicKey !== null && user.user_key.equals(wallet.publicKey)) {
@@ -195,13 +195,13 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
                 if (listing.quantity === 0) {
                     setListingData((prevMap) => {
                         const newMap = new Map(prevMap);
-                        newMap.delete(account_key.toString());
+                        newMap.delete(listing.item_address.toString());
                         return newMap;
                     });
                 } else {
                     setListingData((prevMap) => {
                         const newMap = new Map(prevMap);
-                        newMap.set(account_key.toString(), listing);
+                        newMap.set(listing.item_address.toString(), listing);
                         return newMap;
                     });
                 }

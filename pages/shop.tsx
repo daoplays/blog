@@ -224,6 +224,7 @@ export default function Shop() {
         );
     };
 
+
     return (
         <Layout>
             <HStack w={sm ? "100%" : "700px"} bg="#0ab7f2" spacing={8} mx={5} rounded="xl">
