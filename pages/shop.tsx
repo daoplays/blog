@@ -84,7 +84,7 @@ export default function Shop() {
     };
 
     const NFTRow = ({ item }: { item: ListingData }) => {
-        if (nftList === null || (item.item_type !== 2 && item.item_type !== 3) || item.quantity === 0) {
+        if (nftList === null || (item.item_type !== 2 && item.item_type !== 3) || bignum_to_num(item.quantity) === 0) {
             return <></>;
         }
 
