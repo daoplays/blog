@@ -5,8 +5,10 @@ import { GetAddListingInstruction } from "../instructions/AddListing";
 import { get_current_blockhash, send_transaction } from "../components/state/rpc";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import bs58 from "bs58";
+import { useRouter } from "next/navigation";
 
 const useListItem = () => {
+    const router = useRouter();
     const wallet = useWallet();
     const { connection } = useConnection();
 
@@ -93,6 +95,8 @@ const useListItem = () => {
             console.log(error);
             setIsLoading(false);
             return;
+        } finally {
+            router.refresh();
         }
     };
 
