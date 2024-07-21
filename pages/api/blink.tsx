@@ -2,7 +2,7 @@ import { ComputeBudgetProgram, PublicKey, TransactionInstruction, TransactionMes
 import { Config, PROGRAM, SYSTEM_KEY } from "../../components/state/constants";
 import { getRecentPrioritizationFees, get_current_blockhash } from "../../components/state/rpc";
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, get } from "firebase/database";
+import { getDatabase, ref as dbRef, get } from "firebase/database";
 import { GetVoteInstruction } from "../../instructions/Vote";
 import { GetEnterInstruction } from "../../instructions/Enter";
 
@@ -14,7 +14,7 @@ const firebaseConfig = {
     databaseURL: "https://letscooklistings-default-rtdb.firebaseio.com/",
 };
 
-const getEntryData = (date: string) => {
+const getEntryData = (date: string, ref: string) => {
     let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
     let valid_date = date === current_date.toString();
     let valid_description =
@@ -23,10 +23,15 @@ const getEntryData = (date: string) => {
         "This round has now closed!.  Check out blinkbash.daoplays.org for todays game. Submit responses to the days image and vote on entries to earn $BASH!  Users provide text responses to the days image prompt and the community votes on the best entry.  The creator with the most votes wins! This image was by @Dave_Kayac.";
     let description = valid_date ? valid_description : invalid_description;
 
+    let valid_href = "/api/blink?method=enter&game=0&caption={caption}";
+    if (ref !== undefined) {
+        valid_href = "/api/blink?method=enter&game=0&ref=" + ref + "&caption={caption}";
+    }
+    console.log("getting entry data", valid_href);
     let actions = valid_date
         ? [
               {
-                  href: "/api/blink?method=enter&game=0&caption={caption}",
+                  href: valid_href,
                   label: "Enter",
                   parameters: [
                       {
@@ -51,7 +56,7 @@ const getEntryData = (date: string) => {
     return data;
 };
 
-const getEntryPost = async (game: string, caption: string, creator: string) => {
+const getEntryPost = async (game: string, caption: string, creator: string, ref: string) => {
     let truncated_caption = caption.slice(0, 250);
     // first post to the DB
     let body = JSON.stringify({
@@ -85,8 +90,12 @@ const getEntryPost = async (game: string, caption: string, creator: string) => {
 */
 
     let creator_key = new PublicKey(creator);
+    let ref_key = PROGRAM;
+    if (ref !== undefined) {
+        ref_key = new PublicKey(ref);
+    }
 
-    let instructions = await GetEnterInstruction(creator_key, 0);
+    let instructions = await GetEnterInstruction(creator_key, 0, ref_key);
     let txArgs = await get_current_blockhash("");
 
     let message = new TransactionMessage({ payerKey: creator_key, recentBlockhash: txArgs.blockhash, instructions });
@@ -121,14 +130,14 @@ export default async function handler(req, res) {
         res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Encoding, Accept-Encoding");
 
         try {
-            const { creator, game, date, method } = req.query;
+            const { creator, game, date, method, ref } = req.query;
 
             let current_date = Math.floor(new Date().getTime() / 1000 / 24 / 60 / 60);
             let db_date = date !== undefined ? date : current_date;
-
+            console.log("get args", creator, game, date, method, ref);
             if (method === "enter") {
                 console.log("Have enter");
-                let data = getEntryData(db_date);
+                let data = getEntryData(db_date, ref);
                 res.status(200).json(data);
                 return;
             }
@@ -155,10 +164,8 @@ export default async function handler(req, res) {
             let description = valid_date ? valid_description : invalid_description;
 
             let location = "BlinkBash/entries/" + game + "/" + db_date.toString() + "/" + creator;
-
-            const snapshot = await get(ref(database, location));
+            const snapshot = await get(dbRef(database, location));
             let entry = JSON.parse(snapshot.val());
-
             if (entry === null) {
                 // Your data here
                 const data = {
@@ -173,15 +180,20 @@ export default async function handler(req, res) {
                 res.status(200).json(data);
             }
 
+            let ref_string = "";
+            if (ref !== undefined) {
+                ref_string = "&ref=" + ref;
+            }
+
             let actions = valid_date
                 ? [
                       {
                           label: "Up", // button text
-                          href: "/api/blink?creator=" + creator + "&game=0&vote=1",
+                          href: "/api/blink?creator=" + creator + "&game=0&vote=1" + ref_string,
                       },
                       {
                           label: "Down", // button text
-                          href: "/api/blink?creator=" + creator + "&game=0&vote=2",
+                          href: "/api/blink?creator=" + creator + "&game=0&vote=2" + ref_string,
                       },
                   ]
                 : [];
@@ -201,6 +213,7 @@ export default async function handler(req, res) {
             };
             res.status(200).json(data);
         } catch (error) {
+            console.log(error);
             res.status(400).json({ error: "Invalid entry" });
         }
     } else if (req.method === "POST") {
@@ -216,13 +229,13 @@ export default async function handler(req, res) {
                 console.log("No account found");
                 return res.status(400).json({ error: "Account parameter is required" });
             }
-            const { creator, game, vote, method, caption } = req.query;
+            const { creator, game, vote, method, caption, ref } = req.query;
             console.log("have account", account, method);
 
             if (method == "enter") {
                 console.log("post in enter", req.body);
-                console.log(game, caption, account);
-                let transaction = await getEntryPost(game, caption, account);
+                console.log(game, caption, account, ref);
+                let transaction = await getEntryPost(game, caption, account, ref);
 
                 // Process the decoded account (this is a placeholder, replace with your actual logic)
                 const processedData = {
@@ -243,8 +256,12 @@ export default async function handler(req, res) {
 
             let user = new PublicKey(account);
             let creator_key = new PublicKey(creator);
+            let ref_key = PROGRAM;
+            if (ref !== undefined) {
+                ref_key = new PublicKey(ref);
+            }
 
-            let instructions = await GetVoteInstruction(user, creator_key, game_val, vote_val);
+            let instructions = await GetVoteInstruction(user, creator_key, game_val, vote_val, ref_key);
             let txArgs = await get_current_blockhash("");
 
             let message = new TransactionMessage({ payerKey: user, recentBlockhash: txArgs.blockhash, instructions });

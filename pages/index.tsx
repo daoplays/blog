@@ -52,6 +52,8 @@ import { toast } from "react-toastify";
 import Link from "next/link";
 import TweetEditModal from "../components/state/modals";
 import DialectCTA from "../components/blinkbash/dialect";
+import { useGetDaysWinners } from "../hooks/useGetDayWinners";
+import { useGetDayEntries } from "../hooks/useGetDayEntries";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -65,164 +67,6 @@ const montserrat = Montserrat({
     fallback: ["Arial", "sans-serif"],
     variable: "--font-montserrat",
 });
-
-export const GetDaysEntries = async (
-    date: number,
-    database: Database,
-    entryList: Map<string, EntryData>,
-    twitterList: Map<string, TwitterUser>,
-    setDayRows: Dispatch<SetStateAction<DayRow[]>>,
-) => {
-    if (database === null || entryList === null || twitterList === null) {
-        setDayRows([]);
-        return;
-    }
-
-    // get the listings
-    const entries_db = await get(ref(database, "BlinkBash/entries/0/" + date));
-    let entries = entries_db.val();
-    if (entries === null) {
-        setDayRows([]);
-        return;
-    }
-
-    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + date));
-    let prompt_val = prompt_db.val();
-
-    if (prompt_val === null) {
-        setDayRows([]);
-        return;
-    }
-    let json = JSON.parse(prompt_val.toString());
-    let prompt_url = json["url"];
-
-    let day_rows: DayRow[] = [];
-    Object.entries(entries).forEach(([key, value]) => {
-        let json = JSON.parse(value.toString());
-        let creator = new PublicKey(key);
-        let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
-        let entry = entryList.get(entry_account.toString());
-        let twitter = twitterList.get(key);
-        if (entry === undefined) {
-            return;
-        }
-
-        if (twitter === undefined) {
-            twitter = default_twitter;
-        }
-
-        let row: DayRow = {
-            key: key,
-            twitter: twitter,
-            score: entry.positive_votes - entry.negative_votes,
-            link: "https://blinkbash.daoplays.org/api/blink?creator=" + key + "&game=0&date=" + date,
-            entry: json.entry,
-            prompt: prompt_url,
-            claimed: entry.reward_claimed === 1,
-        };
-
-        day_rows.push(row);
-    });
-    const sortedList = [...day_rows].sort((a, b) => b.score - a.score);
-
-    setDayRows(sortedList);
-};
-
-export const GetDaysWinners = async (
-    date: number,
-    database: Database,
-    entryList: Map<string, EntryData>,
-    userIDs: Map<number, string>,
-    leaderboardList: Map<string, LeaderboardData>,
-    twitterList: Map<string, TwitterUser>,
-    setDayRows: Dispatch<SetStateAction<DayRow[]>>,
-) => {
-    if (database === null || entryList === null || twitterList === null || userIDs === null) {
-        setDayRows([]);
-        return;
-    }
-
-    // get the listings
-    const entries_db = await get(ref(database, "BlinkBash/entries/0/" + date));
-    let entries = entries_db.val();
-    if (entries === null) {
-        setDayRows([]);
-        return;
-    }
-    let leaderboard_account = PublicKey.findProgramAddressSync(
-        [uInt8ToLEBytes(0), uInt32ToLEBytes(date), Buffer.from("Leaderboard")],
-        PROGRAM,
-    )[0];
-
-    let leaderboard = leaderboardList.get(leaderboard_account.toString());
-
-    if (leaderboard === undefined) {
-        setDayRows([]);
-        return;
-    }
-
-    if (leaderboard.scores.length === 0) {
-        setDayRows([]);
-        return;
-    }
-
-    const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + date));
-    let prompt_val = prompt_db.val();
-
-    if (prompt_val === null) {
-        setDayRows([]);
-        return;
-    }
-    let json = JSON.parse(prompt_val.toString());
-    let prompt_url = json["url"];
-    // Sort the indices based on scores (in descending order)
-    const indices = Array.from(leaderboard.scores.keys());
-
-    // Sort the indices based on scores (in descending order)
-    indices.sort((a, b) => leaderboard.scores[b] - leaderboard.scores[a]);
-
-    // Use the sorted indices to reorder the entrants
-    const sortedEntrants = indices.map((i) => leaderboard.entrants[i]);
-
-    let day_rows: DayRow[] = [];
-
-    let max_index = Math.min(3, sortedEntrants.length);
-    for (let i = 0; i < max_index; i++) {
-        let key = userIDs.get(sortedEntrants[i]);
-        let json = JSON.parse(entries[key].toString());
-
-        let creator = new PublicKey(key);
-        let entry_account = PublicKey.findProgramAddressSync([creator.toBytes(), uInt8ToLEBytes(0), uInt32ToLEBytes(date)], PROGRAM)[0];
-        let entry = entryList.get(entry_account.toString());
-        let twitter = twitterList.get(key);
-        if (entry === null) {
-            return;
-        }
-
-        if (twitter === undefined) {
-            twitter = default_twitter;
-        }
-
-        if (entry.positive_votes + entry.negative_votes === 0) {
-            // skip if no votes
-            continue;
-        }
-
-        let row: DayRow = {
-            key: key,
-            twitter: twitter,
-            score: entry.positive_votes - entry.negative_votes,
-            link: "https://blinkbash.daoplays.org/api/blink?creator=" + key + "&game=0&date=" + date,
-            entry: json.entry,
-            prompt: prompt_url,
-            claimed: entry.reward_claimed === 1,
-        };
-
-        day_rows.push(row);
-    }
-    //console.log(day_rows);
-    setDayRows(day_rows);
-};
 
 export default function Home() {
     const { sm, md, lg, xl } = useResponsive();
@@ -249,18 +93,33 @@ export default function Home() {
 
     const { handleEntry } = useEntry();
     const { ClaimPrize } = useClaimPrize();
+    const getDaysWinners = useGetDaysWinners();
+    const getDaysEntries = useGetDayEntries();
 
-    const handleOpenRetweetModal = (creator: string, date: number) => {
+    const handleOpenRetweetModal = (creator: string, date: number, mode: number) => {
         let twitter = twitterList.get(creator);
-
-        let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date;
-        let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
-
-        let tweet = "Check out this entry to @Blink_Bash! " + dial_link;
-
-        if (twitter !== undefined) {
-            tweet = "Check out this entry from @" + twitter.username + " to @Blink_Bash! " + dial_link;
+        let tweet: string;
+        let ref_string: string = "";
+        // add referral
+        if (wallet !== null && wallet.publicKey !== null) {
+            let referral = wallet.publicKey.toString();
+            ref_string = "&ref=" + referral;
         }
+        if (mode === 0) {
+            let link = "https://blinkbash.daoplays.org/api/blink?creator=" + creator + "&game=0&date=" + date + ref_string;
+
+            let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
+            tweet = "Check out this entry to @Blink_Bash! " + dial_link;
+
+            if (twitter !== undefined) {
+                tweet = "Check out this entry from @" + twitter.username + " to @Blink_Bash! " + dial_link;
+            }
+        } else {
+            let link = "https://blinkbash.daoplays.org/api/blink?method=enter&game=0&date=" + date + ref_string;
+            let dial_link = "https://dial.to/?action=solana-action:" + encodeURIComponent(link);
+            tweet = "Enter a caption to todays @Blink_Bash prompt to earn $BASH! " + dial_link;
+        }
+
         setRetweetText(tweet);
         console.log(tweet);
         onRetweetOpen();
@@ -277,7 +136,6 @@ export default function Home() {
         setStartDate(date);
         let day = date.getTime() / 1000 / 60 / 60 / 24;
         setWinnerDate(day);
-        console.log(date, day);
     };
 
     const handlePreviousDay = () => {
@@ -308,13 +166,9 @@ export default function Home() {
     // get todays entries on load
 
     useEffect(() => {
-        if (database === null || entryList === null || twitterList === null || leaderboardList === null) {
-            return;
-        }
-
-        GetDaysEntries(today_date, database, entryList, twitterList, setEntries);
-        GetDaysWinners(winner_date, database, entryList, userIDs, leaderboardList, twitterList, setWinners);
-    }, [today_date, winner_date, database, entryList, twitterList, leaderboardList, userIDs]);
+        getDaysEntries(today_date, setEntries);
+        getDaysWinners(winner_date, setWinners);
+    }, [today_date, winner_date, getDaysEntries, getDaysWinners]);
 
     useEffect(() => {
         if (entries.length === 0) {
@@ -396,7 +250,7 @@ export default function Home() {
                 toast.error("Error sharing tweet");
             }
         },
-        [wallet, twitterList],
+        [wallet],
     );
 
     return (
@@ -418,7 +272,10 @@ export default function Home() {
                             a $BASH payout! <br />
                             <br /> 2. Vote on others’ Blinks to earn $BASH. <br />
                             <br />
-                            3. Spend $BASH on rewards sponsored by your favorite Solana projects!
+                            3. Share todays entries, or the prompt, and if people use your blinks you get $BASH!
+                            <br />
+                            <br />
+                            4. Spend $BASH on rewards sponsored by your favorite Solana projects!
                         </Text>
 
                         <Divider />
@@ -477,12 +334,12 @@ export default function Home() {
                                         </HStack>
 
                                         <HStack alignItems="start" mt={2} gap={3} style={{ cursor: "pointer" }}>
-                                            <Tooltip label="Retweet" hasArrow fontSize="large" offset={[0, 15]}>
+                                            <Tooltip label="Share and Earn!" hasArrow fontSize="large" offset={[0, 15]}>
                                                 <div>
                                                     <FaRetweet
                                                         size={sm ? 30 : 42}
                                                         color="rgba(0,0,0,0.45)"
-                                                        onClick={() => handleOpenRetweetModal(entries[random_entry].key, today_date)}
+                                                        onClick={() => handleOpenRetweetModal(entries[random_entry].key, today_date, 0)}
                                                         style={{ marginTop: -2 }}
                                                     />
                                                 </div>
@@ -523,10 +380,21 @@ export default function Home() {
                     </VStack>
 
                     <VStack bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
-                        <Text m={0} color="white" fontSize="4xl" className="font-face-wc">
-                            Daily Prompt
-                        </Text>
-
+                        <HStack>
+                            <Text m={0} color="white" fontSize="4xl" className="font-face-wc">
+                                Daily Prompt
+                            </Text>
+                            <Tooltip label="Share & Earn!" hasArrow fontSize="large" offset={[0, 15]}>
+                                <div>
+                                    <FaRetweet
+                                        size={sm ? 30 : 42}
+                                        color="rgba(0,0,0,0.45)"
+                                        onClick={() => handleOpenRetweetModal("", today_date, 1)}
+                                        style={{ marginTop: -2 }}
+                                    />
+                                </div>
+                            </Tooltip>
+                        </HStack>
                         <HStack>
                             <Box position="relative" h="300px" w="300px" border="1px dashed white" rounded="xl">
                                 <Image
@@ -686,7 +554,7 @@ export default function Home() {
                                                     m={0}
                                                     as="span"
                                                     _hover={{ textDecoration: entry.claimed ? "none" : "underline" }}
-                                                    onClick={() => (entry.claimed ? "" : ClaimPrize(0, today_date - 1))}
+                                                    onClick={() => (entry.claimed ? "" : ClaimPrize(0, winner_date))}
                                                 >
                                                     {!entry.claimed ? "Claim Prize" : "Claimed"}
                                                 </Text>
@@ -756,7 +624,7 @@ export default function Home() {
                                                             size={sm ? 30 : 42}
                                                             color="rgba(0,0,0,0.45)"
                                                             onClick={() =>
-                                                                handleOpenRetweetModal(day_winners[selectedRank].key, winner_date)
+                                                                handleOpenRetweetModal(day_winners[selectedRank].key, winner_date, 0)
                                                             }
                                                             style={{ marginTop: -2, cursor: "pointer" }}
                                                         />

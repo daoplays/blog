@@ -42,8 +42,8 @@ import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common"
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get, Database } from "firebase/database";
 import { DayRow } from "../components/state/interfaces";
-import { GetDaysEntries } from "./index";
 import DialectCTA from "../components/blinkbash/dialect";
+import { useGetDayEntries } from "../hooks/useGetDayEntries";
 interface Header {
     text: string;
     field: string | null;
@@ -60,6 +60,7 @@ const LeaderboardPage = () => {
     const [day_rows, setDayRows] = useState<DayRow[]>([]);
     const [sortedField, setSortedField] = useState<string | null>("votes");
     const [reverseSort, setReverseSort] = useState<boolean>(true);
+    const getDaysEntries = useGetDayEntries();
 
     useEffect(() => {
         if (database !== null) {
@@ -137,7 +138,7 @@ const LeaderboardPage = () => {
         const isUser = currentUserData === null ? false : row.key === currentUserData.user_key.toString();
         const rank = index + 1;
         let address = trimAddress(row.key);
-
+        console.log("day row ", row.twitter.username, row.score);
         let colour = isUser ? "yellow" : "white";
         let link = "https://dial.to/?action=solana-action:" + encodeURIComponent(row.link);
         return (
@@ -190,12 +191,8 @@ const LeaderboardPage = () => {
     };
 
     useEffect(() => {
-        if (twitterList === null || database === null || entryList === null) {
-            return;
-        }
-
-        GetDaysEntries(date, database, entryList, twitterList, setDayRows);
-    }, [date, twitterList, entryList, database]);
+        getDaysEntries(date, setDayRows);
+    }, [date, getDaysEntries]);
 
     return (
         <Layout>

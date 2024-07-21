@@ -29,7 +29,6 @@ const TweetEditModal = ({ isOpen, onClose, onSendTweet, initialText }: TweetEdit
         setTweetText(initialText);
     }, [initialText]);
 
-    console.log("dfault", initialText);
     const handleSendTweet = () => {
         onSendTweet(tweetText);
         onClose();
@@ -52,7 +51,7 @@ const TweetEditModal = ({ isOpen, onClose, onSendTweet, initialText }: TweetEdit
                         fontWeight={600}
                         size="lg"
                         color="white"
-                        maxLength={250}
+                        maxLength={350}
                         rows={5}
                         _placeholder={{ color: "gray.300" }}
                         _active={{ border: "1px solid white" }}
