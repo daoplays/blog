@@ -11,7 +11,6 @@ import NoSSR from "../utils/NoSSR";
 import { usePathname } from "next/navigation";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import { TipLinkWalletAdapter } from "@tiplink/wallet-adapter";
 import { Config } from "../components/state/constants";
 import { useMemo } from "react";
 import { ConnectionConfig } from "@solana/web3.js";

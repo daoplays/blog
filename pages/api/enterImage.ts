@@ -105,10 +105,13 @@ export default async function handler(req, res) {
             whocatsTextToSVG,
         );
 
+        let image_link = "https://blinkbash.daoplays.org/api/errorImage";
         const prompt_db = await get(ref(database, "BlinkBash/prompts/0/" + current_date));
         let prompt_val = prompt_db.val();
-        let json = JSON.parse(prompt_val.toString());
-        let image_link = json["url"];
+        if (prompt_val !== null) {
+            let json = JSON.parse(prompt_val.toString());
+            image_link = json["url"];
+        }
 
         const imageResponse = await fetch(image_link);
         const imageArrayBuffer = await imageResponse.arrayBuffer();

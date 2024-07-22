@@ -32,6 +32,10 @@ export const DATA_ACCOUNT_SEED = 10399637;
 //timeout for transactions to be considered failed
 export const TIMEOUT = 30000;
 
+
+// offset for new day = 12 hours
+export const DAY_OFFSET_SECS = 12 * 60 * 60;
+
 export let Config = MainNetConfig;
 
 export const firebaseConfig = {
