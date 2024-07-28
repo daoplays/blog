@@ -107,7 +107,7 @@ const GetNFTData = async (nft_keys: String[], setNFTMap) => {
                 mint: asset,
                 uri: asset.uri,
                 icon: "",
-                name: asset.name
+                name: asset.name,
             };
 
             try {
@@ -129,7 +129,6 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const wallet = useWallet();
     const { connection } = useConnection();
     const [program_data, setProgramData] = useState<GPAccount[] | null>(null);
-
     const [database, setDatabase] = useState<Database | null>(null);
     const [user_data, setUserData] = useState<Map<string, UserData> | null>(new Map());
     const [user_ids, setUserIDs] = useState<Map<number, string> | null>(new Map());
@@ -177,7 +176,7 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
 
                 setUserData((prevMap) => {
                     const newMap = new Map(prevMap);
-                    newMap.set(account_key.toString(), user);
+                    newMap.set(user.user_key.toString(), user);
                     return newMap;
                 });
                 if (wallet.publicKey !== null && user.user_key.equals(wallet.publicKey)) {
@@ -195,13 +194,13 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
                 if (listing.quantity === 0) {
                     setListingData((prevMap) => {
                         const newMap = new Map(prevMap);
-                        newMap.delete(account_key.toString());
+                        newMap.delete(listing.item_address.toString());
                         return newMap;
                     });
                 } else {
                     setListingData((prevMap) => {
                         const newMap = new Map(prevMap);
-                        newMap.set(account_key.toString(), listing);
+                        newMap.set(listing.item_address.toString(), listing);
                         return newMap;
                     });
                 }

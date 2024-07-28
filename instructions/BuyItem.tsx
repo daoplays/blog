@@ -41,7 +41,7 @@ export const GetBuyItemInstruction = async (user: PublicKey, item: PublicKey, it
 
     let user_item = SYSTEM_KEY;
     let pda_item = SYSTEM_KEY;
-    let listing_tp = SYSTEM_KEY;
+    let listing_tp = TOKEN_2022_PROGRAM_ID;
     let collection = SYSTEM_KEY;
 
     // chck if its a token or mplex nft
