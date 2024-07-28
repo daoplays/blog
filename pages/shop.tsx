@@ -26,7 +26,6 @@ import { Divider, HStack, Text, TabIndicator, TabList, TabPanel, TabPanels, Tabs
 import React, { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import "react-datepicker/dist/react-datepicker.css";
-import Layout from "./layout";
 import { FaPlus } from "react-icons/fa6";
 import useListemItem from "../hooks/useListItem";
 import useBuyItem from "../hooks/useBuyItem";
@@ -225,7 +224,13 @@ export default function Shop() {
     };
 
     return (
-        <Layout>
+        <VStack
+            position="relative"
+            justify="center"
+            overflowY="auto"
+            minHeight="100vh"
+            background="linear-gradient(180deg, #5DBBFF 0%, #0076CC 100%)"
+        >
             <HStack w={sm ? "100%" : "700px"} bg="#0ab7f2" spacing={8} mx={5} rounded="xl">
                 <VStack w={sm ? "100%" : "700px"} border="1px solid white" p={4} rounded="xl" shadow="xl">
                     <HStack justifyContent="space-between" w="full">
@@ -447,11 +452,9 @@ export default function Shop() {
                 alt="Shop Man Character"
                 width={300}
                 height={300}
-                style={{ position: "absolute", bottom: -0, left: 50, zIndex: -50 }}
+                style={{ position: "absolute", bottom: -0, left: 50 }}
                 hidden={lg}
             />
-
-            <DialectCTA />
-        </Layout>
+        </VStack>
     );
 }

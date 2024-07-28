@@ -15,7 +15,6 @@ interface AppRootTypes {
     nftList: Map<string, NFTData>;
     entryList: Map<string, EntryData>;
     leaderboardList: Map<string, LeaderboardData>;
-
     currentUserData: UserData;
     userBashBalance: number;
     userWLBalance: number;

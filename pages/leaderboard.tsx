@@ -1,79 +1,31 @@
-import { useEffect, useState } from "react";
-import {
-    Box,
-    Flex,
-    Text,
-    TableContainer,
-    HStack,
-    Input,
-    Button,
-    useDisclosure,
-    Modal,
-    ModalBody,
-    ModalContent,
-    ModalOverlay,
-    VStack,
-    Table,
-    Thead,
-    Tr,
-    Th,
-    Tbody,
-    Td,
-    Link,
-} from "@chakra-ui/react";
-import { FaExternalLinkAlt } from "react-icons/fa";
-
-import { UserData } from "../components/state/state";
-import useAppRoot from "../components/context/useAppRoot";
-import Head from "next/head";
-import useResponsive from "../hooks/useResponsive";
-import { TfiReload } from "react-icons/tfi";
-import { FaSort } from "react-icons/fa";
-import styles from "../styles/Launch.module.css";
-import { MdEdit } from "react-icons/md";
-import { useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";
-import UseWalletConnection from "../components/blog/apps/commonHooks/useWallet";
-import Layout from "./layout";
+import { useEffect, useState } from "react";
+import { Text, TableContainer, HStack, VStack, Table, Thead, Tr, Th, Tbody, Td, Link } from "@chakra-ui/react";
+import { FaExternalLinkAlt } from "react-icons/fa";
+import { FaSort } from "react-icons/fa";
+import { UserData } from "../components/state/state";
+import useResponsive from "../hooks/useResponsive";
+import useAppRoot from "../components/context/useAppRoot";
 import { trimAddress } from "../components/state/utils";
-import { PublicKey } from "@solana/web3.js";
-import { PROGRAM, firebaseConfig } from "../components/state/constants";
-import { uInt32ToLEBytes, uInt8ToLEBytes } from "../components/blog/apps/common";
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, get, Database } from "firebase/database";
-import { DayRow } from "../components/state/interfaces";
-import DialectCTA from "../components/blinkbash/dialect";
-import { useGetDayEntries } from "../hooks/useGetDayEntries";
+import useDayEntriesStore from "../stores/dayEntries";
 interface Header {
     text: string;
     field: string | null;
 }
 
 const LeaderboardPage = () => {
-    const wallet = useWallet();
-    const { handleConnectWallet } = UseWalletConnection();
-    const { twitterList, userList, currentUserData, entryList, leaderboardList } = useAppRoot();
-    const { md, sm, lg, xl } = useResponsive();
+    const { xl, sm } = useResponsive();
+
     const [selected, setSelected] = useState("Today");
-    const [database, setDatabase] = useState<Database | null>(null);
     const [date, setDate] = useState<number>(Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24)));
-    const [day_rows, setDayRows] = useState<DayRow[]>([]);
     const [sortedField, setSortedField] = useState<string | null>("votes");
     const [reverseSort, setReverseSort] = useState<boolean>(true);
-    const getDaysEntries = useGetDayEntries();
 
-    useEffect(() => {
-        if (database !== null) {
-            return;
-        }
+    const { dayEntries, getDayEntries } = useDayEntriesStore();
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
+    let today_date = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24));
 
-        // Initialize Realtime Database and get a reference to the service
-        const db = getDatabase(app);
-        setDatabase(db);
-    }, [database]);
+    const { twitterList, userList, currentUserData, database, entryList } = useAppRoot();
 
     let userVec: UserData[] = [];
     if (userList !== null && twitterList !== null) {
@@ -134,68 +86,29 @@ const LeaderboardPage = () => {
         return 0;
     });
 
-    const DayRowCard = ({ row, index }: { row: DayRow; index: number }) => {
-        const isUser = currentUserData === null ? false : row.key === currentUserData.user_key.toString();
-        const rank = index + 1;
-        let address = trimAddress(row.key);
-        console.log("day row ", row.twitter.username, row.score);
-        let colour = isUser ? "yellow" : "white";
-        let link = "https://dial.to/?action=solana-action:" + encodeURIComponent(row.link);
-        return (
-            <Tr>
-                <Td color={colour} py={4}>
-                    {rank}
-                </Td>
-                <Td color={colour}>{row.twitter.username}</Td>
-                <Td color={colour}>{address}</Td>
-                <Td color={colour}>{row.score}</Td>
-                <Td color={colour}>
-                    {
-                        <Link href={link} isExternal>
-                            <FaExternalLinkAlt />
-                        </Link>
-                    }
-                </Td>
-            </Tr>
-        );
-    };
-
-    const UserCard = ({ user, index }: { user: UserData; index: number }) => {
-        if (twitterList === null) return <></>;
-
-        const isUser = currentUserData === null ? false : user.user_key.equals(currentUserData.user_key);
-        let twitter_id = twitterList.get(user.user_key.toString());
-        if (twitter_id === undefined) {
-            return <></>;
-        }
-        const rank = index + 1;
-        let wins = user.total_wins;
-        let votes = user.total_positive_votes - user.total_negative_votes;
-        let voted = user.total_positive_voted + user.total_negative_voted;
-        let address = trimAddress(user.user_key.toString());
-
-        let colour = isUser ? "yellow" : "white";
-
-        return (
-            <Tr>
-                <Td color={isUser ? "yellow" : "white"} py={4}>
-                    {rank}
-                </Td>
-                <Td color={colour}>{twitter_id.username}</Td>
-                <Td color={colour}>{address}</Td>
-                <Td color={colour}>{wins.toString()}</Td>
-                <Td color={colour}>{votes.toString()}</Td>
-                <Td color={colour}>{voted.toString()}</Td>
-            </Tr>
-        );
-    };
+    useEffect(() => {
+        const fetchEntries = async () => {
+            try {
+                getDayEntries(database, entryList, twitterList, today_date);
+            } catch (error) {
+                console.error("Error fetching day entries:", error);
+            }
+        };
+        fetchEntries();
+    }, [database, entryList, twitterList, getDayEntries, today_date]);
 
     useEffect(() => {
-        getDaysEntries(date, setDayRows);
-    }, [date, getDaysEntries]);
+        console.log("Leaderboard: ", dayEntries);
+    }, [dayEntries]);
 
     return (
-        <Layout>
+        <VStack
+            position="relative"
+            justify="center"
+            overflowY="auto"
+            minHeight="100vh"
+            background="linear-gradient(180deg, #5DBBFF 0%, #0076CC 100%)"
+        >
             <HStack w={sm ? "100%" : "700px"} bg="#0ab7f2" spacing={8} mx={5} rounded="xl">
                 <VStack w={sm ? "100%" : "700px"} border="1px solid white" p={4} rounded="xl" shadow="xl">
                     <HStack justifyContent="space-between" w="full">
@@ -258,14 +171,63 @@ const LeaderboardPage = () => {
 
                             {selected === "Today" ? (
                                 <Tbody>
-                                    {day_rows.map((row, i) => {
-                                        return <DayRowCard key={row.key} row={row} index={i} />;
+                                    {dayEntries.map((row, i) => {
+                                        const isUser = currentUserData === null ? false : row.key === currentUserData.user_key.toString();
+                                        const rank = i + 1;
+                                        let address = trimAddress(row.key);
+                                        // console.log("day row ", row.twitter.username, row.score);
+                                        let colour = isUser ? "yellow" : "white";
+                                        let link = "https://dial.to/?action=solana-action:" + encodeURIComponent(row.link);
+
+                                        return (
+                                            <Tr key={i}>
+                                                <Td color={colour} py={4}>
+                                                    {rank}
+                                                </Td>
+                                                <Td color={colour}>{row.twitter.username}</Td>
+                                                <Td color={colour}>{address}</Td>
+                                                <Td color={colour}>{row.score}</Td>
+                                                <Td color={colour}>
+                                                    {
+                                                        <Link href={link} isExternal>
+                                                            <FaExternalLinkAlt />
+                                                        </Link>
+                                                    }
+                                                </Td>
+                                            </Tr>
+                                        );
                                     })}
                                 </Tbody>
                             ) : (
                                 <Tbody>
                                     {sortedUsers.map((user, i) => {
-                                        return <UserCard key={user.user_key.toString()} user={user} index={i} />;
+                                        if (twitterList === null) return <></>;
+
+                                        const isUser = currentUserData === null ? false : user.user_key.equals(currentUserData.user_key);
+                                        let twitter_id = twitterList.get(user.user_key.toString());
+                                        if (twitter_id === undefined) {
+                                            return <></>;
+                                        }
+                                        const rank = i + 1;
+                                        let wins = user.total_wins;
+                                        let votes = user.total_positive_votes - user.total_negative_votes;
+                                        let voted = user.total_positive_voted + user.total_negative_voted;
+                                        let address = trimAddress(user.user_key.toString());
+
+                                        let colour = isUser ? "yellow" : "white";
+
+                                        return (
+                                            <Tr key={i}>
+                                                <Td color={isUser ? "yellow" : "white"} py={4}>
+                                                    {rank}
+                                                </Td>
+                                                <Td color={colour}>{twitter_id.username}</Td>
+                                                <Td color={colour}>{address}</Td>
+                                                <Td color={colour}>{wins.toString()}</Td>
+                                                <Td color={colour}>{votes.toString()}</Td>
+                                                <Td color={colour}>{voted.toString()}</Td>
+                                            </Tr>
+                                        );
                                     })}
                                 </Tbody>
                             )}
@@ -273,17 +235,16 @@ const LeaderboardPage = () => {
                     </TableContainer>
                 </VStack>
             </HStack>
+
             <Image
                 src="/images/leaderboard-man.png"
                 alt="Leaderboard Man Character"
                 width={300}
                 height={300}
-                style={{ position: "absolute", bottom: -20, left: 50, zIndex: -50 }}
+                style={{ position: "absolute", bottom: -20, left: 50 }}
                 hidden={xl}
             />
-
-            <DialectCTA />
-        </Layout>
+        </VStack>
     );
 };
 

@@ -107,7 +107,7 @@ const GetNFTData = async (nft_keys: String[], setNFTMap) => {
                 mint: asset,
                 uri: asset.uri,
                 icon: "",
-                name: asset.name
+                name: asset.name,
             };
 
             try {
@@ -129,7 +129,6 @@ const ContextProviders = ({ children }: PropsWithChildren) => {
     const wallet = useWallet();
     const { connection } = useConnection();
     const [program_data, setProgramData] = useState<GPAccount[] | null>(null);
-
     const [database, setDatabase] = useState<Database | null>(null);
     const [user_data, setUserData] = useState<Map<string, UserData> | null>(new Map());
     const [user_ids, setUserIDs] = useState<Map<number, string> | null>(new Map());
