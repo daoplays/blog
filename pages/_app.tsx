@@ -8,19 +8,19 @@ import "../styles/table.css";
 import "../styles/global.css";
 import ContextProviders from "./_contexts";
 import NoSSR from "../utils/NoSSR";
-import { usePathname } from "next/navigation";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
 import { Config } from "../components/state/constants";
 import { useMemo } from "react";
 import { ConnectionConfig } from "@solana/web3.js";
 import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adapter-wallets";
-import { Text } from "@chakra-ui/react";
-import Link from "next/link";
 
-function MyApp({ Component, pageProps }) {
-    const pathname = usePathname();
+import type { AppProps } from "next/app";
+import Navigation from "../components/blinkbash/Navigation";
+import DialectCTA from "../components/blinkbash/dialect";
+import AppRootPage from "./_layout";
 
+function MyApp({ Component, pageProps }: AppProps) {
     const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], []);
 
     const connectionConfig: ConnectionConfig = {
@@ -47,7 +47,9 @@ function MyApp({ Component, pageProps }) {
                     <WalletProvider wallets={wallets} autoConnect>
                         <WalletModalProvider>
                             <ContextProviders>
-                                <Component {...pageProps} />
+                                <AppRootPage>
+                                    <Component {...pageProps} />
+                                </AppRootPage>
                             </ContextProviders>
                         </WalletModalProvider>
                     </WalletProvider>

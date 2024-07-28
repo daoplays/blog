@@ -8,8 +8,10 @@ import bs58 from "bs58";
 import { showTransactionToast } from "../components/state/transactionToast";
 import { PROGRAM, TIMEOUT } from "../components/state/constants";
 import { ToastControls } from "../components/state/interfaces";
+import { useRouter } from "next/navigation";
 
 const useEnter = () => {
+    const router = useRouter();
     const wallet = useWallet();
     const { connection } = useConnection();
 
@@ -132,6 +134,8 @@ const useEnter = () => {
             setIsLoading(false);
             cleanupListeners();
             setError((error as Error).message);
+        } finally {
+            router.refresh();
         }
     };
 
