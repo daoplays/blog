@@ -27,7 +27,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { FaRetweet } from "react-icons/fa6";
 import useAppRoot from "../components/context/useAppRoot";
 import useEntry from "../hooks/useEnter";
-import Layout from "./layout";
 import useResponsive from "../components/blog/apps/commonHooks/useResponsive";
 import { LuCrown } from "react-icons/lu";
 import "swiper/css";
@@ -53,7 +52,7 @@ import Link from "next/link";
 import TweetEditModal from "../components/state/modals";
 import DialectCTA from "../components/blinkbash/dialect";
 import { useGetDaysWinners } from "../hooks/useGetDayWinners";
-import { useGetDayEntries } from "../hooks/useGetDayEntries";
+import useDayEntriesStore from "../stores/dayEntries";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -73,15 +72,18 @@ export default function Home() {
     const wallet = useWallet();
 
     const isConnected = wallet.publicKey !== null;
-    let today_date = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24));
 
     const { twitter, database, userIDs, entryList, twitterList, leaderboardList } = useAppRoot();
+
+    const { dayEntries, getDayEntries } = useDayEntriesStore();
+
+    let today_date = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24));
 
     const [selectedRank, setSelectedRank] = useState(0);
 
     const [startDate, setStartDate] = useState<Date>(new Date((today_date - 1) * (1000 * 60 * 60 * 24)));
     const [entry, setEntry] = useState<string>("");
-    const [entries, setEntries] = useState<DayRow[]>([]);
+
     const [day_winners, setWinners] = useState<DayRow[]>([]);
     const [random_entry, setRandomEntry] = useState<number>(0);
     const [winner_date, setWinnerDate] = useState<number>(today_date - 1);
@@ -94,7 +96,6 @@ export default function Home() {
     const { handleEntry } = useEntry();
     const { ClaimPrize } = useClaimPrize();
     const getDaysWinners = useGetDaysWinners();
-    const getDaysEntries = useGetDayEntries();
 
     const handleOpenRetweetModal = (creator: string, date: number, mode: number) => {
         let twitter = twitterList.get(creator);
@@ -166,17 +167,16 @@ export default function Home() {
     // get todays entries on load
 
     useEffect(() => {
-        getDaysEntries(today_date, setEntries);
         getDaysWinners(winner_date, setWinners);
-    }, [today_date, winner_date, getDaysEntries, getDaysWinners]);
+    }, [today_date, winner_date, getDaysWinners]);
 
     useEffect(() => {
-        if (entries.length === 0) {
+        if (dayEntries.length === 0) {
             return;
         }
 
         setRandomEntry(0);
-    }, [entries]);
+    }, [dayEntries]);
 
     // set the prompt
 
@@ -204,18 +204,18 @@ export default function Home() {
     }, [prompt, getPrompt]);
 
     const handleRandomiseEntry = () => {
-        if (entries.length === 0) {
+        if (dayEntries.length === 0) {
             return;
         }
 
-        if (entries.length === 1) {
+        if (dayEntries.length === 1) {
             setRandomEntry(0);
             return;
         }
 
-        let random_index = Math.floor(Math.random() * entries.length);
+        let random_index = Math.floor(Math.random() * dayEntries.length);
         while (random_index === random_entry) {
-            random_index = Math.floor(Math.random() * entries.length);
+            random_index = Math.floor(Math.random() * dayEntries.length);
         }
         setRandomEntry(random_index);
     };
@@ -253,10 +253,20 @@ export default function Home() {
         [wallet],
     );
 
+    useEffect(() => {
+        const fetchEntries = async () => {
+            try {
+                getDayEntries(database, entryList, twitterList, today_date);
+            } catch (error) {
+                console.error("Error fetching day entries:", error);
+            }
+        };
+        fetchEntries();
+    }, [database, entryList, twitterList, getDayEntries, today_date]);
+
     return (
         <>
             <VStack
-                zIndex={999}
                 className={montserrat.className}
                 position="relative"
                 justify={!md && "center"}
@@ -264,7 +274,6 @@ export default function Home() {
                 pb={3}
                 background="linear-gradient(180deg, #5DBBFF 0%, #0076CC 100%)"
             >
-                <Navigation />
                 <SimpleGrid mt={85} maxW="1200px" mx={md ? 0 : 5} p={6} gap={6} h="fit-content" w="100%" columns={md ? 1 : 2} spacing={5}>
                     <VStack h={md ? 600 : ""} spacing={1} background="rgba(0,0,0,0.20)" p={6} rounded="xl" overflowY="auto">
                         <Text m={0} fontSize={md ? "lg" : "xl"} fontWeight={600} color="white">
@@ -298,11 +307,11 @@ export default function Home() {
                         </HStack>
 
                         <div style={{ width: "100%", height: "100%", position: "relative" }}>
-                            {entries.length > 0 ? (
+                            {dayEntries.length > 0 ? (
                                 <VStack h="100%" bg="#0ab7f2" border="1px solid white" p={6} rounded="xl" shadow="xl">
                                     <HStack w="full" alignItems="start" justifyContent="space-between">
                                         <HStack alignItems="center" gap={2}>
-                                            <Link href={`https://x.com/${entries[random_entry].twitter.username}`} target="_blank">
+                                            <Link href={`https://x.com/${dayEntries[random_entry].twitter.username}`} target="_blank">
                                                 <div
                                                     style={{
                                                         width: "60px",
@@ -312,8 +321,8 @@ export default function Home() {
                                                     }}
                                                 >
                                                     <Image
-                                                        src={entries[random_entry].twitter.profile_image_url}
-                                                        alt={`${entries[random_entry].twitter.username}'s PFP`}
+                                                        src={dayEntries[random_entry].twitter.profile_image_url}
+                                                        alt={`${dayEntries[random_entry].twitter.username}'s PFP`}
                                                         fill
                                                         style={{
                                                             objectFit: "cover",
@@ -325,10 +334,10 @@ export default function Home() {
 
                                             <VStack alignItems="start" gap={0} color="white">
                                                 <Text m={0} fontSize="xl" fontWeight={600}>
-                                                    {entries[random_entry].twitter.name}
+                                                    {dayEntries[random_entry].twitter.name}
                                                 </Text>
                                                 <Text m={0} fontSize="sm">
-                                                    @{entries[random_entry].twitter.username}
+                                                    @{dayEntries[random_entry].twitter.username}
                                                 </Text>
                                             </VStack>
                                         </HStack>
@@ -339,14 +348,14 @@ export default function Home() {
                                                     <FaRetweet
                                                         size={sm ? 30 : 42}
                                                         color="rgba(0,0,0,0.45)"
-                                                        onClick={() => handleOpenRetweetModal(entries[random_entry].key, today_date, 0)}
+                                                        onClick={() => handleOpenRetweetModal(dayEntries[random_entry].key, today_date, 0)}
                                                         style={{ marginTop: -2 }}
                                                     />
                                                 </div>
                                             </Tooltip>
                                             <Tooltip label="Upvote" hasArrow fontSize="large" offset={[0, 15]}>
                                                 <Image
-                                                    onClick={() => Vote(new PublicKey(entries[random_entry].key), 0, 1)}
+                                                    onClick={() => Vote(new PublicKey(dayEntries[random_entry].key), 0, 1)}
                                                     src="/images/thumbs-up.svg"
                                                     width={sm ? 25 : 35}
                                                     height={sm ? 25 : 35}
@@ -356,7 +365,7 @@ export default function Home() {
 
                                             <Tooltip label="Downvote" hasArrow fontSize="large" offset={[0, 15]}>
                                                 <Image
-                                                    onClick={() => Vote(new PublicKey(entries[random_entry].key), 0, 2)}
+                                                    onClick={() => Vote(new PublicKey(dayEntries[random_entry].key), 0, 2)}
                                                     src="/images/thumbs-down.svg"
                                                     width={sm ? 25 : 35}
                                                     height={sm ? 25 : 35}
@@ -366,7 +375,7 @@ export default function Home() {
                                         </HStack>
                                     </HStack>
                                     <Text m={0} fontSize="lg" fontWeight={600} color="white" w="full">
-                                        {wrapLongWords(entries[random_entry].entry)}
+                                        {wrapLongWords(dayEntries[random_entry].entry)}
                                     </Text>
                                 </VStack>
                             ) : (
@@ -445,7 +454,7 @@ export default function Home() {
                     alt="Solana Man Character"
                     width={300}
                     height={300}
-                    style={{ position: "absolute", bottom: 0, left: 0, zIndex: -50 }}
+                    style={{ position: "absolute", bottom: 0, left: 0 }}
                     hidden={xl}
                 />
             </VStack>
@@ -644,8 +653,6 @@ export default function Home() {
                 </VStack>
             </VStack>
             <TweetEditModal isOpen={isRetweetOpen} onClose={onRetweetClose} onSendTweet={handleReTweet} initialText={retweet_text} />
-
-            <DialectCTA />
         </>
     );
 }
