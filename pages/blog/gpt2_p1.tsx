@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Center, Image, UnorderedList, Box, VStack, Heading, Text, OrderedList, ListItem, Code, Table, Thead, Tbody, Tr, Th, Td, useColorModeValue, Flex } from '@chakra-ui/react';
+import { Link, Center, Image, UnorderedList, Box, VStack, Heading, Text, OrderedList, ListItem, Code, Table, Thead, Tbody, Tr, Th, Td, useColorModeValue, Flex } from '@chakra-ui/react';
 import { Highlight, themes } from 'prism-react-renderer';
 import { FaCopy, FaCheck } from 'react-icons/fa';
 import { CodeBlock } from '../../components/common/code_highlight';
@@ -9,19 +9,21 @@ const TokenizationProcess = () => {
     return (
         <Box width="100%" margin="auto">
           <VStack spacing={6} align="stretch">
-            <Heading as="h1" size="2xl">GPT-2 Tokenization Process</Heading>
+            <Heading as="h1" size="xl">GPT-2 Tokenization Process</Heading>
     
             <Text>
-              Before we get onto any code it is probably useful to go through a concrete example of exactly what the tokenisation process it doing.  So, let's break down the GPT-2 tokenization process using the example sentence: 
+              Before we get onto any code it is probably useful to go through a concrete example of exactly what the tokenization process is doing.  In principle there are many different ways that one could do this, for example: i) Word based tokenization, where splits occur on whitespace and punctuation.  This is simple but struggles with words that aren't in the tokenizer's vocabulary, or ii) Character based tokenization, where splits occur on every character.  This means it can handle any text sequence but is inefficient and leads to lots of tokens.  
+              <br/><br/>
+              The GPT2 tokenization process tries to strike a balance between these two, enabling processing of any arbitrary text, but handling it more efficiently that simply tokenizing every character. So, let's break it down using the example sentence: 
               <Code>"GPT2 was created by OpenAI"</Code>
             </Text>
     
-            <Heading as="h2" size="xl">Step 1: Initial Splitting</Heading>
+            <Heading as="h2" size="l">Step 1: Initial Splitting</Heading>
             <Text>
-              The first thing that happens is that the tokenizer uses an thoroughly horrific regex (regular expression) to split the input into more manageable smaller chunks  while preserving important linguistic features:
+              The first thing that happens is that the tokenizer uses a <a style={{textDecoration: "underline"}} href="https://xkcd.com/1171/" target="_blank">thoroughly horrific regex</a> (regular expression) to split the input into more manageable smaller chunks  while preserving important linguistic features:
             </Text>
             <Code display="block" whiteSpace="pre" p={2} bg="gray.100" borderRadius="md">
-          {`std::regex("'s|'t|'re|'ve|'m|'ll|'d| ?[a-zA-Z]+| ?[0-9]+| ?[^\\s\\w]+|\\s+(?!\\S)|\\s+");`}
+          {`'s|'t|'re|'ve|'m|'ll|'d| ?[a-zA-Z]+| ?[0-9]+| ?[^\\s\\w]+|\\s+(?!\\S)|\\s+`}
             </Code>
            
             
@@ -46,19 +48,19 @@ const TokenizationProcess = () => {
 
             <Code>["GPT2", " was", " created", " by", " OpenAI"]</Code>
             <Text>
-              Note: In GPT-2's tokenizer, the space is represented by 'Ġ' (Unicode U+0120).
+              Note: In GPT-2's tokenizer, the space is represented by 'Ġ' (Unicode U+0120), we'll use that in the rest of this example.
             </Text>
     
-            <Heading as="h2" size="xl">Step 2: Byte-Pair Encoding (BPE)</Heading>
+            <Heading as="h2" size="l">Step 2: Byte-Pair Encoding (BPE)</Heading>
             <Text>
-              Each token then undergoes Byte-Pair Encoding. Befre we run through this example though we need to take a look at two concepts that will be important - the vocabulary, and the merges.  Bth of these are the result of the tokenizer's training process and are used during the tokenization of input text.
+              Each token then undergoes Byte-Pair Encoding. Before we run through this example though we need to take a look at two concepts that will be important - the vocabulary, and the merge list.  Both of these are the result of the tokenizer's training process and are used during the tokenization of input text.
               </Text>
 
              
   
-          <Heading as="h3" size="lg">Vocabulary</Heading>
+          <Heading as="h3" size="m">Vocabulary</Heading>
           <Text>
-            The vocabulary for GPT2 is stored in a JSON file that maps 50,257 tokens to their corresponding unique integer IDs. It includes individual characters, common subwords, and frequent words.  A few concrete examples are shown below:
+            The vocabulary for GPT2 is stored in a JSON file that maps 50,257 tokens to their corresponding unique integer IDs. It includes individual characters, common sub-words, and frequent words.  A few concrete examples are shown below:
           </Text>
             
            
@@ -80,7 +82,7 @@ const TokenizationProcess = () => {
             Note here that both capitalisation, and whether there was a preceding space matters! "The" and "the" and " The" are all considered separate tokens within the GPT2 vocabulary.
           </Text>
 
-             < Heading as="h3" size="lg">Merges</Heading>
+             < Heading as="h3" size="m">Merges</Heading>
           <Text>
             There are 50,000 possible merges that we can perform during byte pair encoding. Each entry in the list represents a merge operation, showing which pairs of tokens should be merged. The order of the merges is crucial - it represents the priority of the merges.  The top few merges from the list are shown below:
           </Text>
@@ -98,7 +100,7 @@ const TokenizationProcess = () => {
               </Code>
 
               <Text>
-            These two concepts, the vocab and the merge list, are closely related, and are the result of the same generation process.  If you are wondering why the vocab has slightly more entries (257) than the merges list, it is because the vocabulary also includes 256 entries for all possible bytes (0-255). These are not derived from merges but are included to ensure any byte sequence can be tokenized. and also includes the special"end of text" symbol with ID 50256.  The merges list determines how characters and subwords are combined during tokenisation, and the tokens that result from those merges, along with the additional for extras, are found in the vocabulary.
+            These two concepts, the vocab and the merge list, are closely related, and are the result of the same generation process.  If you are wondering why the vocab has slightly more entries (257) than the merge list, it is because the vocabulary includes 256 entries for all possible bytes (0-255),  and also includes the special "end of text" symbol with ID 50256. These are not derived from merges but are included to ensure any byte sequence can be tokenized.  The merge list determines how characters and sub-words are combined during tokenization, and the tokens that result from those merges are found in the vocabulary.
           </Text>
   
        
@@ -118,7 +120,7 @@ const TokenizationProcess = () => {
               Ok, with that diversion over let's look at how this works for "GPT2" and " OpenAI", including the ranks of different pair combinations:
             </Text>
     
-            <Heading as="h3" size="lg">BPE for "GPT2"</Heading>
+            <Heading as="h3" size="m">BPE for "GPT2"</Heading>
             <Table variant="simple">
               <Thead>
                 <Tr>
@@ -151,7 +153,7 @@ const TokenizationProcess = () => {
               </Tbody>
             </Table>
     
-            <Heading as="h3" size="lg">BPE for " OpenAI"</Heading>
+            <Heading as="h3" size="m">BPE for " OpenAI"</Heading>
             <Table variant="simple">
               <Thead>
                 <Tr>
@@ -231,7 +233,7 @@ const TokenizationProcess = () => {
               The BPE process stops when no more merges can be applied based on the learned merge rules. The merge with the lowest rank (highest frequency) is chosen at each step.
             </Text>
     
-            <Heading as="h2" size="xl">Step 3: Vocabulary Lookup</Heading>
+            <Heading as="h2" size="l">Step 3: Vocabulary Lookup</Heading>
             <Text>
               Finally, each resulting subword is looked up in the vocabulary to convert it to an integer token ID:
             </Text>
@@ -246,7 +248,7 @@ const TokenizationProcess = () => {
               <ListItem><Code>"AI" → 20185</Code></ListItem>
             </OrderedList>
     
-            <Heading as="h3" size="lg">Final Output</Heading>
+            <Heading as="h3" size="l">Final Output</Heading>
             <Code>[38, 11571, 17, 373, 2726, 416, 4946, 20815]</Code>
     
             <Text>
@@ -260,28 +262,45 @@ const PostContent = () => {
   return (
     <Box width="80%" margin="auto">
       <VStack spacing={6} align="stretch">
-        <Heading as="h1" size="2xl">GPT2 From Scratch In C++ - Part 1 - Tokenisation</Heading>
+        <h1 className="h1 text-center mb-0 pt-3 font-weight-bold text-body">
+        GPT2 From Scratch In C++ - Part 1 - Tokenization
+        </h1>
+        <h1 className="h5 text-center mb-1 pt-0 font-weight-bold text-secondary">
+          Sept 17 2024
+        </h1>
 
         <Text>
-          I recently decided that I didn't understand enough about how transformer archiecture really worked.  Given how much i'm using Claude at the moment I really wanted to have a better understanding of what was going on under the hood, so I decided to implement a GPT2 model from scratch in C++.  Although there are already many excellent writeups of implementing GPT2 from scratch out there, I find the best way for me to understand something is to try and explain it to others, so i'm going to write a series of posts going through my implementation, and hopefully in the process both help myself and others.  I tend to approach things from a fairly technical point of view, and to be honest have found a lot of the explanations regarding things like attention (keys and values etc) did little to really help me understand what was actually going on.  
+          The last couple of months i've been using Claude a lot, both for work and also to discuss things like whether we are in a simulation, or AI ethics, or whatever else really.  Given how much I use it, I realised I didn't have a very complete picture of what was going on under the hood, and how transformer architecture really worked.  With that in mind I decided to take on a few projects to help me learn more about current ML models.  The first of these projects is to recreate GPT2 model from scratch in C++.  Note that I don't just mean, create something that is basically the same architecture, but rather I want to be able to load in the GPT2 weights, and for any given input text get the same output as the model that you can load from the <a style={{ textDecoration: "underline" }} href="https://huggingface.co/docs/transformers/v4.44.2/en/model_doc/gpt2#transformers.GPT2Model" target="_blank">Hugging Face</a> transformers library.
+          
           <br/><br/>
+          Although there are already many excellent writeups of implementing GPT2 from scratch out there (see e.g. <a style={{ textDecoration: "underline"}} href="https://www.youtube.com/watch?v=bOYE6E8JrtU" target="_blank">this one</a>), part of the process for learning something new is to see if I can explain it to someone else.  Only if I can do that do I feel like I actually understand the thing properly.  With that in mind, i'm going to write a series of posts going through my implementation, and hopefully in the process help both myself and maybe someone else as well.  I tend to approach things from a fairly technical point of view, and to be honest have found a lot of the explanations regarding things like attention (keys and queries etc) did little to really help me understand what was actually going on, so will try and present things in a way that makes more sense to me.
+
+          <br/><br/>
+
+          Below is a high level diagram of the GPT2 architecture (thank you Claude), from an input string all the way down to the probability distribution over next token (the output logits):
           </Text>
 
           <Box  maxWidth="100%" width="auto" height="auto">
-      <Flex justify="center" align="center" width="30%" height="100%">
-        <Box as="img" src={"/images/GPT2/gpt2_overview.svg"} alt="SVG Image" maxWidth="100%" maxHeight="100%" objectFit="contain" />
-      </Flex>
-    </Box>
+            <Center width="100%" height="100%">
+              <Flex justify="center" align="center" width="30%" height="100%">
+                <Box as="img" src={"/images/GPT2/gpt2_overview.svg"} alt="SVG Image" maxWidth="100%" maxHeight="100%" objectFit="contain" />
+              </Flex>
+            </Center>
+          </Box>
           <Text>
 
          
 
-          Trying to explain the whole process in a single blog post is probably a bit ambitious, so i've broken it down into a few parts.  This first part is going to cover the tokenisation process, which is the first part of the chain that takes of from input to the next predicted token. Tokenisation converts raw text  input (a string) into a vector of tokens (integers) that the model can then do things with. 
+          Trying to explain this whole process in a single blog post is probably a bit ambitious, so i'm breaking it down into a few parts.  This first part is going to cover only the tokenization process, which is the first part of the chain that takes us from the input string (raw text) to input tokens (a vector of integers).  I'm aiming to get the remaining parts out over the next couple of weeks or so, but we'll see how that goes.
+
+          <br/><br />
+
+          All the code for the C++ implementation, including tests that verify it matches the python version are already available at my Git <a style={{ textDecoration: "underline" }} href="https://github.com/daoplays/transformer" target="_blank">here</a>.  I'll be tidying it up and adding comments as I write these posts, so although it already all works, some bits may not be very well documented yet.
         </Text>
 
         <TokenizationProcess/>
 
-        <Heading as="h2" size="xl">The Tokenizer Class</Heading>
+        <Heading as="h2" size="l">The Tokenizer Class</Heading>
 
         <Text>
           Let's start by looking at the main structure of our tokenizer class:
@@ -328,10 +347,10 @@ public:
           <ListItem><strong>byte_encoder:</strong> A mapping from bytes to unicode characters (more on this in a bit).</ListItem>
         </OrderedList>
 
-        <Heading as="h2" size="xl">Initialization</Heading>
+        <Heading as="h2" size="l">Initialization</Heading>
 
         <Text>
-          The constructor for the tokenizer is pased two files, one for the vocabulary and one for the merge list:
+          The constructor for the tokenizer is passed two files, one for the vocabulary and one for the merge list:
         </Text>
 
         <CodeBlock language="cpp">
@@ -397,7 +416,7 @@ public:
           There isn't really anything else to say here, so we can move onto the byte-to-unicode mapping.
         </Text>
 
-        <Heading as="h2" size="xl">Byte-to-Unicode Mapping</Heading>
+        <Heading as="h2" size="l">Byte-to-Unicode Mapping</Heading>
 
         <Text>
           The bytes_to_unicode() function creates a reversible mapping between byte values (0-255) and Unicode characters:
@@ -412,7 +431,7 @@ std::map<uint8_t, char32_t> tokenizer_t::bytes_to_unicode()
 
     std::vector<uint8_t> bs;
     // Step 1: Add printable ASCII characters (33 to 126, i.e., '!' to '~')
-    // Note: We will handl 0-32 (and the other missing values) later
+    // Note: We will handle 0-32 (and the other missing values) later
     for (int i = 33; i <= 126; ++i)
         bs.push_back(i);
     // Step 2: Add extended ASCII characters (161 - '¡' to 172 - '¬' and 174 - '®'to 255 - 'ÿ')
@@ -460,7 +479,7 @@ std::map<uint8_t, char32_t> tokenizer_t::bytes_to_unicode()
 
       <br/><br/>
 
-      At first it wasn't really clear to me why this function needed to be so arbtrary looking:
+      At first it wasn't really clear to me why this function needed to be so arbitrary looking:
       
       </Text>
 
@@ -484,7 +503,7 @@ std::map<uint8_t, char32_t> tokenizer_t::bytes_to_unicode()
 
       <Text>
 
-       These characters can cause inconsistent or unexpected text display, data truncation, processing errors, security risks, and debugging challengess.  By avoiding direct mapping to control character code points, this slighty more convoluted process mitigates potential issues in text processing and improves the robustness of the tokenization process.
+       These characters can cause inconsistent or unexpected text display, data truncation, processing errors, security risks, and debugging challenges.  By avoiding direct mapping to control character code points, this slightly more convoluted process mitigates potential issues in text processing and improves the robustness of the tokenization process.
 
       <br/><br/>
 
@@ -493,7 +512,7 @@ std::map<uint8_t, char32_t> tokenizer_t::bytes_to_unicode()
     </Text>
 
 
-        <Heading as="h2" size="xl">Tokenization Process</Heading>
+        <Heading as="h2" size="l">Tokenization Process</Heading>
 
         <Text>
           The main tokenization process is handled by the tokenize() method:
@@ -536,7 +555,7 @@ std::vector<int> tokenizer_t::tokenize(const string_t& text)
         </CodeBlock>
 
         <Text>
-          At this point this function is pretty straight forward, and at a high lvl implments the tokenisation process we described at the start of the post:
+          At this point this function is pretty straight forward, and at a high lvl implements the tokenization process we described at the start of the post:
         </Text>
 
         <OrderedList spacing={2}>
@@ -554,10 +573,10 @@ std::vector<int> tokenizer_t::tokenize(const string_t& text)
           The main thing that is happening here though is the BPE encoding.  This is implemented in the bpe() method, which we will go through next.
         </Text>
 
-        <Heading as="h2" size="xl">Byte Pair Encoding (BPE)</Heading>
+        <Heading as="h2" size="l">Byte Pair Encoding (BPE)</Heading>
 
         <Text>
-          The main workhorse of the tokenization process is the BPE algorithm, implemented in the bpe() method:
+          This is where most of the work is going on, the code for the bpe() method is shown below:
         </Text>
 
         <CodeBlock language="cpp">
@@ -607,7 +626,7 @@ std::vector<string_t> tokenizer_t::bpe(const std::u32string& input)
             }
         }
 
-        // Update word with the new merged version
+        // Update tokens with the new merged version
         tokens = std::move(merged_tokens);
     }
 
@@ -622,33 +641,97 @@ std::vector<string_t> tokenizer_t::bpe(const std::u32string& input)
         </CodeBlock>
 
         <Text>
-          The BPE algorithm works as follows:
+          Starting from the top, the first thing we do is to split the input (one of the chunks of text produced by the regex expression) into individual characters:
+        </Text>
+        <CodeBlock language="cpp">
+
+{`// Initialize a vector of UTF-32 tokens. 
+// Right now each entry it just a single character from the input, 
+// however these will potentially get merged through the BPE process
+std::vector<std::u32string> tokens;
+tokens.reserve(input.size());
+for (char32_t c : input) {
+    tokens.push_back(std::u32string(1, c));
+}`}
+          </CodeBlock>
+          <Text>
+          Right now these are already valid tokens - the vocabulary for GPT2 includes all the single byte characters as tokens, so in principle we could stop right now.  The main loop in this function is going to try and find the most common valid pairings (i.e. those that exist in the merge list) until there are no valid pairings left.  The content of the tokens vector at that point will contain the final set of tokens extracted from this input.   The first step of this loop is to check all the possible pairs of tokens within this vector, get their ranks from the merge list, and find the pair that has the highest rank.
         </Text>
 
-        <OrderedList spacing={2}>
-          <ListItem>It starts by splitting the input token into individual characters.</ListItem>
-          <ListItem>It then repeatedly finds the most frequent pair of adjacent tokens and merges them.</ListItem>
-          <ListItem>This process continues until no more merges can be performed based on the merge_ranks.</ListItem>
-          <ListItem>The final result is a sequence of subword tokens.</ListItem>
-        </OrderedList>
+        <CodeBlock language="cpp">
+
+{`std::pair<std::u32string, std::u32string> best_pair;
+int best_rank = -1;
+
+// Find the best pair to merge based on rank
+for (size_t i = 0; i < tokens.size() - 1; ++i) {
+    // Get the rank of the current pair
+    int rank = get_pair_rank(utf32_to_utf8(tokens[i]), utf32_to_utf8(tokens[i + 1]));
+    // Update best_pair and best_rank if this pair is better
+    if (rank != -1 && (best_rank == -1 || rank < best_rank)) {
+        best_pair = {tokens[i], tokens[i + 1]};
+        best_rank = rank;
+    }
+}
+`}
+          </CodeBlock>
+
+          <Text>
+          Here the get_pair_rank function is just a simple lookup to see if the pair exists in our merge list.  If it does it returns the rank, and otherwise returns -1. If after this process the best rank is still only -1, that means there are no valid pairs left to merge and we exit the loop:
+        </Text>
+
+        <CodeBlock language="cpp">
+
+{`// If no mergeable pair found, exit the loop
+if (best_rank == -1) {
+    break;
+}
+`}
+          </CodeBlock>
+
+          <Text>
+          Otherwise we create an updated vector that merges the best pair of tokens, and keeps all the others as they were.  This updated vector replaces our original tokens vector, and we move on to the next iteration of the loop:
+        </Text>
+
+          <CodeBlock language="cpp">
+
+{`// Merge the best pair of tokens
+std::vector<std::u32string> merged_tokens;
+for (size_t i = 0; i < tokens.size(); ++i) {
+    if (i < tokens.size() - 1 && tokens[i] == best_pair.first && tokens[i + 1] == best_pair.second) {
+        // Merge the pair
+        merged_tokens.push_back(best_pair.first + best_pair.second);
+        ++i;  // Skip the next token as it's now merged
+    } else {
+        // Keep the token as is
+        merged_tokens.push_back(tokens[i]);
+    }
+}
+
+// Update tokens with the new merged version
+tokens = std::move(merged_tokens);
+`}
+          </CodeBlock>
+
+          <Text>
+          That's all there is to it.  Once the loop exits we have our vector of tokens, and we just need to convert them back to UTF-8 before returning them, as that is what our vocabulary encoder is expecting.  We can then lookup each entry in the vocabulary to get the final token IDs that we will feed into the model.
+        </Text>
 
         <Heading as="h2" size="xl">Conclusion</Heading>
 
         <Text>
-          This tokenizer implementation demonstrates the complexities involved in preparing text for input into a GPT-style model. 
-          By using a combination of regex-based initial tokenization, byte-to-unicode mapping, and Byte Pair Encoding, it can 
-          efficiently convert raw text into a sequence of token IDs that the model can process.
+          Referring back to the architecture diagram at the very start of this post, we have only just covered the first couple of boxes!  That said, I think this is actually one of the more fiddly bits of implementing GPT2 from scratch, the rest is just matrix stuff which may end up being quicker to rattle through.
         </Text>
 
         <Text>
-          The use of BPE allows the model to handle a large vocabulary efficiently, breaking down uncommon words into more common 
-          subwords. This approach strikes a balance between the flexibility of character-level models and the efficiency of 
-          word-level models.
+          The broad plan is to probably break the rest of the architecture into another couple of blog posts, and then to carry on with some more machine-learning themed posts.  I'd like to repeat this with Llama1, which was released about 4 years after GPT2 to get a better understanding of what moved forward in that time, and to also look at fine tuning these models on custom datasets, and using RLHF.
         </Text>
 
         <Text>
-          Understanding this tokenization process is crucial for anyone working with or implementing large language models, 
-          as it forms the bridge between human-readable text and the numerical input that these models process.
+          If you found this post useful, or have any questions, please feel free to reach out to me on <a
+          style={{ textDecoration: "underline" }} target="_blank"
+          href="https://twitter.com/daoplays"
+        >X</a>.
         </Text>
       </VStack>
     </Box>
