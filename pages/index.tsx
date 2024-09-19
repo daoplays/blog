@@ -13,6 +13,7 @@ import pokemon from "components/images/daoplays_pokemon.png";
 import solana from "components/images/solana.jpg";
 import ML from "components/images/ML.png";
 import core from "components/images/core.jpeg";
+import gpt2 from "components/images/gpt2.png";
 
 const blog_post_one = {
   title: "DaoPlays is Live!",
@@ -131,6 +132,16 @@ const options = {
   display_image: !isMobile,
 };
 
+const gpt2_1 = {
+    title: "GPT2 From Scratch In C++ - Part 1 - Tokenization",
+    sub_title: "Sept 19 2024",
+    post_text:
+      "First in a series of posts recreating the forward pass of GPT2 in C++ from scratch.  In this post we'll be tokenizing the input text, and converting it into a sequence of integers that can be fed into the model.",
+    image: gpt2,
+    display_image: !isMobile,
+  };
+  
+
 function RowCard({ title, sub_title, post_text, image, display_image }) {
   return (
     <Card style={{ flexDirection: "row" }}>
@@ -178,6 +189,12 @@ export default function Home() {
       <br />
       <Container>
         <Col>
+
+        <Link href="/blog/gpt2_p1">
+            <RowCard {...gpt2_1} />
+          </Link>
+
+          <br />
           <Link href="/blog/options">
             <RowCard {...options} />
           </Link>

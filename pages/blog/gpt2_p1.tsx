@@ -107,14 +107,6 @@ const TokenizationProcess = () => {
           <Text>
             A quick note on the special "&lt;|endoftext|&gt;" token (ID 50256). It's used to mark the end of a document or a segment of text during training and inference, however it isn't typically used during the standard tokenization process of input text.   It's typically added manually to the end of tokenized sequences when preparing training data or generating text. 
           </Text>
-  
-          <Text>
-            The creation of these files was part of the GPT-2 training process.  The process started with a vocabulary of 256 entries representing all possible bytes. The training data (a large corpus of text) was analyzed to find the most frequent character pairs. Starting with individual characters, the most frequent pairs were iteratively merged to form new tokens. Each merge operation was recorded in merges.txt, up to 50,000 merges. The resulting set of tokens (individual bytes, merged pairs, common words) formed the vocabulary in vocab.json.
-          </Text>
-    
-          <Text>
-            This process ensures that the tokenizer can handle any byte sequence while also efficiently representing common character combinations and words in the language.
-          </Text>
            
             <Text>
               Ok, with that diversion over let's look at how this works for "GPT2" and " OpenAI", including the ranks of different pair combinations:
@@ -241,10 +233,10 @@ const TokenizationProcess = () => {
               <ListItem><Code>"G" → 38</Code></ListItem>
               <ListItem><Code>"PT" → 11571</Code></ListItem>
               <ListItem><Code>"2" → 17</Code></ListItem>
-              <ListItem><Code>"Ġwas" → 373</Code> (includes the preceding space)</ListItem>
-              <ListItem><Code>"Ġcreated" → 2726</Code> (includes the preceding space)</ListItem>
-              <ListItem><Code>"Ġby" → 416</Code> (includes the preceding space)</ListItem>
-              <ListItem><Code>"ĠOpen" → 4946</Code> (includes the preceding space)</ListItem>
+              <ListItem><Code>"Ġwas" → 373</Code> </ListItem>
+              <ListItem><Code>"Ġcreated" → 2726</Code> </ListItem>
+              <ListItem><Code>"Ġby" → 416</Code> </ListItem>
+              <ListItem><Code>"ĠOpen" → 4946</Code> </ListItem>
               <ListItem><Code>"AI" → 20185</Code></ListItem>
             </OrderedList>
     
@@ -266,7 +258,7 @@ const PostContent = () => {
         GPT2 From Scratch In C++ - Part 1 - Tokenization
         </h1>
         <h1 className="h5 text-center mb-1 pt-0 font-weight-bold text-secondary">
-          Sept 17 2024
+          Sept 19 2024
         </h1>
 
         <Text>
@@ -277,7 +269,7 @@ const PostContent = () => {
 
           <br/><br/>
 
-          Below is a high level diagram of the GPT2 architecture (thank you Claude), from an input string all the way down to the probability distribution over next token (the output logits):
+          Below is a high level diagram of the GPT2 architecture (thank you Claude), from an input string all the way down to the probability distribution over next token:
           </Text>
 
           <Box  maxWidth="100%" width="auto" height="auto">
@@ -555,7 +547,7 @@ std::vector<int> tokenizer_t::tokenize(const string_t& text)
         </CodeBlock>
 
         <Text>
-          At this point this function is pretty straight forward, and at a high lvl implements the tokenization process we described at the start of the post:
+          At this point this function is pretty straight forward, and at a high level implements the tokenization process we described at the start of the post:
         </Text>
 
         <OrderedList spacing={2}>
@@ -720,15 +712,15 @@ tokens = std::move(merged_tokens);
         <Heading as="h2" size="xl">Conclusion</Heading>
 
         <Text>
-          Referring back to the architecture diagram at the very start of this post, we have only just covered the first couple of boxes!  That said, I think this is actually one of the more fiddly bits of implementing GPT2 from scratch, the rest is just matrix stuff which may end up being quicker to rattle through.
+          Referring back to the architecture diagram at the very start of this post, we have only just covered the first couple of boxes!  That said, I think this is actually one of the more fiddly bits of implementing GPT2 from scratch, the rest is mostly just matrix stuff which may end up being quicker to rattle through.
         </Text>
 
         <Text>
-          The broad plan is to probably break the rest of the architecture into another couple of blog posts, and then to carry on with some more machine-learning themed posts.  I'd like to repeat this with Llama1, which was released about 4 years after GPT2 to get a better understanding of what moved forward in that time, and to also look at fine tuning these models on custom datasets, and using RLHF.
+          The broad plan is to break the rest of the architecture into another couple of blog posts, the next being the embedding/unembedding process, and getting the next token, leaving the transformer block till last.   After those are done i'll carry on with some more machine-learning themed posts, for example i'd like to repeat this with Llama1, which was released about 4 years after GPT2 to get a better understanding of what moved forward in that time, and to also look at fine tuning these models on custom datasets, and using RLHF.
         </Text>
 
         <Text>
-          If you found this post useful, or have any questions, please feel free to reach out to me on <a
+          If you found this post useful, have any questions, or think you might be interested in some of those upcoming posts, please feel free to reach out, or just follow me on <a
           style={{ textDecoration: "underline" }} target="_blank"
           href="https://twitter.com/daoplays"
         >X</a>.
