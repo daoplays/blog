@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <!-- Token IDs -->
+  <text x="400" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Input Token IDs: [38, 11571, 17, 373, 2726, 416, 4946, 20815]</text>
+  
+  <!-- Embedding Matrix -->
+  <rect x="50" y="50" width="200" height="400" fill="#fff2cc" stroke="#000" stroke-width="2"/>
+  <text x="150" y="470" text-anchor="middle" font-family="Arial, sans-serif" font-size="14">Token Embedding Matrix</text>
+  <text x="30" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" transform="rotate(-90 30 250)">50267 x 768</text>
+  
+  <!-- Row indicators in Embedding Matrix -->
+  <text x="60" y="70" font-family="Arial, sans-serif" font-size="12">Row 1</text>
+  <text x="60" y="90" font-family="Arial, sans-serif" font-size="12">Row 17</text>
+  <text x="60" y="110" font-family="Arial, sans-serif" font-size="12">Row 38</text>
+  <text x="60" y="150" font-family="Arial, sans-serif" font-size="12">Row 373</text>
+  <text x="60" y="170" font-family="Arial, sans-serif" font-size="12">Row 416</text>
+  <text x="60" y="240" font-family="Arial, sans-serif" font-size="12">Row 2726</text>
+  <text x="60" y="280" font-family="Arial, sans-serif" font-size="12">Row 4946</text>
+  <text x="60" y="340" font-family="Arial, sans-serif" font-size="12">Row 11571</text>
+  <text x="60" y="400" font-family="Arial, sans-serif" font-size="12">Row 20815</text>
+  <text x="60" y="430" font-family="Arial, sans-serif" font-size="12">Row 50267</text>
+
+  <!-- Selected Vectors -->
+  <rect x="300" y="50" width="200" height="40" fill="#e6f3ff" stroke="#000" stroke-width="2"/>
+  <text x="400" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Vector for Token 1 (ID: 38)</text>
+  
+  <rect x="300" y="100" width="200" height="40" fill="#e6f3ff" stroke="#000" stroke-width="2"/>
+  <text x="400" y="125" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Vector for Token 2 (ID: 11571)</text>
+  
+  <rect x="300" y="150" width="200" height="40" fill="#e6f3ff" stroke="#000" stroke-width="2"/>
+  <text x="400" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Vector for Token 3 (ID: 17)</text>
+  
+  <rect x="300" y="200" width="200" height="40" fill="#e6f3ff" stroke="#000" stroke-width="2"/>
+  <text x="400" y="225" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Vector for Token 4 (ID: 373)</text>
+  
+  <rect x="300" y="250" width="200" height="40" fill="#e6f3ff" stroke="#000" stroke-width="2"/>
+  <text x="400" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Vector for Token 5 (ID: 2726)</text>
+  
+  <rect x="300" y="300" width="200" height="40" fill="#e6f3ff" stroke="#000" stroke-width="2"/>
+  <text x="400" y="325" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Vector for Token 6 (ID: 416)</text>
+  
+  <rect x="300" y="350" width="200" height="40" fill="#e6f3ff" stroke="#000" stroke-width="2"/>
+  <text x="400" y="375" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Vector for Token 7 (ID: 4946)</text>
+  
+  <rect x="300" y="400" width="200" height="40" fill="#e6f3ff" stroke="#000" stroke-width="2"/>
+  <text x="400" y="425" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Vector for Token 8 (ID: 20815)</text>
+
+  <!-- Embedded Tokens -->
+  <rect x="550" y="50" width="200" height="400" fill="#f4cccc" stroke="#000" stroke-width="2"/>
+  <text x="650" y="470" text-anchor="middle" font-family="Arial, sans-serif" font-size="14">Embedded Tokens</text>
+  <text x="770" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" transform="rotate(-90 770 250)">8 x 768</text>
+  
+  <!-- Arrows from Embedding Matrix to Vectors -->
+  <path d="M 250 110 L 285 80" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 250 340 L 295 130" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 250 90 L 290 160" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 250 150 L 290 210" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 250 240 L 285 260" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 250 170 L 295 310" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 250 280 L 290 360" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 250 400 L 285 420" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Arrows from Vectors to Embedded Tokens -->
+  <path d="M 500 70 L 540 70" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 500 120 L 540 120" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 500 170 L 540 170" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 500 220 L 540 220" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 500 270 L 540 270" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 500 320 L 540 320" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 500 370 L 540 370" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M 500 420 L 540 420" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Arrowhead definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" />
+    </marker>
+  </defs>
+</svg>
