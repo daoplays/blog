@@ -14,23 +14,26 @@ const EmbeddingProcess = () => {
           </Text>
             <Heading as="h2" size="l">What are Embeddings?</Heading>
             <Text>
-            Embeddings are a key component in virtually all modern large language models (LLMs), including GPT-2. They are the means by which we can turn a set of integers (our token IDs) to the continuous vector spaces that neural networks operate in, allowng the model to capture the relationships between those tokens.
+            Embeddings are a key component in virtually all large language models (LLMs), including GPT-2. They are the means by which we can turn an integer token ID into a vector of floating point numbers that the model can actually do something with.  Early word embedding techniques like <a style={{textDecoration: "underline"}} target="_blank" href="https://www.tensorflow.org/text/tutorials/word2vec">Word2Vec</a> and <a style={{textDecoration: "underline"}} target="_blank" href=">https://nlp.stanford.edu/projects/glove/">GloVe</a> were pre-trained separately and then used as fixed inputs to neural networks. In most modern LLMs, however, including GPT-2, BERT, and their successors, embeddings are learned during the training process. This means that the model is able to adjust the vector representation of each token ID to better predict what the next token will be. While <a style={{textDecoration: "underline"}} target="_blank" href="https://nlp.stanford.edu/pubs/hewitt2019structural.pdf">some studies</a>, suggest that these embeddings are capturing syntactic information about the tokens, even that level of interpretation is open to <a style={{textDecoration: "underline"}} target="_blank" href="https://arxiv.org/pdf/2102.12452">debate</a> in these large models. If you are interested in interpretability though I can recommend pretty much anything by the likes of <a style={{textDecoration: "underline"}} target="_blank" href="https://80000hours.org/podcast/episodes/chris-olah-interpretability-research/">Chris Olah</a>.
 
-            GPT-2 uses two types of embeddings, token embeddings and position embeddings.  There are others, such as segment embeddings, which are used by models like <a  style={{ textDecoration: "underline" }} target="_blank" href="https://arxiv.org/pdf/1810.04805">BERT</a>, but we'll stick to the two used by GPT-2 here.
-            </Text>
-
-            <Text>
-            Early word embedding techniques like <a style={{textDecoration: "underline"}} target="_blank" href="https://www.tensorflow.org/text/tutorials/word2vec">Word2Vec</a> and <a style={{textDecoration: "underline"}} target="_blank" href=">https://nlp.stanford.edu/projects/glove/">GloVe</a> were pre-trained separately and then used as fixed inputs to neural networks. In most modern LLMs, however, including GPT-2, BERT, and their successors, embeddings are learned during the training process. The model adjusts these representations to best capture the relationships between tokens. The size of the embedding vectors is a hyperparameter and will vary from model to model, ranging from a hundreds to thousands of parameters per token.  In the case of GPT-2 there are few different sizes, but we will be dealing with the smallest model, which has a model size of 768 parameters.
-
-            </Text>
-
-            <Heading as="h3" size="m">Token Embeddings</Heading>
-
-            <Text>At a high level token embeddings can be though of as representing the meaning of each token in our vocabulary.  In GPT-2 this means that the token embedding matrix that needs to be learnt is (vocab size X model size), which for us will be (50796 X 768).  That's about 40 million parameters just for the token embedding!  Fortunately we only care about the forward pass in this post, so we just need to know how to use this matrix to actually perform the embedding.
+            <br/><br/>
+           
+            
+            The size of the embedding vectors is a hyperparameter and will vary from model to model, ranging from a hundreds to thousands of parameters per token.  In the case of GPT-2 there are few different sizes, but we will be dealing with the smallest model, which has a model size of 768 parameters.
 
             <br/><br/>
 
-            In the previous post we encoded the string "GPT2 was created by OpenAI", which result in the set of tokens [38, 11571, 17, 373, 2726, 416, 4946, 20815].  Below is a diagram illustrating the complete embedding process for these tokens.
+            GPT-2 uses two types of embeddings: token embeddings and position embeddings.  There are others, such as segment embeddings, which are used by models like <a  style={{ textDecoration: "underline" }} target="_blank" href="https://arxiv.org/pdf/1810.04805">BERT</a>, but we'll stick to the two used by GPT-2 here.
+            </Text>
+
+
+            <Heading as="h3" size="m">Token Embeddings</Heading>
+
+            <Text>At a high level, token embeddings can be thought of as the floating point representation that encodes the 'meaning' of each token in our vocabulary. This means that the token embedding matrix that needs to be learnt is (vocab size X model size), which for our GPT-2 implementation will be (50796 X 768).  That's about 40 million parameters just for the token embedding!  Fortunately we only care about the forward pass in this post, so we don't need to worry about how to train those parameters, we just need to know how to use the matrix to actually perform the embedding.
+
+            <br/><br/>
+
+            In the previous post in this series we encoded the string "GPT2 was created by OpenAI", which resulted in the set of tokens [38, 11571, 17, 373, 2726, 416, 4946, 20815].  Below is a diagram that illustrates the token embedding process for these tokens:
 
             </Text>
 
@@ -43,18 +46,22 @@ const EmbeddingProcess = () => {
           </Center>
         </Box>
         <Text>
-            Each token ID corresponds to a specific row in the Token Embedding Matrix. 
-            We can think of the embedding process as selecting the relevant row for each token (represented by the blue boxes in the middle), maintaining the order of our input sequence, and then combining (stacking) these rows to form our the particular token embedding matrix for our input. In our case this matrix has 8 rows (one for each input token) and 768 columns (the embedding dimension).
+            Here, each token ID corresponds to a specific row in the token embedding matrix. 
+            We can think of the embedding process as selecting the relevant row for each token (represented by the blue boxes in the middle), maintaining the order of our input sequence, and then combining (stacking) these rows to form the particular embedded token matrix for our input. In our case this matrix has 8 rows (one for each input token) and 768 columns (the embedding dimension).
             <br/><br/>
-            To summarise, this process transforms our discrete token IDs into a continuous vector representation. The resulting 8 x 768 embedded tokens matrix preserves the sequence of our input while capturing the learnt information about each token encoded in the embedding matrix. 
+            To summarise, this process transforms our discrete token IDs into vectors of floating point numbers. The resulting 8 x 768 embedded tokens matrix preserves the sequence of our input while capturing the information that has been learnt about each token, encoded in the embedding matrix. 
             </Text>
 
 
             <Heading as="h3" size="m">Position Embeddings</Heading>
 
-            <Text>The second type of embedding used by GPT-2 is position embedding.  As the name suggests, rather than trying to encode semantic information about the tokens, this instead is trying to encode generic, useful information about the position of a token in the input sequence.  As with the token embedding matrix this one is also learnt during training, however rather than being of size (vocab size X model size), it is of size (max sequence length X model size), which in the case of GPT-2 this is (1024 X 768).
+            <Text>The second type of embedding used by GPT-2 is position embedding.  As the name suggests, rather than trying to encode semantic information about the tokens, this instead is trying to encode generic, useful information about the position of a token in the input sequence.  
+                
+            The reason for wanting to add in some kind of position embedding is because otherwise the transformer would always give the same output for the same set of input tokens, regardless of their ordering, i.e. "I walk faster than I run" and "I run faster than I walk" would be treated as the same input and so generate the same next token.  There has been a lot of work done on different ways to perform position embedding, and  <a  style={{ textDecoration: "underline" }} target="_blank" href="https://ar5iv.labs.arxiv.org/html/2102.11090">this paper</a> provides a good overview, covering different examples of absolute and relative embedding methods.
             <br/><br/>
-            The image below illustrates the position embedding process for the same input tokens as above.  It is pretty similar, its just rather than taking the row that corresponds to the token ID, we take the row that corresponds to the position of the token in the sequence.  Just to be explicit, this means we grab the first row for the first token, the second row for the second token and so on.
+            GPT-2 uses absolute position embedding, meaning that each vector of floating point numbers in the position embedding matrix corresponds to a particular absolute position in the input sequence.  As with the token embedding, the position embedding matrix is also learnt during training, however rather than being of size (vocab size X model size), it is of size (max sequence length X model size), which in the case of GPT-2 this is (1024 X 768).
+            <br/><br/>
+            The image below illustrates the position embedding process for the same input tokens as above.  It is pretty similar, however rather than taking the row that corresponds to the token ID, we take the row that corresponds to the position of the token in the sequence.  Just to be explicit, this means we grab the first row for the first token, the second row for the second token and so on.
             </Text>
 
             <Box  maxWidth="100%" width="auto" height="auto">
@@ -64,9 +71,12 @@ const EmbeddingProcess = () => {
                 </Flex>
               </Center>
             </Box>
-
+            
             <Text>
-              If you are thinking "that seems like a weird way to encode position", I would agree with you.  It isn't obvious to me that the absolute position of a token in an input is particularily useful given you can easily take some text, change the order of the words, and have the new text mean the same thing.  It's probably worth noting then that there are other ways to go about doing this. In particular more recent position encoding techniques such as <a style={{textDecoration: "underline"}} target="_blank" href="https://arxiv.org/pdf/2104.09864">RoPE</a> allow for both absolute and relative information to be encoded, and are used in models like <a style={{textDecoration: "underline"}} target="_blank" href="https://arxiv.org/pdf/2302.13971">LLaMA</a>.
+              If you are thinking "that seems like a weird way to encode position", I agree with you.  It isn't obvious to me that the absolute position of a token in an input is particularly useful, and <a style={{ textDecoration: "underline" }} target="_blank" href="https://aclanthology.org/2020.emnlp-main.555.pdf">analysis</a> has shown that simply replacing them with random vectors leads to a surprisingly small drop in performance.  It is interesting that fixed position embedding matrices such as the sinusoidal approach have been found to have comparable performance to the learned absolute position embeddings, and I would like to know whether simply having some ordered set of vectors where the position embedding for the i'th position is just a vector of the integer i is equally as good.  <a style={{ textDecoration: "underline" }} target="_blank" href="https://arxiv.org/pdf/2108.12409">This</a> approach simply adds a linearly deceasing bias to the models attention scores, and finds that it performs just as well as learned absolute position embeddings, so it seems plausible that the GPT-2 approach is overparameterised for what it is trying to do.
+              
+              <br/><br/>
+              Before moving on i'll mention one other more recent approach to position embedding: <a style={{textDecoration: "underline"}} target="_blank" href="https://arxiv.org/pdf/2104.09864">RoPE</a> allows for both absolute and relative information to be encoded, and is used in models like <a style={{textDecoration: "underline"}} target="_blank" href="https://arxiv.org/pdf/2302.13971">LLaMA</a>, and I intend to implement that myself from scratch in a future post.
             </Text>
 
     
@@ -115,9 +125,9 @@ Eigen::MatrixXf gpt2_t::forward(string_t input_string)
     return logits;
 }`}
             </CodeBlock>
-    
+            
             <Text>
-              Note that we are making use of the fabulous Eigen library for handling all our matrix operations.  The <Code>MatrixXf</Code> type just means a matrix of floating point numbers.  This method performs the entire forward pass for our GPT-2 model:
+              Note that we are making use of the fabulous <a style={{textDecoration: "underline"}} target="_blank" href="https://eigen.tuxfamily.org/">Eigen</a> library for handling all our matrix operations, for which the <Code>MatrixXf</Code> type just means a matrix of floating point numbers.  This method performs the entire forward pass for our GPT-2 model:
             </Text>
             <OrderedList>
               <ListItem>It tokenizes the input string using our tokenizer (which we covered in the previous post).</ListItem>
@@ -127,7 +137,9 @@ Eigen::MatrixXf gpt2_t::forward(string_t input_string)
             </OrderedList>
     
             <Text>
-              Going through the embedding process in a bit more detail: To perform the token embedding, for the i'th token we take the row corresponding to the ID of that token from the token embedding matrix and assign it to the i'th row in our embedded_tokens matrix:
+              We can go through the embedding process in a bit more detail: 
+              <br/><br/> 
+              To perform the token embedding, for the i'th token we take the row corresponding to the ID of that token from the token embedding matrix and assign it to the i'th row in our embedded_tokens matrix:
             </Text>
             <CodeBlock language="cpp">
 {`// for token embedding, take the row corresponding to the token ID
@@ -143,7 +155,7 @@ embedded_tokens.row(i) = weights.token_embedding.row(tokens[i]);`}
 embedded_tokens.row(i) += weights.position_embedding.row(i);`}
             </CodeBlock>
             <Text>
-              That is all there is to it! We have now performed the embedding process and have our input ready for the transformer layers of our network (which we'll cover in the next post).
+              That's all there is to it! We have now performed the embedding process and have our input ready for the transformer layers of our network (which we'll cover in the next post).
             </Text>
     
             <Heading as="h2" size="l">The Unembedding Process</Heading>
@@ -155,10 +167,10 @@ embedded_tokens.row(i) += weights.position_embedding.row(i);`}
 MatrixXf logits = norm_final_output * weights.token_embedding.transpose();`}
             </CodeBlock>
             <Text>
-              This projects our output back onto a space that has the same length as the model's vocabulary, with the values representing unnormalized scores for each token in our vocabulary, often referred to as logits.
+              This projects our output back onto a space that has the same length as the model's vocabulary, with the values representing unnormalised scores for each token in our vocabulary, referred to as logits.
               This design choice - using the same matrix for both embedding and unembedding - is common amongst language models and is referred to as 
               {" "}<a style={{textDecoration: "underline"}} target="_blank" href="https://arxiv.org/pdf/1608.05859">
-              'weight tying'</a>.  Although it is not strictly necessary - one could have a separate matrix for umbedding - it helps to reduce the number of parameters in the model without having a demonstrably negative impact on performance.
+              'weight tying'</a>.  Although it is not strictly necessary - one could have a separate matrix for unembedding - it helps to reduce the number of parameters in the model without having a demonstrably negative impact on performance.
             </Text>
 
     
@@ -191,7 +203,7 @@ string_t gpt2_t::get_next_max_like_token(MatrixXf& logits)
 }`}
             </CodeBlock>
             <Text>
-            The first step here is to just get the last row from the logits matrix.  This is because the network isn't just predicting the next token given our full input string, but rather for each set of sub-tokens, it is using them to predict the next token after that.  In other words, given the first token it predicts the second, given the first two tokens it predicts the third, and so on up until the final prediction of the (N+1)th token given the full set of N.  Although this is very useful in training it isn't so useful for inference so we just grab the last row.
+            The first thing we do here is to get the last row from the logits matrix.  This is because the network doesn't just generate scores for the token immediately following our input. Instead, it produces scores for every possible next token at each step of the input sequence.  In other words, for an input of length N, the network calculates N sets of scores: the first set predicts the second token given the first, the second set predicts the third token given the first two, and so on, culminating in the Nth set that predicts the (N+1)th token given all N input tokens.   Although this is very useful in training it isn't so useful for inference so we just grab the last row, which represents the scores for the next token given our complete input sequence.
             </Text>
             
 
@@ -214,16 +226,16 @@ VectorXf softmax(const VectorXf& x)
             <Text>
             Note that for numerical stability we perform the common trick of subtracting the maximum value from each element before exponentiating. This prevents overflow issues that can occur when exponentiating large numbers.  
             <br/><br/>
-            Softmax is a nice method of computing probabilities from the output logits because it results in the 
+            Softmax is a nice method of computing probabilities from the output logits because it results in the {" "}
             <a style={{textDecoration: "underline"}} target="_blank" href="https://en.wikipedia.org/wiki/Maximum_entropy_probability_distribution">
-            maximum entropy distribution</a>  given the constraint that the expected value of the logits  matches the actual logits we have. Said differently, the probabilities we get from softmax assumes the least additional information (maximise entropy), given the constraint that the expected values of the logits  should match the actual logits we have. 
+            maximum entropy distribution</a>  given the constraint that the expected value of the logits  matches the actual logits we have. Said differently, the probabilities we get from softmax assumes the least additional information (maximises entropy), given the constraint that the expected values of the logits should match the actual logits we have. 
             <br/><br/>
-            That said, there are other methods of converting logits to probabilities, a couple of examples being the <a style={{textDecoration: "underline"}} target="_blank" href="https://arxiv.org/pdf/1805.10829">SigSoftmax</a> functoin which combines a sigmoid and softmax, or the <a style={{textDecoration: "underline"}} target="_blank" href="https://arxiv.org/pdf/1511.05042">Spherical Loss</a> family of functions which projects the network's output onto a hypersphere before applying normalization.
+            That said, there are other methods of converting logits to probabilities, a couple of examples being the <a style={{textDecoration: "underline"}} target="_blank" href="https://arxiv.org/pdf/1805.10829">SigSoftmax</a> function which combines a sigmoid and softmax, or the <a style={{textDecoration: "underline"}} target="_blank" href="https://arxiv.org/pdf/1511.05042">Spherical Loss</a> family of functions which projects the network's output onto a hypersphere before applying normalization.
 
             </Text>
 
             <Text>
-              Finally, we find the token with the highest probability using Eigens maxCoeff function.  This uses Eigens build in Index type, and so we need to turn that into a standard int before we can use to  detokenize the index and get our actual token:
+              Finally, we find the token with the highest probability using Eigens maxCoeff function.  This uses Eigens built in Index type, and so we need to turn that into a standard int before we can use it to  detokenize the index and get our actual token:
             </Text>
 
             <CodeBlock language="cpp">
@@ -275,7 +287,7 @@ string_t tokenizer_t::detokenize(const int token)
               We've now covered the entire process from input text to output token in our GPT-2 implementation, albeit with a big gap in the middle where the transformer layers do their thing.
             </Text>
             <Text>
-              Embeddings play a crucial role in language models like GPT-2. They allow us to represent discrete tokens as continuous vectors, capturing semantic relationships and positional information. The unembedding process then allows us to convert the model's output back into probabilities over our vocabulary.
+              In this post we looked at how GPT-2 uses both token embeddings and position embeddings to transform discrete token IDs into vectors of floating point numbers that serve as the inputs to the transformer layers.  We also went through the unembedding process, which converts the model's transformer output into the raw scores (logits) for the next token back in the vocabulary space using the same matrix that was used for the token embedding (called weight tying).   Finally we converted these logits into probabilities using the softmax function to get the next token in the sequence.
             </Text>
             <Text>
               In the next and final post in this series, we'll go through these transformer layers. This will mean implementing layer normalisation, self-attention and feed-forward networks, so it may be a long one!
@@ -299,13 +311,13 @@ const PostContent = () => {
         GPT2 From Scratch In C++ - Part 2 - Embedding and Unembedding
         </h1>
         <h1 className="h5 text-center mb-1 pt-0 font-weight-bold text-secondary">
-          Sept 25 2024
+          Sept 24 2024
         </h1>
 
         <Text>
-          In our previous post, we went through the tokenization process used by GPT-2. Referring to the high level architecture diagram below, that means that we covered the first couple of boxes, up to having our input tokens.
-          <br/>
-          The next step then is token embedding. This process transforms our vector of token IDs into the input for the transformer layers of the model. As it is highly related, we'll also then skip past the transformer blocks and final layer normalisation steps to go through the unembedding process. This converts the normalised output of the transformer blocks into 'logits', which are turned into a probability distribution over what token comes next.
+          In our <a style={{ textDecoration: "underline" }} target="_blank"  href="https://www.daoplays.org/blog/gpt2_p1">previous</a> previous post, we went through the tokenization process used by GPT-2. Referring to the high level architecture diagram below, that means that we covered the first couple of boxes, up to the point of having our vector of integer input token IDs.
+          <br/><br/>
+          The next step then is embedding. This process transforms each of our token IDs into a vector of floating point numbers of length equal to the dimensionality of the model (d_model), which,  in the case of the small variant of GPT-2 that we are recreating, is 768.  Therefore if our input is a sequence of 10 token IDs, that means after embedding we will have a matrix that is (10 x 768), and this matrix will become the input for the transformer layers of the model. For now we are going to skip past those layers so that we can also cover the unembedding process that occurs at the bottom of the diagram, which converts the normalised output of the transformer blocks into 'logits' - raw scores for each token in the vocabulary.  Given it is relatively straight forward we'll then finish the process by converting these logits into probabilities with softmax, so that we can finally get the next token in the sequence.
         </Text>
 
         <Box  maxWidth="100%" width="auto" height="auto">
@@ -317,7 +329,7 @@ const PostContent = () => {
         </Box>
 
         <Text>
-          By the end of this post 'all' that will remain is the content of the transformer blocks themselves (and the final layer norm, but layer norms also feature in the transformer blocks), which we'll save for the last entry in this series.
+          By the end of this post 'all' that will remain is the content of the transformer blocks themselves (and the final layer norm, but layer norms also feature in the transformer blocks), which we'll save for the final entry in this series.
         </Text>
 
         <EmbeddingProcess/>

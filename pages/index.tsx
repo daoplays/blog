@@ -141,6 +141,15 @@ const gpt2_1 = {
     display_image: !isMobile,
   };
   
+const gpt2_2 = {
+    title: "GPT2 From Scratch In C++ - Part 2 - Embeddings",
+    sub_title: "Sept 24 2024",
+    post_text:
+        "Second in a series of posts recreating the forward pass of GPT2 in C++ from scratch.  In this post we'll be going through the token and position embedding process that converts our integer token IDs into vectors of floating point numbers that can be passed to the transformer layers.  We'll also go through the unembedding process, converting the output of the transformer layers into probabilities for the next token.",
+    image: gpt2,
+    display_image: !isMobile,
+};
+  
 
 function RowCard({ title, sub_title, post_text, image, display_image }) {
   return (
@@ -189,6 +198,11 @@ export default function Home() {
       <br />
       <Container>
         <Col>
+        <Link href="/blog/gpt2_p2">
+            <RowCard {...gpt2_2} />
+        </Link>
+
+        <br />
 
         <Link href="/blog/gpt2_p1">
             <RowCard {...gpt2_1} />
